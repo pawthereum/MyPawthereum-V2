@@ -1,6 +1,7 @@
 {
   "name": "ethereum-boilerplate",
   "version": "0.1.0",
+  "homepage": "http://pawthereum.github.io/MyPawthereum-V2",
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
     "@snapshot-labs/snapshot.js": "^0.3.30",
