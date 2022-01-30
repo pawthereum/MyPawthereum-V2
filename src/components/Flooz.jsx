@@ -1,23 +1,25 @@
 import React from "react";
 import { useMoralis } from "react-moralis";
 import { Alert, Card } from "antd";
-
-const styles = {
-  card: {
-    boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
-    border: "1px solid #e7eaf3",
-    borderRadius: "1rem",
-    width: "640px",
-    fontSize: "16px",
-    fontWeight: "500",
-    backgroundColor: '#212429',
-  },
-  row: {
-    marginBottom: '10px'
-  },
-}
+import useBreakpoint from "hooks/useBreakpoint";
 
 function Flooz() {
+  const { isMobile } = useBreakpoint()
+
+  const styles = {
+    card: {
+      boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
+      border: "1px solid #e7eaf3",
+      borderRadius: "1rem",
+      width: isMobile ? "400px" : "640px",
+      fontSize: "16px",
+      fontWeight: "500",
+      backgroundColor: '#212429',
+    },
+    row: {
+      marginBottom: '10px'
+    },
+  }
   const { chainId } = useMoralis()
 
   return (

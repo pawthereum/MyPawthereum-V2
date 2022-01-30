@@ -11,6 +11,7 @@ import ReactMarkdown from 'react-markdown';
 import { DiscussionEmbed } from 'disqus-react' 
 import { hexlify } from '@ethersproject/bytes'
 import fetch from 'node-fetch'
+import useBreakpoint from "hooks/useBreakpoint";
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -26,67 +27,66 @@ const openNotification = ({ message, description, link }) => {
 
 async function signMessage(web3, msg, address) {
   msg = hexlify(new Buffer(msg, 'utf8'));
-  console.log('msg', msg)
   return await web3.send('personal_sign', [msg, address]);
 }
 
-console.log('snapshot', snapshot)
 const hubUrl = 'https://hub.snapshot.org';
 const Snapshot = new snapshot.Client(hubUrl);
-console.log('SNAPSHOT', Snapshot)
-
-const styles = {
-  title: {
-    fontSize: "30px",
-    fontWeight: "600",
-  },
-  header: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "5px",
-  },
-  row: {
-    display: "flex",
-    gap: "10px",
-    flexDirection: "row",
-    width: '100%',
-  },
-  rowWithColumns: {
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    textAlign: "center",
-    justifyContent: "space-between",
-    gap: "10px",
-    flexDirection: "row",
-    paddingBottom: "10px",
-  },
-  marginRight: {
-    marginRight: '1rem'
-  },
-  justifyEnd: {
-    marginLeft: 'auto',
-    marginRight: 0,
-  },
-  card: {
-    boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
-    border: "1px solid #e7eaf3",
-    borderRadius: "1rem",
-    width: "640px",
-    fontSize: "16px",
-    fontWeight: "500",
-  },
-  choiceCard: {
-    border: "1px solid #e7eaf3",
-    borderRadius: "1rem",
-    width: "49%",
-    fontSize: "16px",
-    fontWeight: "500",
-  }
-};
 
 function Proposal(props) {
+  const { isMobile } = useBreakpoint()
+
+  const styles = {
+    title: {
+      fontSize: "30px",
+      fontWeight: "600",
+    },
+    header: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "5px",
+    },
+    row: {
+      display: "flex",
+      gap: "10px",
+      flexDirection: "row",
+      width: '100%',
+    },
+    rowWithColumns: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+      textAlign: "center",
+      justifyContent: "space-between",
+      gap: "10px",
+      flexDirection: "row",
+      paddingBottom: "10px",
+    },
+    marginRight: {
+      marginRight: '1rem'
+    },
+    justifyEnd: {
+      marginLeft: 'auto',
+      marginRight: 0,
+    },
+    card: {
+      boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
+      border: "1px solid #e7eaf3",
+      borderRadius: "1rem",
+      width: isMobile ? "400px" : "640px",
+      fontSize: "16px",
+      fontWeight: "500",
+    },
+    choiceCard: {
+      border: "1px solid #e7eaf3",
+      borderRadius: "1rem",
+      width: "47.5%",
+      fontSize: "16px",
+      fontWeight: "500",
+    }
+  };
+
   const { account, chainId, Moralis } = useMoralis();
   const { id } = useParams();
   const [proposal, setProposal] = useState({ choices: [] })

@@ -11,33 +11,8 @@ import { useTokenPrice } from "react-moralis";
 import { tokenValue } from "helpers/formatters";
 import { getWrappedNative } from "helpers/networks";
 import { PAWTH_ADDRESS } from '../../constants'
+import useBreakpoint from "hooks/useBreakpoint";
 // import { useOneInchQuote } from "react-moralis";
-
-const styles = {
-  card: {
-    width: "430px",
-    boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
-    border: "1px solid #e7eaf3",
-    borderRadius: "1rem",
-    fontSize: "16px",
-    fontWeight: "500",
-  },
-  input: {
-    padding: "0",
-    fontWeight: "500",
-    fontSize: "23px",
-    display: "block",
-    width: "100%",
-  },
-  priceSwap: {
-    display: "flex",
-    justifyContent: "space-between",
-    fontSize: "15px",
-    color: "#434343",
-    marginTop: "8px",
-    padding: "0 10px",
-  },
-};
 
 const nativeAddress = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 
@@ -57,6 +32,35 @@ const getChainIdByName = (chainName) => {
 const IsNative = (address) => address === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 
 function DEX({ chain, customTokens = {} }) {
+  const { isMobile } = useBreakpoint()
+
+  const styles = {
+    card: {
+      width: isMobile ? "400px" : "430px",
+      boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
+      border: "1px solid #e7eaf3",
+      borderRadius: "1rem",
+      fontSize: "16px",
+      fontWeight: "500",
+    },
+    input: {
+      padding: "0",
+      fontWeight: "500",
+      fontSize: "23px",
+      display: "block",
+      width: "100%",
+    },
+    priceSwap: {
+      display: "flex",
+      justifyContent: "space-between",
+      fontSize: "15px",
+      color: "#434343",
+      marginTop: "8px",
+      padding: "0 10px",
+    },
+  };
+  
+
   const { trySwap, tokenList, getQuote } = useInchDex(chain);
   const { tryPawSwap } = usePawSwap(chain);
 

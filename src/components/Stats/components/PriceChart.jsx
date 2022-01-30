@@ -4,54 +4,58 @@ import { COLORS } from '../../../constants'
 
 import { Skeleton, Tabs } from "antd";
 import Chart from "react-apexcharts";
+import useBreakpoint from "hooks/useBreakpoint";
 const CoinGecko = require('coingecko-api')
 
-const styles = {
-  card: {
-    alignItems: "center",
-    width: "100%",
-  },
-  header: {
-    padding: "10px",
-  },
-  body: {
-    textAlign: "center",
-  },
-  logo: {
-    padding: "10px",
-    height: "100px",
-    width: "100px"
-  },
-  row: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    flexDirection: "row",
-    paddingBottom: "10px",
-  },
-  rowEnd: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "end",
-    gap: "10px",
-    flexDirection: "row",
-    paddingBottom: "10px",
-  },
-  rowWithColumns: {
-    display: "flex",
-    alignItems: "center",
-    textAlign: "center",
-    justifyContent: "space-around",
-    gap: "10px",
-    flexDirection: "row",
-    paddingBottom: "10px",
-    maxWidth: '90%',
-    paddingLeft: '10%'
-  },
-};
-
 function PriceChart(props) {
+  const { isMobile } = useBreakpoint()
+
+  const styles = {
+    card: {
+      alignItems: "center",
+      width: isMobile ? "400px" : "100%",
+    },
+    header: {
+      padding: "10px",
+    },
+    body: {
+      textAlign: "center",
+    },
+    logo: {
+      padding: "10px",
+      height: "100px",
+      width: "100px"
+    },
+    row: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: isMobile ? "center" : "start",
+      gap: "10px",
+      flexDirection: "row",
+      paddingBottom: "10px",
+    },
+    rowEnd: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "end",
+      gap: "10px",
+      flexDirection: "row",
+      paddingBottom: "10px",
+    },
+    rowWithColumns: {
+      display: "flex",
+      alignItems: "center",
+      textAlign: "center",
+      justifyContent: "space-around",
+      gap: "10px",
+      flexDirection: "row",
+      paddingBottom: "10px",
+    },
+  };
+
+  const pricePrecision = isMobile ? 4 : 5
+  const chartWidth = isMobile ? '300px' : '500'
+
   const { chainId } = useMoralis();
 
   const [priceSeries, setPriceSeries] = useState([])
@@ -119,7 +123,7 @@ function PriceChart(props) {
       yaxis: {
         labels: {
           formatter: function (value) {
-            if (type === 'price') return '$' + value.toFixed(5)
+            if (type === 'price') return '$' + value.toFixed(pricePrecision)
             return roundBig(parseInt(value))
           }
         },
@@ -155,21 +159,21 @@ function PriceChart(props) {
                 <Chart
                   options={getChartOptions('price')}
                   series={priceSeries}
-                  width="500"
+                  width={chartWidth}
                 />
               </Tabs.TabPane>
               <Tabs.TabPane tab={<span>Market Cap</span>} key="2">
                 <Chart
                   options={getChartOptions('marketCap')}
                   series={marketCapSeries}
-                  width="500"
+                  width={chartWidth}
                 />
               </Tabs.TabPane>
               <Tabs.TabPane tab={<span>Volume</span>} key="3">
                 <Chart
                   options={getChartOptions('volume')}
                   series={volumeSeries}
-                  width="500"
+                  width={chartWidth}
                 />
               </Tabs.TabPane>
             </Tabs>

@@ -112,7 +112,7 @@ const App = ({ isServerInfo }) => {
             <Route path="/wallet">
               <Wallet />
             </Route>
-            <Route path="/1inch">
+            <Route path="/pawswap">
               <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
                 <Tabs.TabPane tab={<span>Ethereum</span>} key="1">
                   <DEX chain="eth" />
@@ -146,8 +146,7 @@ const App = ({ isServerInfo }) => {
             <Route path="/contract">
               <Contract />
             </Route>
-            <Route path="/">
-              {/* <Redirect to="/quickstart" /> */}
+            <Route path="/donate">
               <Donate />
             </Route>
             <Route path="/ethereum-boilerplate">
@@ -155,6 +154,9 @@ const App = ({ isServerInfo }) => {
             </Route>
             <Route path="/nonauthenticated">
               <>Please login using the "Authenticate" button</>
+            </Route>
+            <Route path="/">
+              <Stats />
             </Route>
           </Switch>
         </div>
