@@ -35,8 +35,9 @@
     "devchain": "node Truffle/scripts/devChain.js",
     "connect": "moralis-admin-cli connect-local-devchain",
     "watch:events": "moralis-admin-cli add-contract",
-    "deploy": "node Truffle/scripts/deployContract.js",
-    "deploypage": "gh-pages -d build",
+    "deploycontract": "node Truffle/scripts/deployContract.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "clean": "npx gh-pages-clean"
   },
   "eslintConfig": {
