@@ -6,6 +6,36 @@ import "./index.css";
 import QuickStart from "components/QuickStart";
 import 'antd/dist/antd.variable.min.css';
 import { ConfigProvider } from 'antd';
+import { initializeApp } from 'firebase/app';
+import { 
+  getAuth, 
+  signInAnonymously, 
+  onAuthStateChanged, 
+  connectAuthEmulator,
+  setPersistence,
+  browserSessionPersistence,
+} from 'firebase/auth'
+import { getAnalytics } from 'firebase/analytics'
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+
+const firebaseApp = initializeApp({
+  apiKey: "AIzaSyBmbss75NwVjMpupWnJFYSH6qj6n4YrhJc",
+  authDomain: "mypawth.firebaseapp.com",
+  projectId: "mypawth",
+  storageBucket: "mypawth.appspot.com",
+  messagingSenderId: "880107643145",
+  appId: "1:880107643145:web:e5545b2b7069c5d1c3f3d8",
+  measurementId: "${config.measurementId}"
+})
+
+getAnalytics(firebaseApp)
+const auth = getAuth()
+const db = getFirestore()
+
+if (process.env.NODE_ENV !== 'production') {
+  connectAuthEmulator(auth, "http://localhost:9099")
+  connectFirestoreEmulator(db, 'localhost', 8080)
+}
 
 ConfigProvider.config({
   theme: {
@@ -39,9 +69,15 @@ const Application = () => {
   }
 };
 
-ReactDOM.render(
-  // <React.StrictMode>
-  <Application />,
-  // </React.StrictMode>,
-  document.getElementById("root")
-);
+onAuthStateChanged(auth, (user) => {
+  if (!user) return signInAnonymously(auth)
+
+  setPersistence(auth, browserSessionPersistence)
+  ReactDOM.render(
+    // <React.StrictMode>
+    <Application />,
+    // </React.StrictMode>,
+    document.getElementById("root")
+  );
+})
+

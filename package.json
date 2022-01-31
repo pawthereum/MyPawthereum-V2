@@ -13,6 +13,7 @@
     "apexcharts": "^3.33.0",
     "coingecko-api": "^1.0.10",
     "disqus-react": "^1.1.2",
+    "firebase": "^9.6.5",
     "moralis": "^0.0.176",
     "react": "^17.0.2",
     "react-apexcharts": "^1.3.9",
