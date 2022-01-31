@@ -53,21 +53,21 @@ function PawthStats(props) {
   const [marketCap, setMarketCap] = useState(0)
   const CoinGeckoClient = new CoinGecko()
 
-  async function getCoinGeckoData() {
-    const coinGeckoData = await CoinGeckoClient.coins.markets({ ids: ['pawthereum'] })
-    const tokenData = coinGeckoData.data.find(d => d.id === 'pawthereum')
-    const marketCap = tokenData.market_cap
-    console.log('tokenData', tokenData)
-    setMarketCap(marketCap)
-
-    const tokenLogo = tokenData.image
-    setLogo(tokenLogo)
-
-  }
-
   useEffect(() => {
     getCoinGeckoData()
-  }, [chainId])
+
+    async function getCoinGeckoData() {
+      const coinGeckoData = await CoinGeckoClient.coins.markets({ ids: ['pawthereum'] })
+      const tokenData = coinGeckoData.data.find(d => d.id === 'pawthereum')
+      const marketCap = tokenData.market_cap
+      console.log('tokenData', tokenData)
+      setMarketCap(marketCap)
+  
+      const tokenLogo = tokenData.image
+      setLogo(tokenLogo)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   let price = 0, usdValue = 0
 

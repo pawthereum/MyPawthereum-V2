@@ -24,6 +24,8 @@ import Flooz from 'components/Flooz';
 import Proposal from 'components/Vote/components/Proposal';
 import MenuItems from "./components/MenuItems";
 import { PAWTH_ADDRESS } from "./constants";
+import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
+ 
 const { Header, Footer } = Layout;
 const { useBreakpoint } = Grid;
 
@@ -69,10 +71,33 @@ const styles = {
   }
 };
 const App = ({ isServerInfo }) => {
-  const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId } = useMoralis();
+  const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId, account } = useMoralis();
 
   const screens = useBreakpoint()
   const pawthAddress = PAWTH_ADDRESS[chainId]
+
+  useEffect(() => {
+    if (!account) return
+    logVisit()
+    async function logVisit() {
+      const db = getFirestore()
+      const docRef = doc(db, 'pawthereum', 'wallets', `${account}`, 'visits')
+      const docSnap = await getDoc(docRef)
+      let dates = []
+      if (docSnap.exists()) {
+        dates = docSnap.data().dates || []
+        dates.push(Timestamp.fromDate(new Date()))
+        await updateDoc(docRef, {
+          dates
+        })
+      } else {
+        dates.push(Timestamp.fromDate(new Date()))
+        await setDoc(docRef, {
+          dates: dates
+        })
+      }
+    }
+  }, [account])
 
   function getChainNameById (chainId) {
     switch (chainId) {

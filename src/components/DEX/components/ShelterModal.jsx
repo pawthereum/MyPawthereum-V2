@@ -17,30 +17,31 @@ function ShelterModal({ open, onClose, setShelter, chain }) {
 
   useEffect(() => {
     addPawthToList()
-  }, [chain])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     filterShelters()
+    async function filterShelters () {
+      if (!pawthListItem && !fetchingPawthListItem) {
+        await addPawthToList()
+      }
+      const defaultList = Object.keys(shelterList).map(shelter => shelter)
+  
+      if (!query || query === '' || !query.length) return setFilteredShelterList(defaultList)
+  
+      const filteredShelters = defaultList.filter(token => {
+        return shelterList[token].name.toLowerCase().includes(query.toLowerCase())
+      })
+  
+      if (pawthListItem) {
+        filteredShelterList.unshift(pawthListItem.address)
+      }
+  
+      setFilteredShelterList(filteredShelters)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
-
-  async function filterShelters () {
-    if (!pawthListItem && !fetchingPawthListItem) {
-      await addPawthToList()
-    }
-    const defaultList = Object.keys(shelterList).map(shelter => shelter)
-
-    if (!query || query === '' || !query.length) return setFilteredShelterList(defaultList)
-
-    const filteredShelters = defaultList.filter(token => {
-      return shelterList[token].name.toLowerCase().includes(query.toLowerCase())
-    })
-
-    if (pawthListItem) {
-      filteredShelterList.unshift(pawthListItem.address)
-    }
-
-    setFilteredShelterList(filteredShelters)
-  }
 
   async function addPawthToList () {
     setFetchingPawthListItem(true)

@@ -61,15 +61,16 @@ function Vote() {
     if (!fetchedProposals || !proposals.length) {
       fetchProposals()
     }
+    async function fetchProposals () {
+      fetchedProposals = true
+      console.log('---SNAPSHOT_URL---', SNAPSHOT_URL)
+      const proposals = await getProposals(SNAPSHOT_URL)
+      console.log('proposals', proposals)
+      setProposals(proposals)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function fetchProposals () {
-    fetchedProposals = true
-    console.log('---SNAPSHOT_URL---', SNAPSHOT_URL)
-    const proposals = await getProposals(SNAPSHOT_URL)
-    console.log('proposals', proposals)
-    setProposals(proposals)
-  }
 
   const statusColor = (status) => {
     switch (status) {
@@ -89,7 +90,7 @@ function Vote() {
         ?
           proposals.map((p, i) => {
             return (
-              <div style={styles.row} style={{marginBottom: '10px'}} key={i}>
+              <div style={{ ...styles.row, marginBottom: '10px'}} key={i}>
                 <NavLink to={`/vote/${p.id}`}>
                   <Card style={styles.card}>
                     <div style={styles.row}>

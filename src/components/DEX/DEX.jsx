@@ -6,7 +6,7 @@ import useInchDex from "hooks/useInchDex";
 import usePawSwap from 'hooks/usePawSwap';
 import { Button, Card, Image, Input, InputNumber, Modal } from "antd";
 import Text from "antd/lib/typography/Text";
-import { ArrowDownOutlined, ArrowUpOutlined, DashOutlined } from "@ant-design/icons";
+import { ArrowDownOutlined, DashOutlined } from "@ant-design/icons";
 import { useTokenPrice } from "react-moralis";
 import { tokenValue } from "helpers/formatters";
 import { getWrappedNative } from "helpers/networks";
@@ -183,6 +183,7 @@ function DEX({ chain, customTokens = {} }) {
     if (fromToken) {
       setToToken(fromToken)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arrowIsDown])
 
   const ButtonState = useMemo(() => {
@@ -205,6 +206,7 @@ function DEX({ chain, customTokens = {} }) {
       shelter
     });
     console.log('current trade', currentTrade)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toToken, fromToken, fromAmount, chain, shelter, extraCharityTax]);
 
   useEffect(() => {
