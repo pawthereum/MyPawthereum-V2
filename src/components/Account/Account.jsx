@@ -14,7 +14,6 @@ const styles = {
     padding: "0 15px",
     display: "flex",
     justifyContent: "center",
-    paddingTop: "15px",
     alignItems: "center",
     width: "fit-content",
     borderRadius: "12px",
@@ -121,12 +120,8 @@ function Account() {
         Hi
       </button> */}
       <div style={styles.account} onClick={() => setIsModalVisible(true)}>
-        <div>
-          <p style={{ marginRight: "5px", paddingTop: "4px", ...styles.text }}>{getEllipsisTxt(account, 6)}</p>
-        </div>
-        <div>
-          <Blockie currentWallet scale={3} />
-        </div>
+        <p style={{ marginRight: "5px", marginBottom: "0", ...styles.text }}>{getEllipsisTxt(account, 6)}</p>
+        <Blockie currentWallet scale={3} />
       </div>
       <Modal
         visible={isModalVisible}

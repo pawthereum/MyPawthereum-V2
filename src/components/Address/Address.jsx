@@ -56,7 +56,7 @@ function Address(props) {
   return (
     <div style={{ ...styles.address, ...props.style }}>
       {props.avatar === "left" && <Blockie address={address} size={7} />}
-      <p>{props.size ? getEllipsisTxt(address, props.size) : address}</p>
+      <p style={{ margin: '0' }}>{props.size ? getEllipsisTxt(address, props.size) : address}</p>
       {props.avatar === "right" && <Blockie address={address} size={7} />}
       {props.copyable && (isClicked ? <Check /> : <Copy />)}
     </div>
