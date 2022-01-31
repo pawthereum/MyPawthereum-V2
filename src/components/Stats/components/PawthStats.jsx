@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMoralis, useERC20Balances, useTokenPrice } from "react-moralis";
-import { PAWTH_ADDRESS, TOTAL_SUPPLY } from '../../../constants'
+import Account from "../../Account/Account";
+import { PAWTH_ADDRESS } from '../../../constants'
 import { Skeleton } from "antd";
 const CoinGecko = require('coingecko-api')
 
@@ -43,7 +44,7 @@ const styles = {
 
 function PawthStats(props) {
   const { data: assets } = useERC20Balances(props);
-  const { chainId } = useMoralis();
+  const { account, chainId } = useMoralis();
   const [logo, setLogo] = useState(null)
   const pawthAddress = PAWTH_ADDRESS[chainId]
   const pawth = assets ? assets.find(a => a.token_address === pawthAddress) : undefined
@@ -90,6 +91,21 @@ function PawthStats(props) {
       default:
         return 'eth'
     }
+  }
+
+  if (!account) {
+    return (
+      <div style={styles.card}>
+        <div style={styles.tranfer}>
+          <div style={styles.header}>
+            <h3>Your Wallet</h3>
+          </div>
+          <div style={styles.row}>
+            <Account />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

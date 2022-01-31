@@ -1,5 +1,6 @@
 // import { useEffect, useStaste } from "react";
 import { useMoralis, useERC20Balances } from "react-moralis";
+import Account from "../../Account/Account";
 import { PAWTH_ADDRESS } from '../../../constants'
 import { Skeleton } from "antd";
 import { ranks } from './ranks';
@@ -37,7 +38,7 @@ const styles = {
 
 function Ranks(props) {
   const { data: assets } = useERC20Balances(props);
-  const { chainId } = useMoralis();
+  const { account, chainId } = useMoralis();
   const pawthAddress = PAWTH_ADDRESS[chainId]
   const pawth = assets ? assets.find(a => a.token_address === pawthAddress) : []
   const pawthBalanceRaw = pawth ? pawth.balance : '0'
@@ -59,6 +60,21 @@ function Ranks(props) {
 
   if (!distanceToNextRank) {
     distanceToNextRank = '+' + parseInt(rank.threshold - pawthBalance)
+  }
+
+  if (!account) {
+    return (
+      <div style={styles.card}>
+        <div style={styles.tranfer}>
+          <div style={styles.header}>
+            <h3>Your Pawther Rank</h3>
+          </div>
+          <div style={styles.row}>
+            <Account />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -1,12 +1,12 @@
 {
   "files": {
     "main.css": "/MyPawthereum-V2/static/css/main.3235a7e1.chunk.css",
-    "main.js": "/MyPawthereum-V2/static/js/main.0104cc3d.chunk.js",
+    "main.js": "/MyPawthereum-V2/static/js/main.424187c5.chunk.js",
     "runtime-main.js": "/MyPawthereum-V2/static/js/runtime-main.293007f8.js",
     "static/css/2.0a39645d.chunk.css": "/MyPawthereum-V2/static/css/2.0a39645d.chunk.css",
-    "static/js/2.f347714a.chunk.js": "/MyPawthereum-V2/static/js/2.f347714a.chunk.js",
+    "static/js/2.c117f6cf.chunk.js": "/MyPawthereum-V2/static/js/2.c117f6cf.chunk.js",
     "index.html": "/MyPawthereum-V2/index.html",
-    "static/js/2.f347714a.chunk.js.LICENSE.txt": "/MyPawthereum-V2/static/js/2.f347714a.chunk.js.LICENSE.txt",
+    "static/js/2.c117f6cf.chunk.js.LICENSE.txt": "/MyPawthereum-V2/static/js/2.c117f6cf.chunk.js.LICENSE.txt",
     "static/media/Coin98.1e4e4073.png": "/MyPawthereum-V2/static/media/Coin98.1e4e4073.png",
     "static/media/MathWallet.19212234.svg": "/MyPawthereum-V2/static/media/MathWallet.19212234.svg",
     "static/media/SafePal.e7068bbc.svg": "/MyPawthereum-V2/static/media/SafePal.e7068bbc.svg",
@@ -45,8 +45,8 @@
   "entrypoints": [
     "static/js/runtime-main.293007f8.js",
     "static/css/2.0a39645d.chunk.css",
-    "static/js/2.f347714a.chunk.js",
+    "static/js/2.c117f6cf.chunk.js",
     "static/css/main.3235a7e1.chunk.css",
-    "static/js/main.0104cc3d.chunk.js"
+    "static/js/main.424187c5.chunk.js"
   ]
 }

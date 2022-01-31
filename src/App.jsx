@@ -187,7 +187,7 @@ const App = ({ isServerInfo }) => {
 
 export const Logo = () => (
   <div style={{ display: "flex" }}>
-    <img alt="logo" src="https://pawthereum.com/shared-files/2024/?logo-text-svg.svg" height="25" />
+    <img alt="logo" src="https://github.com/pawthereum/MyPawthereum/raw/main/src/assets/images/myPawthLogo.png" width="56" />
   </div>
 );
 

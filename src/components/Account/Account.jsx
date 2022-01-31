@@ -54,7 +54,9 @@ function Account() {
         <div
           onClick={() => setIsAuthModalVisible(true)}
         >
-          <p style={styles.text}>Authenticate</p>
+          <Button type="primary">
+            Connect
+          </Button>
         </div>
         <Modal
           visible={isAuthModalVisible}

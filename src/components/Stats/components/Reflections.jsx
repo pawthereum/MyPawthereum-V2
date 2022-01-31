@@ -1,4 +1,5 @@
 import { useMoralis, useERC20Balances, useTokenPrice } from "react-moralis";
+import Account from "../../Account/Account";
 import { useERC20Transfers } from "hooks/useERC20Transfers";
 import { PAWTH_ADDRESS } from '../../../constants'
 import { Skeleton } from "antd";
@@ -114,6 +115,21 @@ function Reflections(props) {
   
   if (balanceWithoutReflections < 0) {
     balanceWithoutReflections = 0
+  }
+
+  if (!account) {
+    return (
+      <div style={styles.card}>
+        <div style={styles.tranfer}>
+          <div style={styles.header}>
+            <h3>Your $PAWTH Reflections</h3>
+          </div>
+          <div style={styles.row}>
+            <Account />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
