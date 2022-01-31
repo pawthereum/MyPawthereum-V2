@@ -9,7 +9,7 @@ import ERC20Transfers from "components/ERC20Transfers";
 import DEX from "components/DEX";
 import NFTBalance from "components/NFTBalance";
 import Wallet from "components/Wallet";
-import { Layout, Tabs } from "antd";
+import { Grid, Layout, Tabs } from "antd";
 import "antd/dist/antd.css";
 import NativeBalance from "components/NativeBalance";
 import "./style.css";
@@ -25,6 +25,7 @@ import Proposal from 'components/Vote/components/Proposal';
 import MenuItems from "./components/MenuItems";
 import { PAWTH_ADDRESS } from "./constants";
 const { Header, Footer } = Layout;
+const { useBreakpoint } = Grid;
 
 const styles = {
   content: {
@@ -53,10 +54,24 @@ const styles = {
     fontSize: "15px",
     fontWeight: "600",
   },
+  mobileFooter: {
+    position: 'fixed',
+    bottom: '0',
+    width: '100%',
+    minHeight: '64px',
+    background: "#fff",
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    borderTop: "2px solid rgba(0, 0, 0, 0.06)",
+    padding: "0 10px",
+    boxShadow: "0 1px 10px rgb(151 164 175 / 10%)",
+  }
 };
 const App = ({ isServerInfo }) => {
   const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId } = useMoralis();
 
+  const screens = useBreakpoint()
   const pawthAddress = PAWTH_ADDRESS[chainId]
 
   function getChainNameById (chainId) {
@@ -83,15 +98,20 @@ const App = ({ isServerInfo }) => {
           <Logo />
           <MenuItems />
           <div style={styles.headerRight}>
-            <Chains />
-            <TokenPrice
-              address={pawthAddress}
-              chain={getChainNameById(chainId)}
-              image="https://pawthereum.com/shared-files/2015/?logo-notext-trsp-1.png"
-              size="40px"
-            />
-            <NativeBalance />
-            <Account />
+            {
+              screens.xs ? '' :
+              <>
+                <Chains />
+                <TokenPrice
+                  address={pawthAddress}
+                  chain={getChainNameById(chainId)}
+                  image="https://pawthereum.com/shared-files/2015/?logo-notext-trsp-1.png"
+                  size="40px"
+                />
+                <NativeBalance />
+                <Account />
+              </>
+            }
           </div>
         </Header>
 
@@ -161,7 +181,10 @@ const App = ({ isServerInfo }) => {
           </Switch>
         </div>
       </Router>
-      <Footer style={{ textAlign: "center" }}>
+      <Footer style={{ 
+        textAlign: "center", 
+        paddingBottom: screens.xs ? '74px' : '0px'
+      }}>
         <Text style={{ display: "block" }}>
           ⭐️ What an awesome piece of info!
         </Text>
@@ -181,6 +204,15 @@ const App = ({ isServerInfo }) => {
           </a>
         </Text>
       </Footer>
+      {
+        screens.xs 
+        ?
+          <Footer style={{ textAlign: "center", ...styles.mobileFooter }}>
+            <Chains />
+            <Account />
+          </Footer>
+        : ''
+      }
     </Layout>
   );
 };
