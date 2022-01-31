@@ -25,7 +25,7 @@ const firebaseApp = initializeApp({
   storageBucket: "mypawth.appspot.com",
   messagingSenderId: "880107643145",
   appId: "1:880107643145:web:e5545b2b7069c5d1c3f3d8",
-  measurementId: "${config.measurementId}"
+  measurementId: "G-80L5EH47JZ"
 })
 
 getAnalytics(firebaseApp)

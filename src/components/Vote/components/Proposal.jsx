@@ -1,7 +1,6 @@
 import { React, useEffect, useState } from "react";
 import { useParams } from 'react-router-dom';
 import { useMoralis, useERC20Balances } from "react-moralis";
-import snapshot from '@snapshot-labs/snapshot.js'
 import { getProposal, getProposalVotes, getProposalVoteScores } from './vote'
 import { PAWTH_ADDRESS, DISQUS_ID } from '../../../constants'
 import { Alert, Badge, Button, Card, Progress, Spin, Table, Tag, Skeleton, notification } from "antd";
@@ -29,9 +28,6 @@ async function signMessage(web3, msg, address) {
   msg = hexlify(new Buffer(msg, 'utf8'));
   return await web3.send('personal_sign', [msg, address]);
 }
-
-const hubUrl = 'https://hub.snapshot.org';
-const Snapshot = new snapshot.Client(hubUrl);
 
 function Proposal(props) {
   const { isMobile } = useBreakpoint()
@@ -96,7 +92,6 @@ function Proposal(props) {
     { choice: 'Loading...', votes: 0 },
     { choice: 'Loading...', votes: 0 },
   ])
-  const [resultCount, setResultCount] = useState({})
   const [userVote, setUserVote] = useState(null)
   const [canVoteOnProposal, setCanVoteOnProposal] = useState(false)
   const [disqusConfig, setDisqusConfig] = useState({})
@@ -111,7 +106,6 @@ function Proposal(props) {
   const pawthBalance = pawth ? parseInt(pawthBalanceRaw) / 10**parseInt(pawth.decimals) : 0
 
   async function vote(i) {
-    console.log('i', i)
     // set loading
     let loadingButtonUpdate = {}
     loadingButtonUpdate[i] = true
@@ -173,6 +167,7 @@ function Proposal(props) {
 
   useEffect(() => {
     fetchProposal()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -207,88 +202,81 @@ function Proposal(props) {
       identifier: proposal.id,
       title: proposal.title,
     })
+  
 
+    async function tallyVotes() {
+      const proposalVotes = await getProposalVotes(id)
+      setVotes(proposalVotes)
+      const voterAddresses = proposalVotes.map(v => v.voter)
+      const proposalVoteScores = await getProposalVoteScores(
+        proposal.space.id,
+        proposal.strategies,
+        proposal.network,
+        voterAddresses,
+        parseInt(proposal.snapshot)
+      )
+
+      let totalTokensInVote = 0
+      for (const balance in proposalVoteScores) {
+        totalTokensInVote += proposalVoteScores[balance]
+      }
+
+      let proposalProgress = {}
+      let proposalCounts = {}
+      for (const choice in proposal.choices) {
+        proposalProgress[proposal.choices[choice]] = 0
+        proposalCounts[proposal.choices[choice]] = 0
+      }
+
+      for (const vote of proposalVotes) {
+        const choice = proposal.choices[vote.choice - 1]
+        proposalProgress[choice] += proposalVoteScores[vote.voter]
+        proposalCounts[choice]++
+      }
+
+      let proposalProgressArray = []
+      for (const [choice, votes] of Object.entries(proposalProgress)) {
+        proposalProgressArray.push({ choice, votes })
+      }
+
+      const proposalStrategy = proposal.strategies[0].name
+      proposalProgressArray = proposalProgressArray.map(p => {
+        const onePawthOneVote = proposalStrategy === 'erc20-balance-of' || proposalStrategy === 'multichain'
+        const votingPowerType = onePawthOneVote ? totalTokensInVote : p.votes.length
+        if (p.votes === 0) {
+          p.percentage = '0'
+          return p
+        }
+        p.count = proposalCounts[p.choice] ? proposalCounts[p.choice] : 0
+        p.percentage = (p.votes / votingPowerType * 100).toFixed(2)
+        return p
+      })
+
+      setResults(proposalProgressArray)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proposal])
 
   useEffect(() => {
     determineUserVote()
+
+    async function determineUserVote () {
+      const hasVoted = votes.find(v => v.voter.toLowerCase() === account) ? true : false
+  
+      if (hasVoted) {
+        const usersVote = votes.find(v => v.voter.toLowerCase() === account)
+        setUserVote(proposal.choices[usersVote.choice - 1])
+      }
+  
+      const hasPawth = pawthBalance !== undefined && pawthBalance.toFixed(2) !== '0.00'
+      setCanVoteOnProposal(hasPawth && proposal.state === 'active')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [votes, assets])
 
   async function fetchProposal () {
     const proposal = await getProposal(id)
     setProposal(proposal)
-    console.log('proposal', proposal)
-  }
-
-  async function tallyVotes() {
-    const proposalVotes = await getProposalVotes(id)
-    setVotes(proposalVotes)
-    console.log('proposalVotes', proposalVotes)
-    const voterAddresses = proposalVotes.map(v => v.voter)
-    const proposalVoteScores = await getProposalVoteScores(
-      proposal.space.id,
-      proposal.strategies,
-      proposal.network,
-      voterAddresses,
-      parseInt(proposal.snapshot)
-    )
-
-    let totalTokensInVote = 0
-    for (const balance in proposalVoteScores) {
-      totalTokensInVote += proposalVoteScores[balance]
-    }
-
-    let proposalProgress = {}
-    let proposalCounts = {}
-    for (const choice in proposal.choices) {
-      proposalProgress[proposal.choices[choice]] = 0
-      proposalCounts[proposal.choices[choice]] = 0
-    }
-
-    for (const vote of proposalVotes) {
-      const choice = proposal.choices[vote.choice - 1]
-      proposalProgress[choice] += proposalVoteScores[vote.voter]
-      proposalCounts[choice]++
-    }
-    console.log('proposalCounts', proposalCounts)
-    setResultCount(proposalCounts)
-
-    let proposalProgressArray = []
-    for (const [choice, votes] of Object.entries(proposalProgress)) {
-      proposalProgressArray.push({ choice, votes })
-    }
-
-    console.log('proposalVoteScores', proposalVoteScores)
-    const proposalStrategy = proposal.strategies[0].name
-    proposalProgressArray = proposalProgressArray.map(p => {
-      const onePawthOneVote = proposalStrategy === 'erc20-balance-of' || proposalStrategy === 'multichain'
-      const votingPowerType = onePawthOneVote ? totalTokensInVote : p.votes.length
-      if (p.votes === 0) {
-        p.percentage = '0'
-        return p
-      }
-      console.log('p', p)
-      p.count = proposalCounts[p.choice] ? proposalCounts[p.choice] : 0
-      p.percentage = (p.votes / votingPowerType * 100).toFixed(2)
-      return p
-    })
-
-    setResults(proposalProgressArray)
-  }
-
-  async function determineUserVote () {
-    const hasVoted = votes.find(v => v.voter.toLowerCase() === account) ? true : false
-
-    if (hasVoted) {
-      const usersVote = votes.find(v => v.voter.toLowerCase() === account)
-      setUserVote(proposal.choices[usersVote.choice - 1])
-    }
-
-    const hasPawth = pawthBalance !== undefined && pawthBalance.toFixed(2) !== '0.00'
-    console.log('hasPawth', hasPawth)
-    console.log('!hasVoted', !hasVoted)
-    console.log(proposal.state === 'active')
-    setCanVoteOnProposal(hasPawth && proposal.state === 'active')
   }
 
   const roundBig = (number) => {
@@ -345,8 +333,8 @@ function Proposal(props) {
   }
 
   return (
-    <div style={styles.row} style={{marginBottom: '10px' }}>
-      <div style={styles.row} style={{marginBottom: '10px', alignItems: 'start', justifyContent: 'start'}}>
+    <div style={{ ...styles.row, marginBottom: '10px' }}>
+      <div style={{ ...styles.row, marginBottom: '10px', alignItems: 'start', justifyContent: 'start'}}>
         <NavLink to="/vote">
           <LeftOutlined /> All Proposals
         </NavLink>
@@ -368,7 +356,7 @@ function Proposal(props) {
               <small>{deadlineText}</small>
             </Skeleton>
           </div>
-          <div style={styles.row} style={{ marginTop: '20px' }}>
+          <div style={{...styles.row, marginTop: '20px' }}>
             <h4>Results</h4>
           </div>
           <div style={styles.rowWithColumns}>
@@ -397,7 +385,7 @@ function Proposal(props) {
                     {
                         canVoteOnProposal
                         ?
-                          <div style={styles.row} style={{ marginTop: '20px' }}>
+                          <div style={{ ...styles.row, marginTop: '20px' }}>
                             <Button
                               type="primary" 
                               block 
@@ -416,13 +404,13 @@ function Proposal(props) {
               })
             }
           </div>
-          <div style={styles.rowWithColumns} style={{ marginTop: '20px' }}>
+          <div style={{...styles.rowWithColumns, marginTop: '20px' }}>
             <h4>Description</h4>
             <small>
               <ReactMarkdown children={proposal.body} />
             </small>
           </div>
-          <div style={styles.row} style={{ marginTop: '20px' }}>
+          <div style={{...styles.row, marginTop: '20px' }}>
             <h4>
               Votes
               <Badge
@@ -444,7 +432,7 @@ function Proposal(props) {
               />
             </Skeleton>
           </div>
-          <div style={styles.rowWithColumns} style={{ marginTop: '20px' }}>
+          <div style={{ ...styles.rowWithColumns, marginTop: '20px' }}>
             <h4>Discussion</h4>
             {
               disqusConfig.identifier !== '' ? (

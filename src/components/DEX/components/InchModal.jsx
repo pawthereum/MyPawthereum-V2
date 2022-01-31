@@ -4,8 +4,6 @@ import { PAWTH_ADDRESS } from '../../../constants'
 import { networkConfigs } from '../../../helpers/networks'
 
 function InchModal({ open, onClose, setToken, tokenList, chain }) {
-  const IsNative = (address) => address === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
-
   const [filteredTokenList, setFilteredTokenList] = useState(
     Object.keys(tokenList).map(token => token)
   )
@@ -33,7 +31,7 @@ function InchModal({ open, onClose, setToken, tokenList, chain }) {
   function filterTokens (query) {
     const defaultList = Object.keys(tokenList).map(token => token)
     
-    if (!query || query == '') return setFilteredTokenList(defaultList)
+    if (!query || query === '') return setFilteredTokenList(defaultList)
     
     const filteredTokens = defaultList.filter(token => {
       return tokenList[token].name.toLowerCase().includes(query.toLowerCase())

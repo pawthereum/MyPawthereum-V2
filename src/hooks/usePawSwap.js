@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
-import { SLIPPAGE, PAWSWAP, PAWTH_ADDRESS, ERC20ABI } from '../constants'
+import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI } from '../constants'
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
@@ -81,7 +81,6 @@ const usePawSwap = (chain) => {
   }
 
   async function doSwap(params) {
-    const slippage = SLIPPAGE[params.chain]
     const web3Provider = await Moralis.enableWeb3();
 
     const pawswap = new web3Provider.eth.Contract(

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useMoralis } from "react-moralis";
 import { COLORS } from '../../../constants'
 
 import { Skeleton, Tabs } from "antd";
@@ -56,24 +55,23 @@ function PriceChart(props) {
   const pricePrecision = isMobile ? 4 : 5
   const chartWidth = isMobile ? '300px' : '500'
 
-  const { chainId } = useMoralis();
-
   const [priceSeries, setPriceSeries] = useState([])
   const [volumeSeries, setVolumeSeries] = useState([])
   const [marketCapSeries, setMarketCapSeries] = useState([])
 
   const CoinGeckoClient = new CoinGecko()
 
-  const getChart = async () => {
-    const data = await CoinGeckoClient.coins.fetchMarketChart('pawthereum')
-    setPriceSeries([{ name: 'Price', data: data.data.prices }])
-    setVolumeSeries([{ name: 'Volume', data: data.data.total_volumes }])
-    setMarketCapSeries([{ name: 'Market Cap', data: data.data.market_caps }])
-  }
-
   useEffect(() => {
+    const getChart = async () => {
+      const data = await CoinGeckoClient.coins.fetchMarketChart('pawthereum')
+      setPriceSeries([{ name: 'Price', data: data.data.prices }])
+      setVolumeSeries([{ name: 'Volume', data: data.data.total_volumes }])
+      setMarketCapSeries([{ name: 'Market Cap', data: data.data.market_caps }])
+    }
+
     getChart()
-  }, [chainId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const roundBig = (number) => {
     if (!number) return 0
@@ -180,8 +178,8 @@ function PriceChart(props) {
           </div>
           <div style={styles.rowEnd}>
             <div style={{ marginRight: '50px' }}>
-              <a href="https://coingecko.com">
-                <img height="20px" src="https://static.coingecko.com/s/coingecko-branding-guide-4f5245361f7a47478fa54c2c57808a9e05d31ac7ca498ab189a3827d6000e22b.png"></img>
+              <a href="https://www.coingecko.com/en/coins/pawthereum">
+                <img alt="Coingecko" height="20px" src="https://static.coingecko.com/s/coingecko-branding-guide-4f5245361f7a47478fa54c2c57808a9e05d31ac7ca498ab189a3827d6000e22b.png"></img>
               </a>
             </div>
           </div>
