@@ -8,6 +8,15 @@ jobs:
     if: '${{ github.event.pull_request.head.repo.full_name == github.repository }}'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v1
+      - name: Make envfile
+      - uses: SpicyPizza/create-envfile@v1
+        with:
+          envkey_REACT_APP_MORALIS_APPLICATION_ID: ${{secrets.REACT_APP_MORALIS_APPLICATION_ID}}
+          envkey_REACT_APP_MORALIS_SERVER_URL: ${{secrets.REACT_APP_MORALIS_SERVER_URL}}
+          directory: './'
+          file_name: '.env'
+    steps:
       - uses: actions/checkout@v2
       - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
