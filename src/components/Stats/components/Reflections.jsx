@@ -2,7 +2,7 @@ import { useMoralis, useERC20Balances, useTokenPrice } from "react-moralis";
 import Account from "../../Account/Account";
 import { useERC20Transfers } from "hooks/useERC20Transfers";
 import { PAWTH_ADDRESS } from '../../../constants'
-import { Skeleton } from "antd";
+import { Row, Col, Skeleton, Statistic } from "antd";
 
 const styles = {
   card: {
@@ -20,25 +20,6 @@ const styles = {
     padding: "10px",
     height: "100px",
     width: "100px"
-  },
-  row: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    flexDirection: "row",
-    paddingBottom: "10px",
-  },
-  rowWithColumns: {
-    display: "flex",
-    alignItems: "center",
-    textAlign: "center",
-    justifyContent: "space-around",
-    gap: "10px",
-    flexDirection: "row",
-    paddingBottom: "10px",
-    maxWidth: '90%',
-    paddingLeft: '10%'
   },
 };
 
@@ -139,62 +120,54 @@ function Reflections(props) {
           <h3>Your $PAWTH Reflections</h3>
         </div>
         <Skeleton loading={!ERC20Transfers}>
-          <div style={styles.rowWithColumns}>
-            <div>
-              Total $PAWTH In
-              <br/>
-              <strong>
-                {totalIn.toLocaleString([], { 
+          <Row gutter={16}>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <Statistic 
+                title="Total $PAWTH In" 
+                value={totalIn.toLocaleString([], { 
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0
-                })}
-              </strong>
-            </div>
-            <div>            
-              Total $PAWTH Out
-              <br/>
-              <strong>
-                {totalOut.toLocaleString([], { 
+                })}/>
+            </Col>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <Statistic 
+                title="Total $PAWTH Out" 
+                value={totalOut.toLocaleString([], { 
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0
-                })}
-              </strong>
-            </div>
-          </div>
-          <div style={styles.rowWithColumns}>
-            <div>
-              $PAWTH Reflections Earned
-              <br/>
-              <strong>
-                {reflections.toLocaleString([], { 
+                })}/>
+            </Col>
+          </Row>
+          <br />
+          <Row gutter={16}>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <Statistic 
+                title="Reflections" 
+                value={reflections.toLocaleString([], { 
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0
-                })}
-              </strong>
-            </div>
-            <div>            
-              $PAWTH Reflections USD Value
-              <br/>
-              <strong>
-                {'$' + (reflections * price).toLocaleString([], { 
+                })}/>
+            </Col>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <Statistic 
+                title="Reflections $ Value" 
+                value={'$' + (reflections * price).toLocaleString([], { 
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 2
-                })}
-              </strong>
-            </div>
-          </div>
-          <div style={styles.rowWithColumns}>
-            <div>
-              $PAWTH Balance Without Reflections
-              <br/>
-              <strong>
-                {balanceWithoutReflections.toLocaleString([], { 
+                })}/>
+            </Col>
+          </Row>
+          <br />
+          <Row gutter={16}>
+            <Col span={24} style={{ textAlign: 'center' }}>
+              <Statistic 
+                title="Balance Without Reflections" 
+                value={balanceWithoutReflections.toLocaleString([], { 
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0
-                })}
-              </strong>
-            </div>
-          </div>
+                })}/>
+            </Col>
+          </Row>
         </Skeleton>
       </div>
     </div>

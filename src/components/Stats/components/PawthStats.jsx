@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMoralis, useERC20Balances, useTokenPrice } from "react-moralis";
 import Account from "../../Account/Account";
 import { PAWTH_ADDRESS } from '../../../constants'
-import { Skeleton } from "antd";
+import { Row, Col, Statistic, Skeleton } from "antd";
 const CoinGecko = require('coingecko-api')
 
 const styles = {
@@ -19,7 +19,8 @@ const styles = {
   logo: {
     padding: "10px",
     height: "100px",
-    width: "100px"
+    width: "100px",
+    margin: "0 auto"
   },
   row: {
     display: "flex",
@@ -115,41 +116,51 @@ function PawthStats(props) {
           <h3>Your Wallet</h3>
         </div>
         <Skeleton loading={!assets}>
-          <div style={styles.row}>
-            {
-              !logo ? <Skeleton.Image/> : <img alt="Logo" src={logo} style={styles.logo} />
-            }
-          </div>
-          <div style={styles.row}>
-            <strong>Your $PAWTH Balance</strong>
-          </div>
-          <div style={styles.row}>
-            {parseInt(pawthBalance).toLocaleString()}
-          </div>
-          <div style={styles.row}>
-            <strong>Your $PAWTH USD Value</strong>
-          </div>
-          <div style={styles.row}>
-            ${usdValue.toLocaleString([], { 
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            })}
-          </div>
-          <div style={styles.rowWithColumns}>
-            <div>
-              <strong>Price</strong>
-              <br/>
-              ${price.toFixed(4)}
-            </div>
-            <div>
-              <strong>Market Cap</strong>
-              <br/>
-              ${marketCap.toLocaleString([], { 
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}
-            </div>
-          </div>
+          <Row gutter={16}>
+            <Col span={24} style={{ textAlign: 'center', justifyContent: 'center' }}>
+              <div>
+                {
+                  !logo ? <Skeleton.Image style={styles.logo} /> : <img alt="Logo" src={logo} style={styles.logo} />
+                }
+              </div>
+
+            </Col>
+          </Row>
+          <br />
+          <Row gutter={16}>
+            <Col span={24} style={{ textAlign: 'center' }}>
+              <Statistic
+                title="Your $PAWTH Balance" 
+                value={parseInt(pawthBalance).toLocaleString()}/>
+            </Col>
+          </Row>
+          <br />
+          <Row gutter={16}>
+            <Col span={24} style={{ textAlign: 'center' }}>
+              <Statistic 
+                title="Your $PAWTH USD Value" 
+                value={'$' + usdValue.toLocaleString([], { 
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}/>
+            </Col>
+          </Row>
+          <br />
+          <Row gutter={16}>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <Statistic 
+                title="Price" 
+                value={'$' + price.toFixed(4) }/>
+            </Col>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <Statistic 
+                title="Market Cap" 
+                value={'$' + marketCap.toLocaleString([], { 
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}/>
+            </Col>
+          </Row>
         </Skeleton>
       </div>
     </div>
