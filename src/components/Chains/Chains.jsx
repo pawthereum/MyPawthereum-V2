@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Menu, Dropdown, Button } from "antd";
+import { Grid, Menu, Dropdown, Button } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { AvaxLogo, PolygonLogo, BSCLogo, ETHLogo } from "./Logos";
 import { useChain, useMoralis } from "react-moralis";
+
+const { useBreakpoint } = Grid
 
 const styles = {
   item: {
@@ -91,6 +93,8 @@ function Chains() {
   const { isAuthenticated } = useMoralis();
   const [selected, setSelected] = useState({});
 
+  const screens = useBreakpoint()
+
   console.log("chain", chain);
 
   useEffect(() => {
@@ -121,8 +125,11 @@ function Chains() {
     <div>
       <Dropdown overlay={menu} trigger={["click"]}>
         <Button key={selected?.key} icon={selected?.icon} style={{ ...styles.button, ...styles.item }}>
-          <span style={{ marginLeft: "5px" }}>{selected?.value}</span>
-          <DownOutlined />
+          { 
+            screens.xs ? '' :
+            <span style={{ marginLeft: "5px" }}>{selected?.value}</span>
+          }
+          <DownOutlined style={{ marginLeft: '5px' }} />
         </Button>
       </Dropdown>
     </div>
