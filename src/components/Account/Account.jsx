@@ -1,13 +1,16 @@
 import { useMoralis } from "react-moralis";
 import { getEllipsisTxt } from "helpers/formatters";
 import Blockie from "../Blockie";
-import { Button, Card, Modal } from "antd";
+import { Button, Card, Grid, Modal } from "antd";
 import { useState } from "react";
 import Address from "../Address/Address";
 import { SelectOutlined } from "@ant-design/icons";
 import { getExplorer } from "helpers/networks";
 import Text from "antd/lib/typography/Text";
 import { connectors } from "./config";
+
+const { useBreakpoint } = Grid;
+
 const styles = {
   account: {
     height: "42px",
@@ -47,6 +50,9 @@ function Account() {
   const { authenticate, isAuthenticated, account, chainId, logout } = useMoralis();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAuthModalVisible, setIsAuthModalVisible] = useState(false);
+  const screens = useBreakpoint()
+
+  const acctLength = screens.xs ? 4 : 6
   
   if (!isAuthenticated || !account) {
     return (
@@ -120,7 +126,7 @@ function Account() {
         Hi
       </button> */}
       <div style={styles.account} onClick={() => setIsModalVisible(true)}>
-        <p style={{ marginRight: "5px", marginBottom: "0", ...styles.text }}>{getEllipsisTxt(account, 6)}</p>
+        <p style={{ marginRight: "5px", marginBottom: "0", ...styles.text }}>{getEllipsisTxt(account, acctLength)}</p>
         <Blockie currentWallet scale={3} />
       </div>
       <Modal
