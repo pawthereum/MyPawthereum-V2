@@ -80,7 +80,11 @@ const menuItems = [
     value: "Avalanche Testnet",
     icon: <AvaxLogo />,
   },
-];
+]
+.filter(c => {
+  return process.env.NODE_ENV !== 'production' ? true :
+  c.value === 'Ethereum' || c.value === 'Binance'
+});
 
 function Chains() {
   const { switchNetwork, chainId, chain } = useChain();
