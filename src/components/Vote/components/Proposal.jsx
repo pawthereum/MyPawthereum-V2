@@ -52,7 +52,7 @@ function Proposal(props) {
     rowWithColumns: {
       display: "flex",
       flexWrap: "wrap",
-      alignItems: "center",
+      alignItems: "start",
       textAlign: "center",
       justifyContent: "space-between",
       gap: "10px",
@@ -333,7 +333,7 @@ function Proposal(props) {
   }
 
   return (
-    <div style={{ ...styles.row, marginBottom: '10px' }}>
+    <div style={{ marginBottom: '10px' }}>
       <div style={{ ...styles.row, marginBottom: '10px', alignItems: 'start', justifyContent: 'start'}}>
         <NavLink to="/vote">
           <LeftOutlined /> All Proposals
@@ -404,13 +404,13 @@ function Proposal(props) {
               })
             }
           </div>
-          <div style={{...styles.rowWithColumns, marginTop: '20px' }}>
+          <div style={{ marginTop: '20px' }}>
             <h4>Description</h4>
             <small>
               <ReactMarkdown children={proposal.body} />
             </small>
           </div>
-          <div style={{...styles.row, marginTop: '20px' }}>
+          <div style={{ marginTop: '20px' }}>
             <h4>
               Votes
               <Badge
@@ -432,7 +432,7 @@ function Proposal(props) {
               />
             </Skeleton>
           </div>
-          <div style={{ ...styles.rowWithColumns, marginTop: '20px' }}>
+          <div style={{ marginTop: '20px' }}>
             <h4>Discussion</h4>
             {
               disqusConfig.identifier !== '' ? (
