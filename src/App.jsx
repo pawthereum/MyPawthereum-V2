@@ -122,11 +122,12 @@ const App = ({ isServerInfo }) => {
         <Header style={styles.header}>
           <Logo />
           <MenuItems />
+          { screens.xs ? <Chains /> : '' }
           <div style={styles.headerRight}>
-            <Chains />
             {
               screens.xs ? '' :
               <>
+                <Chains />
                 <TokenPrice
                   address={pawthAddress}
                   chain={getChainNameById(chainId)}
