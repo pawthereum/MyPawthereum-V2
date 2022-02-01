@@ -8,8 +8,8 @@ name: Deploy to Firebase Hosting on merge
       - master
 
 env:
-  REACT_APP_MORALIS_APPLICATION_ID: ${{secrets.REACT_APP_MORALIS_APPLICATION_ID}}
-  REACT_APP_MORALIS_SERVER_URL: ${{secrets.REACT_APP_MORALIS_SERVER_URL}}
+  REACT_APP_MORALIS_APPLICATION_ID: '${{secrets.REACT_APP_MORALIS_APPLICATION_ID}}'
+  REACT_APP_MORALIS_SERVER_URL: '${{secrets.REACT_APP_MORALIS_SERVER_URL}}'
 
 jobs:
   build_and_deploy:

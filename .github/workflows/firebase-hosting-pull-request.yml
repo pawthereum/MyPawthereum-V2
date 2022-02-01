@@ -5,8 +5,8 @@ name: Deploy to Firebase Hosting on PR
 'on': pull_request
 
 env:
-  REACT_APP_MORALIS_APPLICATION_ID: ${{secrets.REACT_APP_MORALIS_APPLICATION_ID}}
-  REACT_APP_MORALIS_SERVER_URL: ${{secrets.REACT_APP_MORALIS_SERVER_URL}}
+  REACT_APP_MORALIS_APPLICATION_ID: '${{ secrets.REACT_APP_MORALIS_APPLICATION_ID }}'
+  REACT_APP_MORALIS_SERVER_URL: '${{ secrets.REACT_APP_MORALIS_SERVER_URL }}'
 
 jobs:
   build_and_preview:
@@ -18,7 +18,5 @@ jobs:
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          envkey_REACT_APP_MORALIS_APPLICATION_ID: ${{secrets.REACT_APP_MORALIS_APPLICATION_ID}}
-          envkey_REACT_APP_MORALIS_SERVER_URL: ${{secrets.REACT_APP_MORALIS_SERVER_URL}}
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MYPAWTH }}'
           projectId: mypawth
