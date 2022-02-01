@@ -123,10 +123,10 @@ const App = ({ isServerInfo }) => {
           <Logo />
           <MenuItems />
           <div style={styles.headerRight}>
+            <Chains />
             {
               screens.xs ? '' :
               <>
-                <Chains />
                 <TokenPrice
                   address={pawthAddress}
                   chain={getChainNameById(chainId)}
@@ -233,7 +233,13 @@ const App = ({ isServerInfo }) => {
         screens.xs 
         ?
           <Footer style={{ textAlign: "center", ...styles.mobileFooter }}>
-            <Chains />
+            <TokenPrice
+              address={pawthAddress}
+              chain={getChainNameById(chainId)}
+              image="https://pawthereum.com/shared-files/2015/?logo-notext-trsp-1.png"
+              size="40px"
+            />
+            <NativeBalance />
             <Account />
           </Footer>
         : ''
