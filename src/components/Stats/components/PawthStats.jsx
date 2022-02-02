@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMoralis, useERC20Balances, useTokenPrice } from "react-moralis";
 import Account from "../../Account/Account";
+import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import { PAWTH_ADDRESS } from '../../../constants'
 import { Row, Col, Statistic, Skeleton } from "antd";
 const CoinGecko = require('coingecko-api')
@@ -52,19 +53,22 @@ function PawthStats(props) {
   const pawthBalanceRaw = pawth ? pawth.balance : '0'
   const pawthBalance = pawth ? parseInt(pawthBalanceRaw) / 10**parseInt(pawth.decimals) : 0
   const [marketCap, setMarketCap] = useState(0)
+  const [priceChange24h, setPriceChange24h] = useState(null)
+  const [marketCapChange24h, setMarketCapChange24h] = useState(null)
   const CoinGeckoClient = new CoinGecko()
 
   useEffect(() => {
     getCoinGeckoData()
 
     async function getCoinGeckoData() {
-      const coinGeckoData = await CoinGeckoClient.coins.markets({ ids: ['pawthereum'] })
-      const tokenData = coinGeckoData.data.find(d => d.id === 'pawthereum')
-      const marketCap = tokenData.market_cap
-      console.log('tokenData', tokenData)
+      const coinGeckoData = await CoinGeckoClient.coins.fetch('pawthereum', {})
+      const tokenData = coinGeckoData.data
+      const marketCap = tokenData.market_data.market_cap.usd
       setMarketCap(marketCap)
+      setMarketCapChange24h(tokenData.market_data.market_cap_change_percentage_24h)
+      setPriceChange24h(tokenData.market_data.price_change_percentage_24h)
   
-      const tokenLogo = tokenData.image
+      const tokenLogo = tokenData.image.large
       setLogo(tokenLogo)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,7 +154,9 @@ function PawthStats(props) {
             <Col span={12} style={{ textAlign: 'center' }}>
               <Statistic 
                 title="Price" 
-                value={'$' + price.toFixed(4) }/>
+                value={'$' + price.toFixed(4) }
+                style={{ marginBottom: '5px' }}
+              />
             </Col>
             <Col span={12} style={{ textAlign: 'center' }}>
               <Statistic 
@@ -159,6 +165,28 @@ function PawthStats(props) {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}/>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <Statistic
+                title="24h"
+                value={priceChange24h}
+                precision={2}
+                valueStyle={{ color: priceChange24h >= 0 ? '#3f8600' : '#cf1322' }}
+                prefix={priceChange24h >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                suffix="%"
+              />
+            </Col>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <Statistic
+                title="24h"
+                value={marketCapChange24h}
+                precision={2}
+                valueStyle={{ color: marketCapChange24h >= 0 ? '#3f8600' : '#cf1322' }}
+                prefix={marketCapChange24h >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                suffix="%"
+              />
             </Col>
           </Row>
         </Skeleton>
