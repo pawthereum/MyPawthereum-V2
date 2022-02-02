@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
-import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI } from '../constants'
+import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI } from '../constants'
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
@@ -114,7 +114,155 @@ const usePawSwap = (chain) => {
     ).send({ from: account })
   }
 
-  return { getQuote, tryPawSwap, tokenList };
+  async function getTaxStructure (params) {
+    if (!PAWSWAP[params.chain].address) return []
+    const { tokenAddress, side } = params
+    console.log('tokenAddress', tokenAddress)
+
+    if (tokenAddress === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' ||
+        tokenAddress === '0xae13d989dac2f0debff460ac112a837c89baa7cd') return null
+    
+    const web3Provider = await Moralis.enableWeb3();
+
+    const pawswap = new web3Provider.eth.Contract(
+      PAWSWAP[params.chain].abi, 
+      PAWSWAP[params.chain].address
+    )
+
+    console.log(PAWSWAP[params.chain].address)
+
+    console.log('tokenAddr', tokenAddress)
+
+    const taxStructureContractAddress = await pawswap.methods.tokenTaxContracts(
+      tokenAddress
+    ).call((err, result) => {
+      console.log('err', err)
+      console.log('result', result)
+    })
+
+    const taxStructureContract = new web3Provider.eth.Contract(
+      TAX_STRUCTURE_ABI, 
+      taxStructureContractAddress
+    )
+
+    let taxes = {}
+
+    if (side === 'buy') {
+      taxes = await Promise.all([
+        taxStructureContract.methods.tax1Name().call(),
+        taxStructureContract.methods.tax1BuyAmount().call(),
+        taxStructureContract.methods.tax2Name().call(),
+        taxStructureContract.methods.tax2BuyAmount().call(),
+        taxStructureContract.methods.tax3Name().call(),
+        taxStructureContract.methods.tax3BuyAmount().call(),
+        taxStructureContract.methods.tax4Name().call(),
+        taxStructureContract.methods.tax4BuyAmount().call(),
+        taxStructureContract.methods.tokenTaxName().call(),
+        taxStructureContract.methods.tokenTaxBuyAmount().call(),
+        taxStructureContract.methods.liquidityTaxBuyAmount().call(),
+        taxStructureContract.methods.burnTaxBuyAmount().call(),
+        taxStructureContract.methods.feeDecimal().call()
+      ])
+      .then(([ 
+        tax1Name, tax1Amount, tax2Name, tax2Amount, 
+        tax3Name, tax3Amount, tax4Name, tax4Amount,
+        tokenTaxName, tokenTaxAmount, liquidityTaxAmount,
+        burnTaxAmount, feeDecimal ]) => {
+        return ([
+          {
+            name: tax1Name,
+            amount: parseFloat(tax1Amount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: tax2Name,
+            amount: parseFloat(tax2Amount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: tax3Name,
+            amount: parseFloat(tax3Amount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: tax4Name,
+            amount: parseFloat(tax4Amount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: tokenTaxName,
+            amount: parseFloat(tokenTaxAmount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: 'Liquidity Tax',
+            amount: parseFloat(liquidityTaxAmount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: 'Burn Tax',
+            amount: parseFloat(burnTaxAmount) / 10**parseInt(feeDecimal) + '%'
+          }
+        ].filter(t => t.amount !== '0%'))
+      })
+      .catch(err => err)
+    }
+
+    if (side === 'sell') {
+      taxes = await Promise.all([
+        taxStructureContract.methods.tax1Name().call(),
+        taxStructureContract.methods.tax1SellAmount().call(),
+        taxStructureContract.methods.tax2Name().call(),
+        taxStructureContract.methods.tax2SellAmount().call(),
+        taxStructureContract.methods.tax3Name().call(),
+        taxStructureContract.methods.tax3SellAmount().call(),
+        taxStructureContract.methods.tax4Name().call(),
+        taxStructureContract.methods.tax4SellAmount().call(),
+        taxStructureContract.methods.tokenTaxName().call(),
+        taxStructureContract.methods.tokenTaxSellAmount().call(),
+        taxStructureContract.methods.liquidityTaxSellAmount().call(),
+        taxStructureContract.methods.burnTaxSellAmount().call(),
+        taxStructureContract.methods.feeDecimal().call()
+      ])
+      .then(([ 
+        tax1Name, tax1Amount, tax2Name, tax2Amount, 
+        tax3Name, tax3Amount, tax4Name, tax4Amount,
+        tokenTaxName, tokenTaxAmount, liquidityTaxAmount,
+        burnTaxAmount, feeDecimal ]) => {
+        return ([
+          {
+            name: tax1Name,
+            amount: parseFloat(tax1Amount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: tax2Name,
+            amount: parseFloat(tax2Amount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: tax3Name,
+            amount: parseFloat(tax3Amount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: tax4Name,
+            amount: parseFloat(tax4Amount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: tokenTaxName,
+            amount: parseFloat(tokenTaxAmount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: 'Liquidity Tax',
+            amount: parseFloat(liquidityTaxAmount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: 'Burn Tax',
+            amount: parseFloat(burnTaxAmount) / 10**parseInt(feeDecimal) + '%'
+          }
+        ].filter(t => t.amount !== '0%'))
+      })
+      .catch(err => err)
+    }
+
+    console.log('taxes', taxes)
+
+    return taxes
+  }
+
+  return { getQuote, tryPawSwap, tokenList, getTaxStructure };
 };
 
 export default usePawSwap;

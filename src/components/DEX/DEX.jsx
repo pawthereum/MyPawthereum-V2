@@ -4,7 +4,7 @@ import InchModal from "./components/InchModal";
 import ShelterModal from './components/ShelterModal';
 import useInchDex from "hooks/useInchDex";
 import usePawSwap from 'hooks/usePawSwap';
-import { Button, Card, Image, Input, InputNumber, Modal } from "antd";
+import { Button, Card, Image, Input, InputNumber, Modal, Skeleton, Statistic, Row, Col } from "antd";
 import Text from "antd/lib/typography/Text";
 import { ArrowDownOutlined, DashOutlined } from "@ant-design/icons";
 import { useTokenPrice } from "react-moralis";
@@ -30,6 +30,7 @@ const getChainIdByName = (chainName) => {
 };
 
 const IsNative = (address) => address === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+const IsNativeTest = (address) => address === '0xae13d989dac2f0debff460ac112a837c89baa7cd';
 
 function DEX({ chain, customTokens = {} }) {
   const { isMobile } = useBreakpoint()
@@ -62,7 +63,7 @@ function DEX({ chain, customTokens = {} }) {
   
 
   const { trySwap, tokenList, getQuote } = useInchDex(chain);
-  const { tryPawSwap } = usePawSwap(chain);
+  const { tryPawSwap, getTaxStructure } = usePawSwap(chain);
 
   const { Moralis, isInitialized, chainId } = useMoralis();
   const [isFromModalActive, setFromModalActive] = useState(false);
@@ -78,6 +79,7 @@ function DEX({ chain, customTokens = {} }) {
   const { fetchTokenPrice } = useTokenPrice();
   const [tokenPricesUSD, setTokenPricesUSD] = useState({});
   const [arrowIsDown, setArrowIsDown] = useState(true);
+  const [taxes, setTaxes] = useState([])
 
   function attemptSwap (currentTrade) {
     switch (chain) {
@@ -175,6 +177,27 @@ function DEX({ chain, customTokens = {} }) {
     if (!tokens || fromToken) return null;
     setFromToken(tokens[nativeAddress]);
   }, [tokens, fromToken]);
+
+  useEffect(() => {
+    console.log('chain---------', chain)
+    async function getTaxes() {
+      if (toToken && !IsNative(toToken) && !IsNativeTest(toToken.address)) {
+        const t = await getTaxStructure({ tokenAddress: toToken.address, chain, side: 'buy' })
+        console.log('got them!!! ====== ', t)
+        if (t === null && taxes !== null) return
+        setTaxes(t)
+        // setFromToken(tokens[nativeAddress])
+      }
+      if (fromToken && !IsNative(fromToken) && !IsNativeTest(fromToken.address)) {
+        const t = await getTaxStructure({ tokenAddress: fromToken.address, chain, side: 'sell' })
+        console.log('got them!!! ====== ', t)
+        if (t === null && taxes !== null) return
+        setTaxes(t)
+        // setToToken(tokens[nativeAddress])
+      }
+    }
+    getTaxes()
+  }, [toToken, fromToken])
 
   useEffect(() => {
     if (toToken) {
@@ -342,6 +365,30 @@ function DEX({ chain, customTokens = {} }) {
         </Card>
         <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
           <DashOutlined />
+        </div>
+        { !taxes || !taxes.length 
+          ?  
+            !toToken ? '' : 
+            <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
+              <Skeleton /> 
+            </Card>
+          : 
+            <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
+              <Row gutter={16} style={{ textAlign: 'center', justifyContent: 'center' }}>
+              {
+                taxes.map((t, i) => {
+                  return (
+                    <Col span={12} style={{ marginBottom: '5px' }} key={i}>
+                      <Statistic title={t.name} value={t.amount}></Statistic>
+                    </Col>
+                  )
+                })
+              }
+              </Row>
+            </Card>
+        }
+        <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
+          
         </div>
         <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
           <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>Extra Charity %</div>
