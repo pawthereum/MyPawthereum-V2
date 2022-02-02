@@ -93,6 +93,7 @@ const usePawSwap = (chain) => {
         
     if (params.toToken.address.toLowerCase() === PAWTH_ADDRESS[params.chain].toLowerCase()) {
       return await pawswap.methods.buyOnPawSwap(
+        params.toToken.address,
         calculatedExtraCharityTax, 
         extraCharityWallet, 
         0,
@@ -104,6 +105,7 @@ const usePawSwap = (chain) => {
     }
     
     return await pawswap.methods.sellOnPawSwap(
+      params.fromToken.address,
       Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString(), 
       calculatedExtraCharityTax, 
       extraCharityWallet, 
