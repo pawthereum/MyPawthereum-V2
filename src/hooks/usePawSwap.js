@@ -88,14 +88,14 @@ const usePawSwap = (chain) => {
       PAWSWAP[params.chain].address
     )
 
-    const extraCharityWallet = params.shelter ? params.shelter.address : account
-    const calculatedExtraCharityTax = params.extraCharityTax ? params.extraCharityTax * 100 : 0  
+    const customTaxWallet = params.shelter ? params.shelter.address : account
+    const customTaxAmount = params.customTaxAmount ? params.customTaxAmount * 100 : 0  
         
     if (params.toToken.address.toLowerCase() === PAWTH_ADDRESS[params.chain].toLowerCase()) {
       return await pawswap.methods.buyOnPawSwap(
         params.toToken.address,
-        calculatedExtraCharityTax, 
-        extraCharityWallet, 
+        customTaxAmount, 
+        customTaxWallet, 
         0,
         0
       ).send({ 
@@ -107,8 +107,8 @@ const usePawSwap = (chain) => {
     return await pawswap.methods.sellOnPawSwap(
       params.fromToken.address,
       Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString(), 
-      calculatedExtraCharityTax, 
-      extraCharityWallet, 
+      customTaxAmount, 
+      customTaxWallet, 
       0,
       0
     ).send({ from: account })
@@ -119,8 +119,9 @@ const usePawSwap = (chain) => {
     const { tokenAddress, side } = params
     console.log('tokenAddress', tokenAddress)
 
+    const testnetBnb = networkConfigs.bsctest.wrapped
     if (tokenAddress === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' ||
-        tokenAddress === '0xae13d989dac2f0debff460ac112a837c89baa7cd') return null
+        tokenAddress === testnetBnb) return null
     
     const web3Provider = await Moralis.enableWeb3();
 

@@ -73,7 +73,6 @@ function DEX({ chain, customTokens = {} }) {
   const [fromToken, setFromToken] = useState();
   const [toToken, setToToken] = useState();
   const [fromAmount, setFromAmount] = useState();
-  const [extraCharityTax, setExtraCharityTax] = useState(null);
   const [quote, setQuote] = useState();
   const [currentTrade, setCurrentTrade] = useState();
   const { fetchTokenPrice } = useTokenPrice();
@@ -81,6 +80,7 @@ function DEX({ chain, customTokens = {} }) {
   const [arrowIsDown, setArrowIsDown] = useState(true);
   const [taxes, setTaxes] = useState([])
   const [customTaxName, setCustomTaxName] = useState(null);
+  const [customTaxAmount, setCustomTaxAmount] = useState(null);
 
   function attemptSwap (currentTrade) {
     switch (chain) {
@@ -234,12 +234,12 @@ function DEX({ chain, customTokens = {} }) {
       toToken, 
       fromAmount, 
       chain,
-      extraCharityTax,
+      customTaxAmount,
       shelter
     });
     console.log('current trade', currentTrade)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toToken, fromToken, fromAmount, chain, shelter, extraCharityTax]);
+  }, [toToken, fromToken, fromAmount, chain, shelter, customTaxAmount]);
 
   useEffect(() => {
     if (currentTrade) getQuote(currentTrade).then((quote) => setQuote(quote));
@@ -414,11 +414,11 @@ function DEX({ chain, customTokens = {} }) {
                 bordered={false}
                 placeholder="0.00"
                 style={{ ...styles.input, marginLeft: "-10px" }}
-                onChange={setExtraCharityTax}
-                value={extraCharityTax}
+                onChange={setCustomTaxAmount}
+                value={customTaxAmount}
               />
               <Text style={{ fontWeight: "600", color: "#434343" }}>
-                { extraCharityTax ? 
+                { customTaxAmount ? 
                   <div>
                     <span style={{ marginRight: '10px' }}>🎉</span>
                     <span>you're amazing!</span>
