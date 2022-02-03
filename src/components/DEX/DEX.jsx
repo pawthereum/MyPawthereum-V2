@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useMoralis } from "react-moralis";
+import { useNativeBalance, useERC20Balances, useMoralis } from "react-moralis";
 import InchModal from "./components/InchModal";
 import ShelterModal from './components/ShelterModal';
 import useInchDex from "hooks/useInchDex";
@@ -34,6 +34,8 @@ const IsNativeTest = (address) => address === '0xae13d989dac2f0debff460ac112a837
 
 function DEX({ chain, customTokens = {} }) {
   const { isMobile } = useBreakpoint()
+  const { data: assets } = useERC20Balances();
+  const { data: nativeBalance } = useNativeBalance({ chain })
 
   const styles = {
     card: {
@@ -73,13 +75,15 @@ function DEX({ chain, customTokens = {} }) {
   const [fromToken, setFromToken] = useState();
   const [toToken, setToToken] = useState();
   const [fromAmount, setFromAmount] = useState();
-  const [extraCharityTax, setExtraCharityTax] = useState(null);
   const [quote, setQuote] = useState();
   const [currentTrade, setCurrentTrade] = useState();
   const { fetchTokenPrice } = useTokenPrice();
   const [tokenPricesUSD, setTokenPricesUSD] = useState({});
   const [arrowIsDown, setArrowIsDown] = useState(true);
   const [taxes, setTaxes] = useState([])
+  const [customTaxName, setCustomTaxName] = useState(null);
+  const [customTaxAmount, setCustomTaxAmount] = useState(null);
+  const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
 
   function attemptSwap (currentTrade) {
     switch (chain) {
@@ -89,7 +93,7 @@ function DEX({ chain, customTokens = {} }) {
       case '0x4':
       case 'bsc':
       case '0x38':
-        trySwap(currentTrade)
+        tryPawSwap(currentTrade)
         break;
       case 'bsctest':
       case '0x61':
@@ -142,6 +146,24 @@ function DEX({ chain, customTokens = {} }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toTokenPriceUsd, quote]);
 
+  useEffect(() => {
+    if (!fromAmount || !fromToken) return true
+    checkHasSufficientBalance(fromAmount, fromToken)
+
+    async function checkHasSufficientBalance(amount, token) {
+      if (IsNative(token.address)) {
+        if (!nativeBalance.balance) return setHasSufficientBalance(false)
+        const isSufficient = amount <= parseFloat(Moralis.Units.FromWei(nativeBalance.balance))
+        console.log('native sufficient, ', isSufficient)
+        return setHasSufficientBalance(isSufficient)
+      }
+      const asset = assets ? assets.find(a => a.token_address === token.address) : undefined
+      if (!asset) return setHasSufficientBalance(isSufficient)
+      const isSufficient = amount <= Moralis.Units.FromWei(asset.balance, asset.decimals)
+      return setHasSufficientBalance(isSufficient)
+    }
+  }, [fromAmount, fromToken])
+
   // tokenPrices
   useEffect(() => {
     if (!isInitialized || !fromToken || !chain) return null;
@@ -174,6 +196,14 @@ function DEX({ chain, customTokens = {} }) {
   }, [chain, isInitialized, toToken]);
 
   useEffect(() => {
+    if (!taxes) return null
+    const customTax = taxes.find(t => t.isCustom)
+    if (!customTax) return null
+    setCustomTaxName(customTax.name + ' %')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taxes])
+
+  useEffect(() => {
     if (!tokens || fromToken) return null;
     setFromToken(tokens[nativeAddress]);
   }, [tokens, fromToken]);
@@ -201,6 +231,12 @@ function DEX({ chain, customTokens = {} }) {
 
   useEffect(() => {
     if (toToken) {
+      if (quote && quote.toTokenAmount) {
+        setFromAmount(
+          Moralis.Units.FromWei(quote?.toTokenAmount, quote?.toToken?.decimals).toFixed(6)
+        )
+        setQuote(null)
+      }
       setFromToken(toToken)
     }
     if (fromToken) {
@@ -215,6 +251,8 @@ function DEX({ chain, customTokens = {} }) {
     if (chainIds?.[chainId] !== chain) return { isActive: false, text: `Switch to ${chain}` };
 
     if (!fromAmount) return { isActive: false, text: "Enter an amount" };
+    if (!nativeBalance.balance) return { isActive: false, text: 'Loading balances...' }
+    if (!hasSufficientBalance) return { isActive: false, text: "Insufficient balance" };
     if (fromAmount && currentTrade) return { isActive: true, text: "Swap" };
     return { isActive: false, text: "Select tokens" };
   }, [fromAmount, currentTrade, chainId, chain]);
@@ -225,12 +263,12 @@ function DEX({ chain, customTokens = {} }) {
       toToken, 
       fromAmount, 
       chain,
-      extraCharityTax,
+      customTaxAmount,
       shelter
     });
     console.log('current trade', currentTrade)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toToken, fromToken, fromAmount, chain, shelter, extraCharityTax]);
+  }, [toToken, fromToken, fromAmount, chain, shelter, customTaxAmount]);
 
   useEffect(() => {
     if (currentTrade) getQuote(currentTrade).then((quote) => setQuote(quote));
@@ -370,13 +408,13 @@ function DEX({ chain, customTokens = {} }) {
           ?  
             !toToken ? '' : 
             <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-              <Skeleton /> 
+              <Skeleton active /> 
             </Card>
           : 
             <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
               <Row gutter={16} style={{ textAlign: 'center', justifyContent: 'center' }}>
               {
-                taxes.map((t, i) => {
+                taxes.filter(t => !t.isCustom).map((t, i) => {
                   return (
                     <Col span={12} style={{ marginBottom: '5px' }} key={i}>
                       <Statistic title={t.name} value={t.amount}></Statistic>
@@ -391,7 +429,9 @@ function DEX({ chain, customTokens = {} }) {
           
         </div>
         <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-          <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>Extra Charity %</div>
+          <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>
+            { customTaxName }
+          </div>
           <div
             style={{
               display: "flex",
@@ -403,11 +443,11 @@ function DEX({ chain, customTokens = {} }) {
                 bordered={false}
                 placeholder="0.00"
                 style={{ ...styles.input, marginLeft: "-10px" }}
-                onChange={setExtraCharityTax}
-                value={extraCharityTax}
+                onChange={setCustomTaxAmount}
+                value={customTaxAmount}
               />
               <Text style={{ fontWeight: "600", color: "#434343" }}>
-                { extraCharityTax ? 
+                { customTaxAmount ? 
                   <div>
                     <span style={{ marginRight: '10px' }}>🎉</span>
                     <span>you're amazing!</span>
