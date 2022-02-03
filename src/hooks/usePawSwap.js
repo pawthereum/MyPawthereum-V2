@@ -161,13 +161,14 @@ const usePawSwap = (chain) => {
         taxStructureContract.methods.tokenTaxBuyAmount().call(),
         taxStructureContract.methods.liquidityTaxBuyAmount().call(),
         taxStructureContract.methods.burnTaxBuyAmount().call(),
+        taxStructureContract.methods.customTaxName().call(),
         taxStructureContract.methods.feeDecimal().call()
       ])
       .then(([ 
         tax1Name, tax1Amount, tax2Name, tax2Amount, 
         tax3Name, tax3Amount, tax4Name, tax4Amount,
         tokenTaxName, tokenTaxAmount, liquidityTaxAmount,
-        burnTaxAmount, feeDecimal ]) => {
+        burnTaxAmount, customTaxName, feeDecimal ]) => {
         return ([
           {
             name: tax1Name,
@@ -196,6 +197,11 @@ const usePawSwap = (chain) => {
           {
             name: 'Burn Tax',
             amount: parseFloat(burnTaxAmount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: customTaxName,
+            amount: 0,
+            isCustom: true
           }
         ].filter(t => t.amount !== '0%'))
       })
@@ -216,13 +222,14 @@ const usePawSwap = (chain) => {
         taxStructureContract.methods.tokenTaxSellAmount().call(),
         taxStructureContract.methods.liquidityTaxSellAmount().call(),
         taxStructureContract.methods.burnTaxSellAmount().call(),
+        taxStructureContract.methods.customTaxName().call(),
         taxStructureContract.methods.feeDecimal().call()
       ])
       .then(([ 
         tax1Name, tax1Amount, tax2Name, tax2Amount, 
         tax3Name, tax3Amount, tax4Name, tax4Amount,
         tokenTaxName, tokenTaxAmount, liquidityTaxAmount,
-        burnTaxAmount, feeDecimal ]) => {
+        burnTaxAmount, customTaxName, feeDecimal ]) => {
         return ([
           {
             name: tax1Name,
@@ -251,6 +258,11 @@ const usePawSwap = (chain) => {
           {
             name: 'Burn Tax',
             amount: parseFloat(burnTaxAmount) / 10**parseInt(feeDecimal) + '%'
+          },
+          {
+            name: customTaxName,
+            amount: 0,
+            isCustom: true
           }
         ].filter(t => t.amount !== '0%'))
       })

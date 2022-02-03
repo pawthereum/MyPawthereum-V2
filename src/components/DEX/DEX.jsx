@@ -80,6 +80,7 @@ function DEX({ chain, customTokens = {} }) {
   const [tokenPricesUSD, setTokenPricesUSD] = useState({});
   const [arrowIsDown, setArrowIsDown] = useState(true);
   const [taxes, setTaxes] = useState([])
+  const [customTaxName, setCustomTaxName] = useState(null);
 
   function attemptSwap (currentTrade) {
     switch (chain) {
@@ -172,6 +173,14 @@ function DEX({ chain, customTokens = {} }) {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chain, isInitialized, toToken]);
+
+  useEffect(() => {
+    if (!taxes) return null
+    const customTax = taxes.find(t => t.isCustom)
+    if (!customTax) return null
+    setCustomTaxName(customTax.name + ' %')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taxes])
 
   useEffect(() => {
     if (!tokens || fromToken) return null;
@@ -370,13 +379,13 @@ function DEX({ chain, customTokens = {} }) {
           ?  
             !toToken ? '' : 
             <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-              <Skeleton /> 
+              <Skeleton active /> 
             </Card>
           : 
             <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
               <Row gutter={16} style={{ textAlign: 'center', justifyContent: 'center' }}>
               {
-                taxes.map((t, i) => {
+                taxes.filter(t => !t.isCustom).map((t, i) => {
                   return (
                     <Col span={12} style={{ marginBottom: '5px' }} key={i}>
                       <Statistic title={t.name} value={t.amount}></Statistic>
@@ -391,7 +400,9 @@ function DEX({ chain, customTokens = {} }) {
           
         </div>
         <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-          <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>Extra Charity %</div>
+          <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>
+            { customTaxName }
+          </div>
           <div
             style={{
               display: "flex",
