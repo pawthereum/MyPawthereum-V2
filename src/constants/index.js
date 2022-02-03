@@ -38,11 +38,11 @@ export const PAWSWAP = {
   },
   '0x38': {
     abi: pawswapAbi,
-    address: '',
+    address: '0xf62941e95ac43696276c9f1f3414ba62f9d76d37',
   },
   'bsc': {
     abi: pawswapAbi,
-    address: '',
+    address: '0xf62941e95ac43696276c9f1f3414ba62f9d76d37',
   },
   '0x61': {
     abi: pawswapAbi,

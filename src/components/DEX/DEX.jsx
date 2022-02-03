@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useMoralis } from "react-moralis";
+import { useNativeBalance, useERC20Balances, useMoralis } from "react-moralis";
 import InchModal from "./components/InchModal";
 import ShelterModal from './components/ShelterModal';
 import useInchDex from "hooks/useInchDex";
@@ -34,6 +34,8 @@ const IsNativeTest = (address) => address === '0xae13d989dac2f0debff460ac112a837
 
 function DEX({ chain, customTokens = {} }) {
   const { isMobile } = useBreakpoint()
+  const { data: assets } = useERC20Balances();
+  const { data: nativeBalance } = useNativeBalance({ chain })
 
   const styles = {
     card: {
@@ -81,6 +83,7 @@ function DEX({ chain, customTokens = {} }) {
   const [taxes, setTaxes] = useState([])
   const [customTaxName, setCustomTaxName] = useState(null);
   const [customTaxAmount, setCustomTaxAmount] = useState(null);
+  const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
 
   function attemptSwap (currentTrade) {
     switch (chain) {
@@ -142,6 +145,24 @@ function DEX({ chain, customTokens = {} }) {
     return `~$ ${(Moralis.Units.FromWei(quote?.toTokenAmount, quote?.toToken?.decimals) * toTokenPriceUsd).toFixed(4)}`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toTokenPriceUsd, quote]);
+
+  useEffect(() => {
+    if (!fromAmount || !fromToken) return true
+    checkHasSufficientBalance(fromAmount, fromToken)
+
+    async function checkHasSufficientBalance(amount, token) {
+      if (IsNative(token.address)) {
+        if (!nativeBalance.balance) return setHasSufficientBalance(false)
+        const isSufficient = amount <= parseFloat(Moralis.Units.FromWei(nativeBalance.balance))
+        console.log('native sufficient, ', isSufficient)
+        return setHasSufficientBalance(isSufficient)
+      }
+      const asset = assets ? assets.find(a => a.token_address === token.address) : undefined
+      if (!asset) return setHasSufficientBalance(isSufficient)
+      const isSufficient = amount <= Moralis.Units.FromWei(asset.balance, asset.decimals)
+      return setHasSufficientBalance(isSufficient)
+    }
+  }, [fromAmount, fromToken])
 
   // tokenPrices
   useEffect(() => {
@@ -224,6 +245,8 @@ function DEX({ chain, customTokens = {} }) {
     if (chainIds?.[chainId] !== chain) return { isActive: false, text: `Switch to ${chain}` };
 
     if (!fromAmount) return { isActive: false, text: "Enter an amount" };
+    if (!nativeBalance.balance) return { isActive: false, text: 'Loading balances...' }
+    if (!hasSufficientBalance) return { isActive: false, text: "Insufficient balance" };
     if (fromAmount && currentTrade) return { isActive: true, text: "Swap" };
     return { isActive: false, text: "Select tokens" };
   }, [fromAmount, currentTrade, chainId, chain]);
