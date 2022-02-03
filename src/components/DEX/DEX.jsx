@@ -93,7 +93,7 @@ function DEX({ chain, customTokens = {} }) {
       case '0x4':
       case 'bsc':
       case '0x38':
-        trySwap(currentTrade)
+        tryPawSwap(currentTrade)
         break;
       case 'bsctest':
       case '0x61':
@@ -231,6 +231,12 @@ function DEX({ chain, customTokens = {} }) {
 
   useEffect(() => {
     if (toToken) {
+      if (quote && quote.toTokenAmount) {
+        setFromAmount(
+          Moralis.Units.FromWei(quote?.toTokenAmount, quote?.toToken?.decimals).toFixed(6)
+        )
+        setQuote(null)
+      }
       setFromToken(toToken)
     }
     if (fromToken) {
