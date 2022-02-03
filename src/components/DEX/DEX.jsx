@@ -158,7 +158,7 @@ function DEX({ chain, customTokens = {} }) {
         return setHasSufficientBalance(isSufficient)
       }
       const asset = assets ? assets.find(a => a.token_address === token.address) : undefined
-      if (!asset) return setHasSufficientBalance(isSufficient)
+      if (!asset) return setHasSufficientBalance(false)
       const isSufficient = amount <= Moralis.Units.FromWei(asset.balance, asset.decimals)
       return setHasSufficientBalance(isSufficient)
     }
