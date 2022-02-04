@@ -42,7 +42,7 @@ const usePawSwap = (chain) => {
 
       const pawthereum = new web3Provider.eth.Contract(
         ERC20ABI, 
-        PAWTH_ADDRESS[chain]
+        fromToken.address
       )
 
       const pawthereumAllowance = await pawthereum.methods.allowance(
