@@ -191,7 +191,7 @@ function DEX({ chain, customTokens = {} }) {
 
     const requiresAllowance = (token) => {
       if (IsNative(token.address)) return false
-      if (process.env.NODE_ENV !== 'production' && chain === 'bsctest') {
+      if (chain === 'bsctest') {
         if (IsNativeTest(token.address)) return false
         return true
       }
