@@ -84,8 +84,14 @@ function DEX({ chain, customTokens = {} }) {
   const [customTaxName, setCustomTaxName] = useState(null);
   const [customTaxAmount, setCustomTaxAmount] = useState(null);
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
+  const [buttonStatus, setButtonStatus] = useState(null)
 
-  function attemptSwap (currentTrade) {
+  async function attemptSwap (currentTrade) {
+    setButtonStatus({
+      isActive: false,
+      isLoading: true,
+      text: 'Swapping'
+    })
     switch (chain) {
       case 'eth':
       case '0x1':
@@ -93,14 +99,17 @@ function DEX({ chain, customTokens = {} }) {
       case '0x4':
       case 'bsc':
       case '0x38':
-        tryPawSwap(currentTrade)
+        await tryPawSwap(currentTrade)
+        setButtonStatus(null)
         break;
       case 'bsctest':
       case '0x61':
-        tryPawSwap(currentTrade)
+        await tryPawSwap(currentTrade)
+        setButtonStatus(null)
         break;
       default:
-        trySwap(currentTrade)
+        await tryPawSwap(currentTrade)
+        setButtonStatus(null)
     }
   }
 
@@ -246,16 +255,15 @@ function DEX({ chain, customTokens = {} }) {
   }, [arrowIsDown])
 
   const ButtonState = useMemo(() => {
-    console.log('chainIds',chainIds)
-    console.log('chain', chain)
     if (chainIds?.[chainId] !== chain) return { isActive: false, text: `Switch to ${chain}` };
+    if (buttonStatus) return buttonStatus
 
     if (!fromAmount) return { isActive: false, text: "Enter an amount" };
     if (!nativeBalance.balance) return { isActive: false, text: 'Loading balances...' }
     if (!hasSufficientBalance) return { isActive: false, text: "Insufficient balance" };
     if (fromAmount && currentTrade) return { isActive: true, text: "Swap" };
     return { isActive: false, text: "Select tokens" };
-  }, [fromAmount, currentTrade, chainId, chain]);
+  }, [fromAmount, currentTrade, chainId, chain, buttonStatus]);
 
   useEffect(() => {
     if (fromToken && toToken && fromAmount) setCurrentTrade({ 
@@ -514,6 +522,7 @@ function DEX({ chain, customTokens = {} }) {
           }}
           onClick={() => attemptSwap(currentTrade)}
           disabled={!ButtonState.isActive}
+          loading={ButtonState.isLoading}
         >
           {ButtonState.text}
         </Button>
