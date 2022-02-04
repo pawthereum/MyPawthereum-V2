@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/static/css/main.332c22ef.chunk.css",
-    "main.js": "/static/js/main.3753a3fd.chunk.js",
-    "main.js.map": "/static/js/main.3753a3fd.chunk.js.map",
+    "main.js": "/static/js/main.cbe2b5b2.chunk.js",
+    "main.js.map": "/static/js/main.cbe2b5b2.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.ae5e9395.js",
     "runtime-main.js.map": "/static/js/runtime-main.ae5e9395.js.map",
     "static/css/2.4fedf42e.chunk.css": "/static/css/2.4fedf42e.chunk.css",
-    "static/js/2.d4a49c10.chunk.js": "/static/js/2.d4a49c10.chunk.js",
-    "static/js/2.d4a49c10.chunk.js.map": "/static/js/2.d4a49c10.chunk.js.map",
+    "static/js/2.ce602aaa.chunk.js": "/static/js/2.ce602aaa.chunk.js",
+    "static/js/2.ce602aaa.chunk.js.map": "/static/js/2.ce602aaa.chunk.js.map",
     "index.html": "/index.html",
     "static/css/2.4fedf42e.chunk.css.map": "/static/css/2.4fedf42e.chunk.css.map",
     "static/css/main.332c22ef.chunk.css.map": "/static/css/main.332c22ef.chunk.css.map",
-    "static/js/2.d4a49c10.chunk.js.LICENSE.txt": "/static/js/2.d4a49c10.chunk.js.LICENSE.txt",
+    "static/js/2.ce602aaa.chunk.js.LICENSE.txt": "/static/js/2.ce602aaa.chunk.js.LICENSE.txt",
     "static/media/Coin98.1e4e4073.png": "/static/media/Coin98.1e4e4073.png",
     "static/media/MathWallet.19212234.svg": "/static/media/MathWallet.19212234.svg",
     "static/media/SafePal.e7068bbc.svg": "/static/media/SafePal.e7068bbc.svg",
@@ -50,8 +50,8 @@
   "entrypoints": [
     "static/js/runtime-main.ae5e9395.js",
     "static/css/2.4fedf42e.chunk.css",
-    "static/js/2.d4a49c10.chunk.js",
+    "static/js/2.ce602aaa.chunk.js",
     "static/css/main.332c22ef.chunk.css",
-    "static/js/main.3753a3fd.chunk.js"
+    "static/js/main.cbe2b5b2.chunk.js"
   ]
 }

@@ -4,8 +4,8 @@ export const PAWTH_ADDRESS = {
   '0x38': '0x409e215738e31d8ab252016369c2dd9c2008fee0', // bsc mainnet
   'bsc': '0x409e215738e31d8ab252016369c2dd9c2008fee0',
   '0x4': '', // rinkeby testnet
-  '0x61': '0x8798D6DA45C92b1e5966285Fd3A0369154884efc', // bsc testnet
-  'bsctest': '0x8798D6DA45C92b1e5966285Fd3A0369154884efc',
+  '0x61': '0x68Bbe821a9063B7Acd9e8b45D6C52CD2d9fC9575', // bsc testnet
+  'bsctest': '0x68Bbe821a9063B7Acd9e8b45D6C52CD2d9fC9575',
 }
 
 export const SNAPSHOT_URL = 'pawthereum.eth'

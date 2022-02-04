@@ -4,6 +4,9 @@ import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI } from '../constant
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
+const IsNative = (address) => address === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+const IsNativeTest = (address) => address === '0xae13d989dac2f0debff460ac112a837c89baa7cd';
+
 const openNotification = ({ message, description, link }) => {
   notification.open({
     message,
@@ -32,6 +35,43 @@ const usePawSwap = (chain) => {
       toTokenAddress: params.toToken.address, // The token you want to receive
       amount: Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString(),
     });
+  
+  async function hasAllowance (amount, token) {
+    if (IsNative(token.address)) return true
+    if (process.env.NODE_ENV !== 'production' && chain === 'bsctest') {
+      if (IsNativeTest(token.address)) return true
+    }
+    
+    const web3Provider = await Moralis.enableWeb3();
+
+    const tokenContract = new web3Provider.eth.Contract(
+      ERC20ABI, 
+      token.address
+    )
+
+    const tokenAllowance = await tokenContract.methods.allowance(
+      account,
+      PAWSWAP[chain].address
+    ).call()
+
+    if (parseInt(tokenAllowance) < parseInt(amount)) {
+      return false
+    }
+  }
+
+  async function updateAllowance (amount, token) {
+    const web3Provider = await Moralis.enableWeb3();
+
+    const tokenContract = new web3Provider.eth.Contract(
+      ERC20ABI, 
+      token.address
+    )
+
+    await tokenContract.methods.approve(
+      PAWSWAP[chain].address,
+      Moralis.Units.Token(amount, token.decimals).toString()
+    ).send({ from: account })
+  }
 
   async function tryPawSwap(params) {
     const { fromToken, fromAmount, chain  } = params;
@@ -42,7 +82,7 @@ const usePawSwap = (chain) => {
 
       const pawthereum = new web3Provider.eth.Contract(
         ERC20ABI, 
-        PAWTH_ADDRESS[chain]
+        fromToken.address
       )
 
       const pawthereumAllowance = await pawthereum.methods.allowance(
@@ -275,7 +315,7 @@ const usePawSwap = (chain) => {
     return taxes
   }
 
-  return { getQuote, tryPawSwap, tokenList, getTaxStructure };
+  return { getQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance };
 };
 
 export default usePawSwap;
