@@ -65,7 +65,7 @@ function DEX({ chain, customTokens = {} }) {
   
 
   const { trySwap, tokenList, getQuote } = useInchDex(chain);
-  const { tryPawSwap, getTaxStructure } = usePawSwap(chain);
+  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance } = usePawSwap(chain);
 
   const { Moralis, isInitialized, chainId } = useMoralis();
   const [isFromModalActive, setFromModalActive] = useState(false);
@@ -85,6 +85,12 @@ function DEX({ chain, customTokens = {} }) {
   const [customTaxAmount, setCustomTaxAmount] = useState(null);
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
   const [buttonStatus, setButtonStatus] = useState(null)
+  const [allowanceButton, setAllowanceButton] = useState({
+    display: false,
+    isLoading: false,
+    isActive: false,
+    text: 'Approve'
+  })
 
   async function attemptSwap (currentTrade) {
     setButtonStatus({
@@ -111,6 +117,22 @@ function DEX({ chain, customTokens = {} }) {
         await tryPawSwap(currentTrade)
         setButtonStatus(null)
     }
+  }
+
+  async function attemptAllowance (amount, token) {
+    setAllowanceButton({
+      display: true,
+      isActive: false,
+      isLoading: true,
+      text: `Approving ${token.symbol}`
+    })
+    await updateAllowance(amount, token)
+    return setAllowanceButton({
+      display: false,
+      isActive: false,
+      isLoading: false,
+      text: 'Approve'
+    })
   }
 
   // add pawth if it isnt already listed
@@ -156,14 +178,30 @@ function DEX({ chain, customTokens = {} }) {
   }, [toTokenPriceUsd, quote]);
 
   useEffect(() => {
-    if (!fromAmount || !fromToken) return true
+    if (!fromAmount || !fromToken) {
+      return setAllowanceButton({
+        display: false,
+        isLoading: false,
+        isActive: false,
+        text: `Approve`
+      })
+    }
     checkHasSufficientBalance(fromAmount, fromToken)
+    checkHasSufficientAllownace(fromAmount, fromToken)
+
+    const requiresAllowance = (token) => {
+      if (IsNative(token.address)) return false
+      if (process.env.NODE_ENV !== 'production' && chain === 'bsctest') {
+        if (IsNativeTest(token.address)) return false
+        return true
+      }
+      return true
+    }
 
     async function checkHasSufficientBalance(amount, token) {
       if (IsNative(token.address)) {
         if (!nativeBalance.balance) return setHasSufficientBalance(false)
         const isSufficient = amount <= parseFloat(Moralis.Units.FromWei(nativeBalance.balance))
-        console.log('native sufficient, ', isSufficient)
         return setHasSufficientBalance(isSufficient)
       }
       const asset = assets ? assets.find(a => a.token_address === token.address) : undefined
@@ -171,6 +209,19 @@ function DEX({ chain, customTokens = {} }) {
       const isSufficient = amount <= Moralis.Units.FromWei(asset.balance, asset.decimals)
       return setHasSufficientBalance(isSufficient)
     }
+
+    async function checkHasSufficientAllownace(amount, token) {
+      const hasSufficientAllowance = await hasAllowance(amount, token)
+      if (!hasSufficientAllowance) {
+        setAllowanceButton({
+          display: requiresAllowance(token),
+          isLoading: false,
+          isActive: true,
+          text: `Approve ${token.symbol}`
+        })
+      }
+    }
+
   }, [fromAmount, fromToken])
 
   // tokenPrices
@@ -513,21 +564,45 @@ function DEX({ chain, customTokens = {} }) {
             <PriceSwap />
           </div>
         )}
-        <Button
-          type="primary"
-          size="large"
-          style={{
-            width: "100%",
-            marginTop: "15px",
-            borderRadius: "0.6rem",
-            height: "50px",
-          }}
-          onClick={() => attemptSwap(currentTrade)}
-          disabled={!ButtonState.isActive}
-          loading={ButtonState.isLoading}
-        >
-          {ButtonState.text}
-        </Button>
+        <Row gutter={6}>
+          {
+            !allowanceButton.display ? '' :
+            <Col span={12}>
+              <Button
+                type="primary"
+                size="large"
+                style={{
+                  width: "100%",
+                  marginTop: "15px",
+                  borderRadius: "0.6rem",
+                  height: "50px",
+                }}
+                onClick={() => attemptAllowance(fromAmount, fromToken)}
+                disabled={!allowanceButton.isActive}
+                loading={allowanceButton.isLoading}
+              >
+                {allowanceButton.text}
+              </Button>
+            </Col>
+          }
+          <Col span={allowanceButton.display ? 12 : 24}> 
+            <Button
+              type="primary"
+              size="large"
+              style={{
+                width: "100%",
+                marginTop: "15px",
+                borderRadius: "0.6rem",
+                height: "50px",
+              }}
+              onClick={() => attemptSwap(currentTrade)}
+              disabled={!ButtonState.isActive || allowanceButton.isActive || allowanceButton.isLoading}
+              loading={ButtonState.isLoading}
+            >
+              {ButtonState.text}
+            </Button>
+          </Col>
+        </Row>
       </Card>
       <Modal
         title="Select a token"
