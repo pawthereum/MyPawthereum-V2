@@ -1,4 +1,4 @@
-import pawswapRouterAbi from './abis/pawswapRouter'
+import { pawswapRouterAbi } from './abis/pawswapRouter'
 
 export const PAWTH_ADDRESS = {
   '0x1': '0xaecc217a749c2405b5ebc9857a16d58bdc1c367f', // eth mainnet

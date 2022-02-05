@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
-import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI } from '../constants'
+import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI, PAWSWAP_ROUTER } from '../constants'
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
@@ -152,6 +152,33 @@ const usePawSwap = (chain) => {
       0,
       0
     ).send({ from: account })
+  }
+
+  async function getLiqQuote (params) {
+    const { fromToken, fromAmount, toToken, chain  } = params;
+    console.log('get liq quote', params)
+
+    const web3Provider = await Moralis.enableWeb3();
+
+    const router = new web3Provider.eth.Contract(
+      PAWSWAP_ROUTER[params.chain].abi, 
+      PAWSWAP_ROUTER[params.chain].address
+    )
+
+    const quote = await router.methods.quote(
+      Moralis.Units.Token(fromAmount, fromToken.decimals).toString(),
+      fromToken.address,
+      toToken.address
+    ).call()
+    console.log('quote',quote)
+    return {
+      toTokenAmount: quote,
+      toToken,
+      fromToken
+    }
+    // get amount from params
+    // pass it to the router quote function
+    // return the amount that gets returned
   }
 
   async function getTaxStructure (params) {
@@ -315,7 +342,7 @@ const usePawSwap = (chain) => {
     return taxes
   }
 
-  return { getQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance };
+  return { getQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote };
 };
 
 export default usePawSwap;

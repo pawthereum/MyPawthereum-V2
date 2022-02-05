@@ -6,7 +6,6 @@ import useInchDex from "../../../hooks/useInchDex";
 import usePawSwap from '../../../hooks/usePawSwap';
 import { Button, Card, Image, Input, InputNumber, Modal, Skeleton, Statistic, Row, Col } from "antd";
 import Text from "antd/lib/typography/Text";
-import { ArrowDownOutlined, DashOutlined } from "@ant-design/icons";
 import { useTokenPrice } from "react-moralis";
 import { tokenValue } from "../../../helpers/formatters";
 import { getWrappedNative } from "../../../helpers/networks";
@@ -65,7 +64,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
   
 
   const { trySwap, tokenList, getQuote } = useInchDex(chain);
-  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance } = usePawSwap(chain);
+  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote } = usePawSwap(chain);
 
   const { Moralis, isInitialized, chainId } = useMoralis();
   const [isFromModalActive, setFromModalActive] = useState(false);
@@ -79,8 +78,6 @@ function AddLiquidity({ chain, customTokens = {} }) {
   const [currentTrade, setCurrentTrade] = useState();
   const { fetchTokenPrice } = useTokenPrice();
   const [tokenPricesUSD, setTokenPricesUSD] = useState({});
-  const [arrowIsDown, setArrowIsDown] = useState(true);
-  const [taxes, setTaxes] = useState([])
   const [customTaxName, setCustomTaxName] = useState(null);
   const [customTaxAmount, setCustomTaxAmount] = useState(null);
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
@@ -256,54 +253,9 @@ function AddLiquidity({ chain, customTokens = {} }) {
   }, [chain, isInitialized, toToken]);
 
   useEffect(() => {
-    if (!taxes) return null
-    const customTax = taxes.find(t => t.isCustom)
-    if (!customTax) return null
-    setCustomTaxName(customTax.name + ' %')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taxes])
-
-  useEffect(() => {
     if (!tokens || fromToken) return null;
     setFromToken(tokens[nativeAddress]);
   }, [tokens, fromToken]);
-
-  useEffect(() => {
-    console.log('chain---------', chain)
-    async function getTaxes() {
-      if (toToken && !IsNative(toToken) && !IsNativeTest(toToken.address)) {
-        const t = await getTaxStructure({ tokenAddress: toToken.address, chain, side: 'buy' })
-        console.log('got them!!! ====== ', t)
-        if (t === null && taxes !== null) return
-        setTaxes(t)
-        // setFromToken(tokens[nativeAddress])
-      }
-      if (fromToken && !IsNative(fromToken) && !IsNativeTest(fromToken.address)) {
-        const t = await getTaxStructure({ tokenAddress: fromToken.address, chain, side: 'sell' })
-        console.log('got them!!! ====== ', t)
-        if (t === null && taxes !== null) return
-        setTaxes(t)
-        // setToToken(tokens[nativeAddress])
-      }
-    }
-    getTaxes()
-  }, [toToken, fromToken])
-
-  useEffect(() => {
-    if (toToken) {
-      if (quote && quote.toTokenAmount) {
-        setFromAmount(
-          Moralis.Units.FromWei(quote?.toTokenAmount, quote?.toToken?.decimals).toFixed(6)
-        )
-        setQuote(null)
-      }
-      setFromToken(toToken)
-    }
-    if (fromToken) {
-      setToToken(fromToken)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arrowIsDown])
 
   const ButtonState = useMemo(() => {
     if (chainIds?.[chainId] !== chain) return { isActive: false, text: `Switch to ${chain}` };
@@ -314,7 +266,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
       if (!nativeBalance.balance) return { isActive: false, text: 'Loading balances...' }
       if (!hasSufficientBalance) return { isActive: false, text: "Insufficient balance" };
     }
-    if (fromAmount && currentTrade) return { isActive: true, text: "Swap" };
+    if (fromAmount && currentTrade) return { isActive: true, text: "Add Liquidity" };
     return { isActive: false, text: "Select tokens" };
   }, [fromAmount, currentTrade, chainId, chain, buttonStatus]);
 
@@ -332,7 +284,8 @@ function AddLiquidity({ chain, customTokens = {} }) {
   }, [toToken, fromToken, fromAmount, chain, shelter, customTaxAmount]);
 
   useEffect(() => {
-    if (currentTrade) getQuote(currentTrade).then((quote) => setQuote(quote));
+    console.log('current trade is updated...', currentTrade)
+    if (currentTrade) getLiqQuote(currentTrade).then((quote) => setQuote(quote));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrade]);
 
@@ -407,12 +360,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
             </Button>
           </div>
         </Card>
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
-          <div onClick={e => setArrowIsDown(!arrowIsDown)} style={{ cursor: 'pointer' }}>
-            <ArrowDownOutlined />
-          </div>
-        </div>
-        <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
+        <Card style={{ borderRadius: "1rem", marginTop: "10px" }} bodyStyle={{ padding: "0.8rem" }}>
           <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>To</div>
           <div
             style={{
@@ -458,91 +406,6 @@ function AddLiquidity({ chain, customTokens = {} }) {
                 <span>Select a token</span>
               )}
               <span>{toToken?.symbol}</span>
-              <Arrow />
-            </Button>
-          </div>
-        </Card>
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
-          <DashOutlined />
-        </div>
-        { !taxes || !taxes.length 
-          ?  
-            !toToken ? '' : 
-            <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-              <Skeleton active /> 
-            </Card>
-          : 
-            <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-              <Row gutter={16} style={{ textAlign: 'center', justifyContent: 'center' }}>
-              {
-                taxes.filter(t => !t.isCustom).map((t, i) => {
-                  return (
-                    <Col span={12} style={{ marginBottom: '5px' }} key={i}>
-                      <Statistic title={t.name} value={t.amount}></Statistic>
-                    </Col>
-                  )
-                })
-              }
-              </Row>
-            </Card>
-        }
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
-          
-        </div>
-        <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-          <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>
-            { customTaxName }
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexFlow: "row nowrap",
-            }}
-          >
-            <div>
-              <InputNumber
-                bordered={false}
-                placeholder="0.00"
-                style={{ ...styles.input, marginLeft: "-10px" }}
-                onChange={setCustomTaxAmount}
-                value={customTaxAmount}
-              />
-              <Text style={{ fontWeight: "600", color: "#434343" }}>
-                { customTaxAmount ? 
-                  <div>
-                    <span style={{ marginRight: '10px' }}>🎉</span>
-                    <span>you're amazing!</span>
-                  </div> : "optional" 
-                }
-              </Text>
-            </div>
-            <Button
-              style={{
-                height: "fit-content",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                borderRadius: "0.6rem",
-                padding: "5px 10px",
-                fontWeight: "500",
-                fontSize: "17px",
-                gap: "7px",
-                border: "none",
-              }}
-              onClick={() => setShelterModalActive(true)}
-            >
-              {shelter ? (
-                <Image
-                  src={shelter?.logoURI || "https://etherscan.io/images/main/empty-token.png"}
-                  alt="nologo"
-                  width="30px"
-                  preview={false}
-                  style={{ borderRadius: "15px" }}
-                />
-              ) : (
-                <span>Select a shelter</span>
-              )}
-              <span>{shelter?.symbol}</span>
               <Arrow />
             </Button>
           </div>
