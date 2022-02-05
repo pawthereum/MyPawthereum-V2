@@ -596,7 +596,7 @@ function DEX({ chain, customTokens = {} }) {
                 height: "50px",
               }}
               onClick={() => attemptSwap(currentTrade)}
-              disabled={!ButtonState.isActive || allowanceButton.isActive || allowanceButton.isLoading}
+              disabled={!ButtonState.isActive || allowanceButton.display && (allowanceButton.isActive || allowanceButton.isLoading)}
               loading={ButtonState.isLoading}
             >
               {ButtonState.text}
