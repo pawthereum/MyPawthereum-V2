@@ -310,7 +310,7 @@ function DEX({ chain, customTokens = {} }) {
     if (buttonStatus) return buttonStatus
 
     if (!fromAmount) return { isActive: false, text: "Enter an amount" };
-    if (chain !== 'bsctestnet') {
+    if (chain !== 'bsctest') {
       if (!nativeBalance.balance) return { isActive: false, text: 'Loading balances...' }
       if (!hasSufficientBalance) return { isActive: false, text: "Insufficient balance" };
     }
