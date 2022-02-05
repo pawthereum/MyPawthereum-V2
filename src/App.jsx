@@ -25,6 +25,7 @@ import Proposal from 'components/Vote/components/Proposal';
 import MenuItems from "./components/MenuItems";
 import { PAWTH_ADDRESS } from "./constants";
 import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
+import AddLiquidity from "components/DEX/components/AddLiquidity";
  
 const { Header, Footer } = Layout;
 const { useBreakpoint } = Grid;
@@ -172,6 +173,9 @@ const App = ({ isServerInfo }) => {
                 {/* <Tabs.TabPane tab={<span>Polygon</span>} key="4">
                   <DEX chain="polygon" />
                 </Tabs.TabPane> */}
+                <Tabs.TabPane tab={<span>Liquidity</span>} key="3">
+                  <AddLiquidity chain="bsctest" />
+                </Tabs.TabPane>
               </Tabs>
             </Route>
             <Route path="/erc20balance">
