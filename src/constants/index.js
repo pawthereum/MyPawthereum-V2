@@ -1,4 +1,5 @@
 import { pawswapRouterAbi } from './abis/pawswapRouter'
+import { pawswapFactoryAbi } from './abis/pawswapFactory'
 
 export const PAWTH_ADDRESS = {
   '0x1': '0xaecc217a749c2405b5ebc9857a16d58bdc1c367f', // eth mainnet
@@ -80,6 +81,33 @@ export const PAWSWAP_ROUTER = {
   'bsctest': {
     abi: pawswapRouterAbi,
     address: '0x47a92204b04d64afa167d487f230e31aa1a9d400',
+  },
+}
+
+export const PAWSWAP_FACTORY = {
+  '0x1': {
+    abi: pawswapFactoryAbi,
+    address: '',
+  },
+  'eth': {
+    abi: pawswapFactoryAbi,
+    address: '',
+  },
+  '0x38': {
+    abi: pawswapFactoryAbi,
+    address: '',
+  },
+  'bsc': {
+    abi: pawswapFactoryAbi,
+    address: '',
+  },
+  '0x61': {
+    abi: pawswapFactoryAbi,
+    address: '0x5ad2588fbd8a095845b05456ab83c22ec669081d',
+  },
+  'bsctest': {
+    abi: pawswapFactoryAbi,
+    address: '0x5ad2588fbd8a095845b05456ab83c22ec669081d',
   },
 }
 

@@ -64,7 +64,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
   
 
   const { trySwap, tokenList, getQuote } = useInchDex(chain);
-  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote } = usePawSwap(chain);
+  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote, tryAddLiquidity } = usePawSwap(chain);
 
   const { Moralis, isInitialized, chainId } = useMoralis();
   const [isFromModalActive, setFromModalActive] = useState(false);
@@ -89,11 +89,12 @@ function AddLiquidity({ chain, customTokens = {} }) {
     text: 'Approve'
   })
 
-  async function attemptSwap (currentTrade) {
+  async function attemptAddLiquidity (quote) {
+    console.log('quote', quote)
     setButtonStatus({
       isActive: false,
       isLoading: true,
-      text: 'Swapping'
+      text: 'Adding'
     })
     switch (chain) {
       case 'eth':
@@ -102,16 +103,16 @@ function AddLiquidity({ chain, customTokens = {} }) {
       case '0x4':
       case 'bsc':
       case '0x38':
-        await tryPawSwap(currentTrade)
+        await tryAddLiquidity(quote)
         setButtonStatus(null)
         break;
       case 'bsctest':
       case '0x61':
-        await tryPawSwap(currentTrade)
+        await tryAddLiquidity(quote)
         setButtonStatus(null)
         break;
       default:
-        await tryPawSwap(currentTrade)
+        await tryAddLiquidity(quote)
         setButtonStatus(null)
     }
   }
@@ -123,7 +124,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
       isLoading: true,
       text: `Approving ${token.symbol}`
     })
-    await updateAllowance(amount, token)
+    await updateAllowance(amount, token, 'router')
     return setAllowanceButton({
       display: false,
       isActive: false,
@@ -208,7 +209,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
     }
 
     async function checkHasSufficientAllownace(amount, token) {
-      const hasSufficientAllowance = await hasAllowance(amount, token)
+      const hasSufficientAllowance = await hasAllowance(amount, token, 'router')
       if (!hasSufficientAllowance) {
         setAllowanceButton({
           display: requiresAllowance(token),
@@ -458,7 +459,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
                 borderRadius: "0.6rem",
                 height: "50px",
               }}
-              onClick={() => attemptSwap(currentTrade)}
+              onClick={() => attemptAddLiquidity(quote)}
               disabled={!ButtonState.isActive || allowanceButton.display && (allowanceButton.isActive || allowanceButton.isLoading)}
               loading={ButtonState.isLoading}
             >

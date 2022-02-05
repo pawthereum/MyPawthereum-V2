@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
-import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI, PAWSWAP_ROUTER } from '../constants'
+import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI, PAWSWAP_ROUTER, PAWSWAP_FACTORY } from '../constants'
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
@@ -19,6 +19,15 @@ const openNotification = ({ message, description, link }) => {
   });
 };
 
+const allowanceSpenderAddress = (spender, chain) => {
+  switch (spender) {
+    case 'router':
+      return PAWSWAP_ROUTER[chain].address
+    default:
+      return PAWSWAP[chain].address
+  }
+}
+
 const usePawSwap = (chain) => {
   const { Moralis, account } = useMoralis();
   const [tokenList, setTokenlist] = useState();
@@ -36,7 +45,7 @@ const usePawSwap = (chain) => {
       amount: Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString(),
     });
   
-  async function hasAllowance (amount, token) {
+  async function hasAllowance (amount, token, spender) {
     if (IsNative(token.address)) return true
     if (process.env.NODE_ENV !== 'production' && chain === 'bsctest') {
       if (IsNativeTest(token.address)) return true
@@ -51,7 +60,7 @@ const usePawSwap = (chain) => {
 
     const tokenAllowance = await tokenContract.methods.allowance(
       account,
-      PAWSWAP[chain].address
+      allowanceSpenderAddress(spender, chain),
     ).call()
 
     if (parseInt(tokenAllowance) < parseInt(amount)) {
@@ -59,7 +68,7 @@ const usePawSwap = (chain) => {
     }
   }
 
-  async function updateAllowance (amount, token) {
+  async function updateAllowance (amount, token, spender) {
     const web3Provider = await Moralis.enableWeb3();
 
     const tokenContract = new web3Provider.eth.Contract(
@@ -68,7 +77,7 @@ const usePawSwap = (chain) => {
     )
 
     await tokenContract.methods.approve(
-      PAWSWAP[chain].address,
+      allowanceSpenderAddress(spender, chain),
       Moralis.Units.Token(amount, token.decimals).toString()
     ).send({ from: account })
   }
@@ -156,7 +165,6 @@ const usePawSwap = (chain) => {
 
   async function getLiqQuote (params) {
     const { fromToken, fromAmount, toToken, chain  } = params;
-    console.log('get liq quote', params)
 
     const web3Provider = await Moralis.enableWeb3();
 
@@ -170,15 +178,87 @@ const usePawSwap = (chain) => {
       fromToken.address,
       toToken.address
     ).call()
-    console.log('quote',quote)
+
     return {
       toTokenAmount: quote,
       toToken,
-      fromToken
+      fromToken,
+      fromAmount,
+      chain
     }
-    // get amount from params
-    // pass it to the router quote function
-    // return the amount that gets returned
+  }
+
+  async function tryAddLiquidity (params) {
+    const { fromToken, fromAmount, toToken, toAmount, chain  } = params
+    console.log('params', params)
+    const amount = Moralis.Units.Token(fromAmount, fromToken.decimals).toString();
+    if (fromToken.address.toLowerCase() === PAWTH_ADDRESS[chain].toLowerCase()) {
+      const web3Provider = await Moralis.enableWeb3();
+
+      const pawthereum = new web3Provider.eth.Contract(
+        ERC20ABI, 
+        fromToken.address
+      )
+
+      const pawthereumAllowance = await pawthereum.methods.allowance(
+        account,
+        PAWSWAP_ROUTER[chain].address
+      ).call()
+
+      if (parseInt(pawthereumAllowance) < parseInt(amount)) {
+        await pawthereum.methods.approve(
+          PAWSWAP_ROUTER[chain].address,
+          amount
+        ).send({ from: account })
+      }
+
+    }
+
+    await doAddLiquidity(params)
+      .then((receipt) => {
+        console.log('receipt', receipt)
+        if (receipt.statusCode !== 400) {
+          const link = networkConfigs[params.chain].blockExplorerUrl + 'tx/' + receipt.transactionHash
+          openNotification({
+            message: "🎉 Liquidity Added!",
+            description: `${receipt.transactionHash}`,
+            link
+          });
+          console.log(receipt);
+        }
+      })
+      .catch((e) => {
+        console.log('error', e)
+        openNotification({
+          message: "⚠️ Liquidity Add Error!",
+          description: `${e.message}`
+        });
+      });
+  }
+
+  async function doAddLiquidity(params) {
+    const web3Provider = await Moralis.enableWeb3();
+
+    const router = new web3Provider.eth.Contract(
+      PAWSWAP_ROUTER[params.chain].abi, 
+      PAWSWAP_ROUTER[params.chain].address
+    )
+    console.log('adoing with router', router)
+    console.log(params)
+
+    const deadlineMinutes = 20 // default to an arbitrary 20m deadline
+
+    return await router.methods.addLiquidityETH(
+      params.toToken.address,
+      params.toTokenAmount,
+      0,
+      0,
+      account,
+      new Date().getTime() + deadlineMinutes * 60000
+    ).send({ 
+      from: account, 
+      value: Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString() 
+    })
   }
 
   async function getTaxStructure (params) {
@@ -342,7 +422,7 @@ const usePawSwap = (chain) => {
     return taxes
   }
 
-  return { getQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote };
+  return { getQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote, tryAddLiquidity };
 };
 
 export default usePawSwap;
