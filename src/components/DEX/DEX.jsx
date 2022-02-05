@@ -65,7 +65,7 @@ function DEX({ chain, customTokens = {} }) {
   
 
   const { trySwap, tokenList, getQuote } = useInchDex(chain);
-  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance } = usePawSwap(chain);
+  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance, getSwapQuote } = usePawSwap(chain);
 
   const { Moralis, isInitialized, chainId } = useMoralis();
   const [isFromModalActive, setFromModalActive] = useState(false);
@@ -332,7 +332,11 @@ function DEX({ chain, customTokens = {} }) {
   }, [toToken, fromToken, fromAmount, chain, shelter, customTaxAmount]);
 
   useEffect(() => {
-    if (currentTrade) getQuote(currentTrade).then((quote) => setQuote(quote));
+    if (currentTrade && chain !== 'bsctest') {
+      getQuote(currentTrade).then((quote) => setQuote(quote));
+    } else if (currentTrade) {
+      getSwapQuote(currentTrade, taxes).then((quote) => setQuote(quote));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrade]);
 
@@ -475,7 +479,7 @@ function DEX({ chain, customTokens = {} }) {
             <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
               <Row gutter={16} style={{ textAlign: 'center', justifyContent: 'center' }}>
               {
-                taxes.filter(t => !t.isCustom).map((t, i) => {
+                taxes.filter(t => !t.isCustom && !t.isTotal).map((t, i) => {
                   return (
                     <Col span={12} style={{ marginBottom: '5px' }} key={i}>
                       <Statistic title={t.name} value={t.amount}></Statistic>

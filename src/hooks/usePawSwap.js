@@ -37,13 +37,16 @@ const usePawSwap = (chain) => {
     Moralis.Plugins.oneInch.getSupportedTokens({ chain }).then((tokens) => setTokenlist(tokens.tokens));
   }, [Moralis, Moralis.Plugins, chain]);
 
-  const getQuote = async (params) =>
-    await Moralis.Plugins.oneInch.quote({
-      chain: params.chain, // The blockchain  you want to use (eth/bsc/polygon)
-      fromTokenAddress: params.fromToken.address, // The token you want to swap
-      toTokenAddress: params.toToken.address, // The token you want to receive
-      amount: Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString(),
-    });
+  async function getSwapQuote (params, taxes) {
+    console.log('QUOTE params~~~~~~~~~~~~~~~~~', params)
+    // const quote = await getSwapQuote(params)
+    // return quote
+    const quote = await getQuote(params)
+    console.log('quote', quote)
+    console.log('taxes', taxes)
+
+    return quote
+  }
   
   async function hasAllowance (amount, token, spender) {
     if (IsNative(token.address)) return true
@@ -163,7 +166,7 @@ const usePawSwap = (chain) => {
     ).send({ from: account })
   }
 
-  async function getLiqQuote (params) {
+  async function getQuote (params) {
     const { fromToken, fromAmount, toToken, chain  } = params;
 
     const web3Provider = await Moralis.enableWeb3();
@@ -173,19 +176,31 @@ const usePawSwap = (chain) => {
       PAWSWAP_ROUTER[params.chain].address
     )
 
-    const quote = await router.methods.quote(
+    const amountOut = await router.methods.getAmountsOut(
       Moralis.Units.Token(fromAmount, fromToken.decimals).toString(),
-      fromToken.address,
-      toToken.address
+      [fromToken.address, toToken.address]
     ).call()
 
+    console.log('amount out', amountOut)
+
+    // const quote = await router.methods.quote(
+    //   Moralis.Units.Token(fromAmount, fromToken.decimals).toString(),
+    //   fromToken.address,
+    //   toToken.address
+    // ).call()
+
     return {
-      toTokenAmount: quote,
+      toTokenAmount: amountOut[1],
       toToken,
       fromToken,
       fromAmount,
       chain
     }
+  }
+
+  async function getLiqQuote (params) {
+    console.log('LIQ params~~~~~~~~~~~~~~~~~', params)
+    return await getQuote(params)
   }
 
   async function tryAddLiquidity (params) {
@@ -317,7 +332,7 @@ const usePawSwap = (chain) => {
         tax3Name, tax3Amount, tax4Name, tax4Amount,
         tokenTaxName, tokenTaxAmount, liquidityTaxAmount,
         burnTaxAmount, customTaxName, feeDecimal ]) => {
-        return ([
+        const taxes = [
           {
             name: tax1Name,
             amount: parseFloat(tax1Amount) / 10**parseInt(feeDecimal) + '%'
@@ -351,7 +366,18 @@ const usePawSwap = (chain) => {
             amount: 0,
             isCustom: true
           }
-        ].filter(t => t.amount !== '0%'))
+        ].filter(t => t.amount !== '0%')
+        
+        taxes.push({
+          name: 'Total Buy Tax',
+          isTotal: true,
+          amount: taxes.reduce(function (p, t) {
+            if (t.amount === 0) return p + 0
+            return p + parseInt(t.amount.replace('%', ''))
+          }, 0) + '%'
+        })
+        console.log('taxes```````=======LLLLLL', taxes)
+        return taxes
       })
       .catch(err => err)
     }
@@ -378,7 +404,7 @@ const usePawSwap = (chain) => {
         tax3Name, tax3Amount, tax4Name, tax4Amount,
         tokenTaxName, tokenTaxAmount, liquidityTaxAmount,
         burnTaxAmount, customTaxName, feeDecimal ]) => {
-        return ([
+        const taxes = [
           {
             name: tax1Name,
             amount: parseFloat(tax1Amount) / 10**parseInt(feeDecimal) + '%'
@@ -412,7 +438,17 @@ const usePawSwap = (chain) => {
             amount: 0,
             isCustom: true
           }
-        ].filter(t => t.amount !== '0%'))
+        ].filter(t => t.amount !== '0%')
+        
+        taxes.push({
+          name: 'Total Sell Tax',
+          isTotal: true,
+          amount: taxes.reduce(function (p, t) {
+            if (t.amount === 0) return p + 0
+            return p + parseInt(t.amount.replace('%', ''))
+          }, 0) + '%'
+        })
+        return taxes
       })
       .catch(err => err)
     }
@@ -422,7 +458,7 @@ const usePawSwap = (chain) => {
     return taxes
   }
 
-  return { getQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote, tryAddLiquidity };
+  return { getSwapQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote, tryAddLiquidity };
 };
 
 export default usePawSwap;
