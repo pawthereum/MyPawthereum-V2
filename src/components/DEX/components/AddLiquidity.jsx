@@ -89,8 +89,9 @@ function AddLiquidity({ chain, customTokens = {} }) {
     text: 'Approve'
   })
 
-  async function attemptAddLiquidity (quote) {
+  async function attemptAddLiquidity () {
     console.log('quote', quote)
+    
     setButtonStatus({
       isActive: false,
       isLoading: true,
@@ -117,7 +118,15 @@ function AddLiquidity({ chain, customTokens = {} }) {
     }
   }
 
-  async function attemptAllowance (amount, token) {
+  async function attemptAllowance () {
+    let token, amount
+    if (IsNative(quote.fromToken.address) || IsNativeTest(quote.fromToken.address)) {
+      token = quote.toToken
+      amount = quote.toTokenAmount
+    } else {
+      token = quote.fromToken
+      amount = quote.fromAmount
+    }
     setAllowanceButton({
       display: true,
       isActive: false,
@@ -176,7 +185,9 @@ function AddLiquidity({ chain, customTokens = {} }) {
   }, [toTokenPriceUsd, quote]);
 
   useEffect(() => {
-    if (!fromAmount || !fromToken) {
+    console.log('im checking this quote', quote)
+
+    if (!quote || !quote.fromAmount || !quote.fromToken || !quote.toTokenAmount || !quote.toToken) {
       return setAllowanceButton({
         display: false,
         isLoading: false,
@@ -184,8 +195,8 @@ function AddLiquidity({ chain, customTokens = {} }) {
         text: `Approve`
       })
     }
-    checkHasSufficientBalance(fromAmount, fromToken)
-    checkHasSufficientAllownace(fromAmount, fromToken)
+
+    checkHasSufficientBalanceForAllTokens()
 
     const requiresAllowance = (token) => {
       if (IsNative(token.address)) return false
@@ -196,19 +207,39 @@ function AddLiquidity({ chain, customTokens = {} }) {
       return true
     }
 
+    if (requiresAllowance(quote.fromToken)) {
+      console.log('I need to check allowance for ', quote.fromToken)
+      checkHasSufficientAllowance(quote.fromAmount, quote.fromToken)
+    }
+
+    if (requiresAllowance(quote.toToken)) {
+      console.log('I need to check allowance for ', quote.toToken)
+      checkHasSufficientAllowance(quote.toAmount, quote.toToken)
+    }
+
+    async function checkHasSufficientBalanceForAllTokens() {
+      const sufficentBalanceCheck = await Promise.all([
+        checkHasSufficientBalance(quote.fromAmount, quote.fromToken),
+        checkHasSufficientBalance(quote.toTokenAmount, quote.toToken)
+      ])
+      console.log('checks', sufficentBalanceCheck)
+      setHasSufficientBalance(sufficentBalanceCheck.every(c => c === true))
+    }
+
     async function checkHasSufficientBalance(amount, token) {
       if (IsNative(token.address)) {
         if (!nativeBalance.balance) return setHasSufficientBalance(false)
-        const isSufficient = amount <= parseFloat(Moralis.Units.FromWei(nativeBalance.balance))
-        return setHasSufficientBalance(isSufficient)
+        return amount <= parseFloat(Moralis.Units.FromWei(nativeBalance.balance))
       }
-      const asset = assets ? assets.find(a => a.token_address === token.address) : undefined
-      if (!asset) return setHasSufficientBalance(false)
-      const isSufficient = amount <= Moralis.Units.FromWei(asset.balance, asset.decimals)
-      return setHasSufficientBalance(isSufficient)
+      const asset = assets ? assets.find(a => a.token_address.toLowerCase() === token.address.toLowerCase()) : undefined
+      console.log('asset', asset)
+      if (!asset) return setHasSufficientBalance(true)
+      console.log('amount', amount)
+      console.log('check', parseFloat(Moralis.Units.FromWei(asset.balance, asset.decimals)))
+      return amount <= Moralis.Units.FromWei(asset.balance, asset.decimals)
     }
 
-    async function checkHasSufficientAllownace(amount, token) {
+    async function checkHasSufficientAllowance(amount, token) {
       const hasSufficientAllowance = await hasAllowance(amount, token, 'router')
       if (!hasSufficientAllowance) {
         setAllowanceButton({
@@ -220,7 +251,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
       }
     }
 
-  }, [fromAmount, fromToken])
+  }, [quote])
 
   // tokenPrices
   useEffect(() => {
@@ -441,7 +472,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
                   borderRadius: "0.6rem",
                   height: "50px",
                 }}
-                onClick={() => attemptAllowance(fromAmount, fromToken)}
+                onClick={() => attemptAllowance(quote)}
                 disabled={!allowanceButton.isActive}
                 loading={allowanceButton.isLoading}
               >

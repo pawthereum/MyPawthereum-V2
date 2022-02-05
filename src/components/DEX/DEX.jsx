@@ -187,7 +187,7 @@ function DEX({ chain, customTokens = {} }) {
       })
     }
     checkHasSufficientBalance(fromAmount, fromToken)
-    checkHasSufficientAllownace(fromAmount, fromToken)
+    checkHasSufficientAllowance(fromAmount, fromToken)
 
     const requiresAllowance = (token) => {
       if (IsNative(token.address)) return false
@@ -210,7 +210,7 @@ function DEX({ chain, customTokens = {} }) {
       return setHasSufficientBalance(isSufficient)
     }
 
-    async function checkHasSufficientAllownace(amount, token) {
+    async function checkHasSufficientAllowance(amount, token) {
       const hasSufficientAllowance = await hasAllowance(amount, token)
       if (!hasSufficientAllowance) {
         setAllowanceButton({
