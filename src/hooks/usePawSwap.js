@@ -38,13 +38,19 @@ const usePawSwap = (chain) => {
   }, [Moralis, Moralis.Plugins, chain]);
 
   async function getSwapQuote (params, taxes) {
-    console.log('QUOTE params~~~~~~~~~~~~~~~~~', params)
-    // const quote = await getSwapQuote(params)
-    // return quote
+    console.log('params', params)
     const quote = await getQuote(params)
-    console.log('quote', quote)
-    console.log('taxes', taxes)
+    if (!taxes || !taxes.find(t => t.isTotal)) return quote
+    const totalTax = parseFloat(taxes.find(t => t.isTotal).amount.replace('%', ''))
 
+    const liqTax = taxes.find(t => t.isLiquidityTax)
+    const liqTaxAmt = liqTax ? parseFloat(liqTax.amount.replace('%', '')) : 0
+
+    const customTaxAmt = params.customTaxAmount ? parseFloat(params.customTaxAmount) : 0
+
+    const quoteAmtPreTax = parseFloat(quote.toTokenAmount)
+    const quoteAmtPostTax = quoteAmtPreTax - (quoteAmtPreTax * (totalTax + liqTaxAmt + customTaxAmt) / 100)
+    quote.toTokenAmount = quoteAmtPostTax.toString()
     return quote
   }
   
@@ -354,6 +360,7 @@ const usePawSwap = (chain) => {
             amount: parseFloat(tokenTaxAmount) / 10**parseInt(feeDecimal) + '%'
           },
           {
+            isLiquidityTax: true,
             name: 'Liquidity Tax',
             amount: parseFloat(liquidityTaxAmount) / 10**parseInt(feeDecimal) + '%'
           },
@@ -373,7 +380,7 @@ const usePawSwap = (chain) => {
           isTotal: true,
           amount: taxes.reduce(function (p, t) {
             if (t.amount === 0) return p + 0
-            return p + parseInt(t.amount.replace('%', ''))
+            return p + parseFloat(t.amount.replace('%', ''))
           }, 0) + '%'
         })
         console.log('taxes```````=======LLLLLL', taxes)
@@ -445,7 +452,7 @@ const usePawSwap = (chain) => {
           isTotal: true,
           amount: taxes.reduce(function (p, t) {
             if (t.amount === 0) return p + 0
-            return p + parseInt(t.amount.replace('%', ''))
+            return p + parseFloat(t.amount.replace('%', ''))
           }, 0) + '%'
         })
         return taxes

@@ -4,7 +4,7 @@ import InchModal from "./components/InchModal";
 import ShelterModal from './components/ShelterModal';
 import useInchDex from "hooks/useInchDex";
 import usePawSwap from 'hooks/usePawSwap';
-import { Button, Card, Image, Input, InputNumber, Modal, Skeleton, Statistic, Row, Col } from "antd";
+import { Button, Card, Divider, Image, Input, InputNumber, Modal, Skeleton, Statistic, Row, Col } from "antd";
 import Text from "antd/lib/typography/Text";
 import { ArrowDownOutlined, DashOutlined } from "@ant-design/icons";
 import { useTokenPrice } from "react-moralis";
