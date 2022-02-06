@@ -10,8 +10,8 @@ export const PAWTH_ADDRESS = {
   '0x38': '0x409e215738e31d8ab252016369c2dd9c2008fee0', // bsc mainnet
   'bsc': '0x409e215738e31d8ab252016369c2dd9c2008fee0',
   '0x4': '', // rinkeby testnet
-  '0x61': '0x68Bbe821a9063B7Acd9e8b45D6C52CD2d9fC9575', // bsc testnet
-  'bsctest': '0x68Bbe821a9063B7Acd9e8b45D6C52CD2d9fC9575',
+  '0x61': '0x33ec6D5bdb757109C6929eB9c0B21c23f6a694a8', // bsc testnet
+  'bsctest': '0x33ec6D5bdb757109C6929eB9c0B21c23f6a694a8',
 }
 
 export const SNAPSHOT_URL = 'pawthereum.eth'
@@ -51,11 +51,11 @@ export const PAWSWAP = {
   },
   '0x61': {
     abi: pawswapAbi,
-    address: '0x9F4a7a0D5A01901Fd16124cC23356e7f83826651',
+    address: '0x9aE4AB89841DAf1B174cD9dbA10F8a493531d651',
   },
   'bsctest': {
     abi: pawswapAbi,
-    address: '0x9F4a7a0D5A01901Fd16124cC23356e7f83826651',
+    address: '0x9aE4AB89841DAf1B174cD9dbA10F8a493531d651',
   },
 }
 
@@ -78,11 +78,11 @@ export const PAWSWAP_ROUTER = {
   },
   '0x61': {
     abi: pawswapRouterAbi,
-    address: '0x47a92204b04d64afa167d487f230e31aa1a9d400',
+    address: '0x58c7028A02C8e73C3d2dC784bcd90BD849a94Bde',
   },
   'bsctest': {
     abi: pawswapRouterAbi,
-    address: '0x47a92204b04d64afa167d487f230e31aa1a9d400',
+    address: '0x58c7028A02C8e73C3d2dC784bcd90BD849a94Bde',
   },
 }
 
@@ -105,11 +105,11 @@ export const PAWSWAP_FACTORY = {
   },
   '0x61': {
     abi: pawswapFactoryAbi,
-    address: '0x5ad2588fbd8a095845b05456ab83c22ec669081d',
+    address: '0xAd40b45e2E94D4D78D40866Dde642881542aA5eD',
   },
   'bsctest': {
     abi: pawswapFactoryAbi,
-    address: '0x5ad2588fbd8a095845b05456ab83c22ec669081d',
+    address: '0xAd40b45e2E94D4D78D40866Dde642881542aA5eD',
   },
 }
 

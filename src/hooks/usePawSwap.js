@@ -159,7 +159,11 @@ const usePawSwap = (chain) => {
       ).send({ 
         from: account, 
         value: Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString() 
-      })
+      }).on('transactionHash', hash => openNotification({
+        message: '🔊 Transaction Submitted!',
+        description: `${hash}`,
+        link: networkConfigs[params.chain].blockExplorerUrl + 'tx/' + hash
+      }))
     }
     
     return await pawswap.methods.sellOnPawSwap(
