@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
-import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI } from '../constants'
+import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI, PAWSWAP_ROUTER, PAWSWAP_FACTORY } from '../constants'
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
@@ -19,6 +19,15 @@ const openNotification = ({ message, description, link }) => {
   });
 };
 
+const allowanceSpenderAddress = (spender, chain) => {
+  switch (spender) {
+    case 'router':
+      return PAWSWAP_ROUTER[chain].address
+    default:
+      return PAWSWAP[chain].address
+  }
+}
+
 const usePawSwap = (chain) => {
   const { Moralis, account } = useMoralis();
   const [tokenList, setTokenlist] = useState();
@@ -28,15 +37,24 @@ const usePawSwap = (chain) => {
     Moralis.Plugins.oneInch.getSupportedTokens({ chain }).then((tokens) => setTokenlist(tokens.tokens));
   }, [Moralis, Moralis.Plugins, chain]);
 
-  const getQuote = async (params) =>
-    await Moralis.Plugins.oneInch.quote({
-      chain: params.chain, // The blockchain  you want to use (eth/bsc/polygon)
-      fromTokenAddress: params.fromToken.address, // The token you want to swap
-      toTokenAddress: params.toToken.address, // The token you want to receive
-      amount: Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString(),
-    });
+  async function getSwapQuote (params, taxes) {
+    console.log('params', params)
+    const quote = await getQuote(params)
+    if (!taxes || !taxes.find(t => t.isTotal)) return quote
+    const totalTax = parseFloat(taxes.find(t => t.isTotal).amount.replace('%', ''))
+
+    const liqTax = taxes.find(t => t.isLiquidityTax)
+    const liqTaxAmt = liqTax ? parseFloat(liqTax.amount.replace('%', '')) : 0
+
+    const customTaxAmt = params.customTaxAmount ? parseFloat(params.customTaxAmount) : 0
+
+    const quoteAmtPreTax = parseFloat(quote.toTokenAmount)
+    const quoteAmtPostTax = quoteAmtPreTax - (quoteAmtPreTax * (totalTax + liqTaxAmt + customTaxAmt) / 100)
+    quote.toTokenAmount = quoteAmtPostTax.toString()
+    return quote
+  }
   
-  async function hasAllowance (amount, token) {
+  async function hasAllowance (amount, token, spender) {
     if (IsNative(token.address)) return true
     if (process.env.NODE_ENV !== 'production' && chain === 'bsctest') {
       if (IsNativeTest(token.address)) return true
@@ -51,7 +69,7 @@ const usePawSwap = (chain) => {
 
     const tokenAllowance = await tokenContract.methods.allowance(
       account,
-      PAWSWAP[chain].address
+      allowanceSpenderAddress(spender, chain),
     ).call()
 
     if (parseInt(tokenAllowance) < parseInt(amount)) {
@@ -59,7 +77,7 @@ const usePawSwap = (chain) => {
     }
   }
 
-  async function updateAllowance (amount, token) {
+  async function updateAllowance (amount, token, spender) {
     const web3Provider = await Moralis.enableWeb3();
 
     const tokenContract = new web3Provider.eth.Contract(
@@ -68,7 +86,7 @@ const usePawSwap = (chain) => {
     )
 
     await tokenContract.methods.approve(
-      PAWSWAP[chain].address,
+      allowanceSpenderAddress(spender, chain),
       Moralis.Units.Token(amount, token.decimals).toString()
     ).send({ from: account })
   }
@@ -141,7 +159,11 @@ const usePawSwap = (chain) => {
       ).send({ 
         from: account, 
         value: Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString() 
-      })
+      }).on('transactionHash', hash => openNotification({
+        message: '🔊 Transaction Submitted!',
+        description: `${hash}`,
+        link: networkConfigs[params.chain].blockExplorerUrl + 'tx/' + hash
+      }))
     }
     
     return await pawswap.methods.sellOnPawSwap(
@@ -152,6 +174,116 @@ const usePawSwap = (chain) => {
       0,
       0
     ).send({ from: account })
+  }
+
+  async function getQuote (params) {
+    const { fromToken, fromAmount, toToken, chain  } = params;
+
+    const web3Provider = await Moralis.enableWeb3();
+
+    const router = new web3Provider.eth.Contract(
+      PAWSWAP_ROUTER[params.chain].abi, 
+      PAWSWAP_ROUTER[params.chain].address
+    )
+
+    const amountOut = await router.methods.getAmountsOut(
+      Moralis.Units.Token(fromAmount, fromToken.decimals).toString(),
+      [fromToken.address, toToken.address]
+    ).call()
+
+    console.log('amount out', amountOut)
+
+    // const quote = await router.methods.quote(
+    //   Moralis.Units.Token(fromAmount, fromToken.decimals).toString(),
+    //   fromToken.address,
+    //   toToken.address
+    // ).call()
+
+    return {
+      toTokenAmount: amountOut[1],
+      toToken,
+      fromToken,
+      fromAmount,
+      chain
+    }
+  }
+
+  async function getLiqQuote (params) {
+    console.log('LIQ params~~~~~~~~~~~~~~~~~', params)
+    return await getQuote(params)
+  }
+
+  async function tryAddLiquidity (params) {
+    const { fromToken, fromAmount, toToken, toAmount, chain  } = params
+    console.log('params', params)
+    const amount = Moralis.Units.Token(fromAmount, fromToken.decimals).toString();
+    if (fromToken.address.toLowerCase() === PAWTH_ADDRESS[chain].toLowerCase()) {
+      const web3Provider = await Moralis.enableWeb3();
+
+      const pawthereum = new web3Provider.eth.Contract(
+        ERC20ABI, 
+        fromToken.address
+      )
+
+      const pawthereumAllowance = await pawthereum.methods.allowance(
+        account,
+        PAWSWAP_ROUTER[chain].address
+      ).call()
+
+      if (parseInt(pawthereumAllowance) < parseInt(amount)) {
+        await pawthereum.methods.approve(
+          PAWSWAP_ROUTER[chain].address,
+          amount
+        ).send({ from: account })
+      }
+
+    }
+
+    await doAddLiquidity(params)
+      .then((receipt) => {
+        console.log('receipt', receipt)
+        if (receipt.statusCode !== 400) {
+          const link = networkConfigs[params.chain].blockExplorerUrl + 'tx/' + receipt.transactionHash
+          openNotification({
+            message: "🎉 Liquidity Added!",
+            description: `${receipt.transactionHash}`,
+            link
+          });
+          console.log(receipt);
+        }
+      })
+      .catch((e) => {
+        console.log('error', e)
+        openNotification({
+          message: "⚠️ Liquidity Add Error!",
+          description: `${e.message}`
+        });
+      });
+  }
+
+  async function doAddLiquidity(params) {
+    const web3Provider = await Moralis.enableWeb3();
+
+    const router = new web3Provider.eth.Contract(
+      PAWSWAP_ROUTER[params.chain].abi, 
+      PAWSWAP_ROUTER[params.chain].address
+    )
+    console.log('adoing with router', router)
+    console.log(params)
+
+    const deadlineMinutes = 20 // default to an arbitrary 20m deadline
+
+    return await router.methods.addLiquidityETH(
+      params.toToken.address,
+      params.toTokenAmount,
+      0,
+      0,
+      account,
+      new Date().getTime() + deadlineMinutes * 60000
+    ).send({ 
+      from: account, 
+      value: Moralis.Units.Token(params.fromAmount, params.fromToken.decimals).toString() 
+    })
   }
 
   async function getTaxStructure (params) {
@@ -210,7 +342,7 @@ const usePawSwap = (chain) => {
         tax3Name, tax3Amount, tax4Name, tax4Amount,
         tokenTaxName, tokenTaxAmount, liquidityTaxAmount,
         burnTaxAmount, customTaxName, feeDecimal ]) => {
-        return ([
+        const taxes = [
           {
             name: tax1Name,
             amount: parseFloat(tax1Amount) / 10**parseInt(feeDecimal) + '%'
@@ -232,6 +364,7 @@ const usePawSwap = (chain) => {
             amount: parseFloat(tokenTaxAmount) / 10**parseInt(feeDecimal) + '%'
           },
           {
+            isLiquidityTax: true,
             name: 'Liquidity Tax',
             amount: parseFloat(liquidityTaxAmount) / 10**parseInt(feeDecimal) + '%'
           },
@@ -244,7 +377,18 @@ const usePawSwap = (chain) => {
             amount: 0,
             isCustom: true
           }
-        ].filter(t => t.amount !== '0%'))
+        ].filter(t => t.amount !== '0%')
+        
+        taxes.push({
+          name: 'Total Buy Tax',
+          isTotal: true,
+          amount: taxes.reduce(function (p, t) {
+            if (t.amount === 0) return p + 0
+            return p + parseFloat(t.amount.replace('%', ''))
+          }, 0) + '%'
+        })
+        console.log('taxes```````=======LLLLLL', taxes)
+        return taxes
       })
       .catch(err => err)
     }
@@ -271,7 +415,7 @@ const usePawSwap = (chain) => {
         tax3Name, tax3Amount, tax4Name, tax4Amount,
         tokenTaxName, tokenTaxAmount, liquidityTaxAmount,
         burnTaxAmount, customTaxName, feeDecimal ]) => {
-        return ([
+        const taxes = [
           {
             name: tax1Name,
             amount: parseFloat(tax1Amount) / 10**parseInt(feeDecimal) + '%'
@@ -305,7 +449,17 @@ const usePawSwap = (chain) => {
             amount: 0,
             isCustom: true
           }
-        ].filter(t => t.amount !== '0%'))
+        ].filter(t => t.amount !== '0%')
+        
+        taxes.push({
+          name: 'Total Sell Tax',
+          isTotal: true,
+          amount: taxes.reduce(function (p, t) {
+            if (t.amount === 0) return p + 0
+            return p + parseFloat(t.amount.replace('%', ''))
+          }, 0) + '%'
+        })
+        return taxes
       })
       .catch(err => err)
     }
@@ -315,7 +469,7 @@ const usePawSwap = (chain) => {
     return taxes
   }
 
-  return { getQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance };
+  return { getSwapQuote, tryPawSwap, tokenList, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote, tryAddLiquidity };
 };
 
 export default usePawSwap;

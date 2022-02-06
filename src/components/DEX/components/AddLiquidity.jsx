@@ -1,17 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNativeBalance, useERC20Balances, useMoralis } from "react-moralis";
-import InchModal from "./components/InchModal";
-import ShelterModal from './components/ShelterModal';
-import useInchDex from "hooks/useInchDex";
-import usePawSwap from 'hooks/usePawSwap';
-import { Button, Card, Divider, Image, Input, InputNumber, Modal, Skeleton, Statistic, Row, Col } from "antd";
+import InchModal from "./InchModal";
+import ShelterModal from './ShelterModal';
+import useInchDex from "../../../hooks/useInchDex";
+import usePawSwap from '../../../hooks/usePawSwap';
+import { Button, Card, Image, Input, InputNumber, Modal, Skeleton, Statistic, Row, Col } from "antd";
 import Text from "antd/lib/typography/Text";
-import { ArrowDownOutlined, DashOutlined } from "@ant-design/icons";
 import { useTokenPrice } from "react-moralis";
-import { tokenValue } from "helpers/formatters";
-import { getWrappedNative } from "helpers/networks";
-import { PAWTH_ADDRESS } from '../../constants'
-import useBreakpoint from "hooks/useBreakpoint";
+import { tokenValue } from "../../../helpers/formatters";
+import { getWrappedNative } from "../../../helpers/networks";
+import { PAWTH_ADDRESS } from '../../../constants'
+import useBreakpoint from "../../../hooks/useBreakpoint";
 // import { useOneInchQuote } from "react-moralis";
 
 const nativeAddress = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
@@ -32,7 +31,7 @@ const getChainIdByName = (chainName) => {
 const IsNative = (address) => address === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 const IsNativeTest = (address) => address === '0xae13d989dac2f0debff460ac112a837c89baa7cd';
 
-function DEX({ chain, customTokens = {} }) {
+function AddLiquidity({ chain, customTokens = {} }) {
   const { isMobile } = useBreakpoint()
   const { data: assets } = useERC20Balances();
   const { data: nativeBalance } = useNativeBalance({ chain })
@@ -65,7 +64,7 @@ function DEX({ chain, customTokens = {} }) {
   
 
   const { trySwap, tokenList, getQuote } = useInchDex(chain);
-  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance, getSwapQuote } = usePawSwap(chain);
+  const { tryPawSwap, getTaxStructure, hasAllowance, updateAllowance, getLiqQuote, tryAddLiquidity } = usePawSwap(chain);
 
   const { Moralis, isInitialized, chainId } = useMoralis();
   const [isFromModalActive, setFromModalActive] = useState(false);
@@ -79,8 +78,6 @@ function DEX({ chain, customTokens = {} }) {
   const [currentTrade, setCurrentTrade] = useState();
   const { fetchTokenPrice } = useTokenPrice();
   const [tokenPricesUSD, setTokenPricesUSD] = useState({});
-  const [arrowIsDown, setArrowIsDown] = useState(true);
-  const [taxes, setTaxes] = useState([])
   const [customTaxName, setCustomTaxName] = useState(null);
   const [customTaxAmount, setCustomTaxAmount] = useState(null);
   const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
@@ -92,11 +89,13 @@ function DEX({ chain, customTokens = {} }) {
     text: 'Approve'
   })
 
-  async function attemptSwap (currentTrade) {
+  async function attemptAddLiquidity () {
+    console.log('quote', quote)
+    
     setButtonStatus({
       isActive: false,
       isLoading: true,
-      text: 'Swapping'
+      text: 'Adding'
     })
     switch (chain) {
       case 'eth':
@@ -105,28 +104,36 @@ function DEX({ chain, customTokens = {} }) {
       case '0x4':
       case 'bsc':
       case '0x38':
-        await tryPawSwap(currentTrade)
+        await tryAddLiquidity(quote)
         setButtonStatus(null)
         break;
       case 'bsctest':
       case '0x61':
-        await tryPawSwap(currentTrade)
+        await tryAddLiquidity(quote)
         setButtonStatus(null)
         break;
       default:
-        await tryPawSwap(currentTrade)
+        await tryAddLiquidity(quote)
         setButtonStatus(null)
     }
   }
 
-  async function attemptAllowance (amount, token) {
+  async function attemptAllowance () {
+    let token, amount
+    if (IsNative(quote.fromToken.address) || IsNativeTest(quote.fromToken.address)) {
+      token = quote.toToken
+      amount = quote.toTokenAmount
+    } else {
+      token = quote.fromToken
+      amount = quote.fromAmount
+    }
     setAllowanceButton({
       display: true,
       isActive: false,
       isLoading: true,
       text: `Approving ${token.symbol}`
     })
-    await updateAllowance(amount, token)
+    await updateAllowance(amount, token, 'router')
     return setAllowanceButton({
       display: false,
       isActive: false,
@@ -178,7 +185,9 @@ function DEX({ chain, customTokens = {} }) {
   }, [toTokenPriceUsd, quote]);
 
   useEffect(() => {
-    if (!fromAmount || !fromToken) {
+    console.log('im checking this quote', quote)
+
+    if (!quote || !quote.fromAmount || !quote.fromToken || !quote.toTokenAmount || !quote.toToken) {
       return setAllowanceButton({
         display: false,
         isLoading: false,
@@ -186,8 +195,8 @@ function DEX({ chain, customTokens = {} }) {
         text: `Approve`
       })
     }
-    checkHasSufficientBalance(fromAmount, fromToken)
-    checkHasSufficientAllowance(fromAmount, fromToken)
+
+    checkHasSufficientBalanceForAllTokens()
 
     const requiresAllowance = (token) => {
       if (IsNative(token.address)) return false
@@ -198,20 +207,40 @@ function DEX({ chain, customTokens = {} }) {
       return true
     }
 
+    if (requiresAllowance(quote.fromToken)) {
+      console.log('I need to check allowance for ', quote.fromToken)
+      checkHasSufficientAllowance(quote.fromAmount, quote.fromToken)
+    }
+
+    if (requiresAllowance(quote.toToken)) {
+      console.log('I need to check allowance for ', quote.toToken)
+      checkHasSufficientAllowance(quote.toAmount, quote.toToken)
+    }
+
+    async function checkHasSufficientBalanceForAllTokens() {
+      const sufficentBalanceCheck = await Promise.all([
+        checkHasSufficientBalance(quote.fromAmount, quote.fromToken),
+        checkHasSufficientBalance(quote.toTokenAmount, quote.toToken)
+      ])
+      console.log('checks', sufficentBalanceCheck)
+      setHasSufficientBalance(sufficentBalanceCheck.every(c => c === true))
+    }
+
     async function checkHasSufficientBalance(amount, token) {
       if (IsNative(token.address)) {
         if (!nativeBalance.balance) return setHasSufficientBalance(false)
-        const isSufficient = amount <= parseFloat(Moralis.Units.FromWei(nativeBalance.balance))
-        return setHasSufficientBalance(isSufficient)
+        return amount <= parseFloat(Moralis.Units.FromWei(nativeBalance.balance))
       }
-      const asset = assets ? assets.find(a => a.token_address === token.address) : undefined
-      if (!asset) return setHasSufficientBalance(false)
-      const isSufficient = amount <= Moralis.Units.FromWei(asset.balance, asset.decimals)
-      return setHasSufficientBalance(isSufficient)
+      const asset = assets ? assets.find(a => a.token_address.toLowerCase() === token.address.toLowerCase()) : undefined
+      console.log('asset', asset)
+      if (!asset) return setHasSufficientBalance(true)
+      console.log('amount', amount)
+      console.log('check', parseFloat(Moralis.Units.FromWei(asset.balance, asset.decimals)))
+      return amount <= Moralis.Units.FromWei(asset.balance, asset.decimals)
     }
 
     async function checkHasSufficientAllowance(amount, token) {
-      const hasSufficientAllowance = await hasAllowance(amount, token)
+      const hasSufficientAllowance = await hasAllowance(amount, token, 'router')
       if (!hasSufficientAllowance) {
         setAllowanceButton({
           display: requiresAllowance(token),
@@ -222,7 +251,7 @@ function DEX({ chain, customTokens = {} }) {
       }
     }
 
-  }, [fromAmount, fromToken])
+  }, [quote])
 
   // tokenPrices
   useEffect(() => {
@@ -256,54 +285,9 @@ function DEX({ chain, customTokens = {} }) {
   }, [chain, isInitialized, toToken]);
 
   useEffect(() => {
-    if (!taxes) return null
-    const customTax = taxes.find(t => t.isCustom)
-    if (!customTax) return null
-    setCustomTaxName(customTax.name + ' %')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taxes])
-
-  useEffect(() => {
     if (!tokens || fromToken) return null;
     setFromToken(tokens[nativeAddress]);
   }, [tokens, fromToken]);
-
-  useEffect(() => {
-    console.log('chain---------', chain)
-    async function getTaxes() {
-      if (toToken && !IsNative(toToken) && !IsNativeTest(toToken.address)) {
-        const t = await getTaxStructure({ tokenAddress: toToken.address, chain, side: 'buy' })
-        console.log('got them!!! ====== ', t)
-        if (t === null && taxes !== null) return
-        setTaxes(t)
-        // setFromToken(tokens[nativeAddress])
-      }
-      if (fromToken && !IsNative(fromToken) && !IsNativeTest(fromToken.address)) {
-        const t = await getTaxStructure({ tokenAddress: fromToken.address, chain, side: 'sell' })
-        console.log('got them!!! ====== ', t)
-        if (t === null && taxes !== null) return
-        setTaxes(t)
-        // setToToken(tokens[nativeAddress])
-      }
-    }
-    getTaxes()
-  }, [toToken, fromToken])
-
-  useEffect(() => {
-    if (toToken) {
-      if (quote && quote.toTokenAmount) {
-        setFromAmount(
-          Moralis.Units.FromWei(quote?.toTokenAmount, quote?.toToken?.decimals).toFixed(6)
-        )
-        setQuote(null)
-      }
-      setFromToken(toToken)
-    }
-    if (fromToken) {
-      setToToken(fromToken)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arrowIsDown])
 
   const ButtonState = useMemo(() => {
     if (chainIds?.[chainId] !== chain) return { isActive: false, text: `Switch to ${chain}` };
@@ -314,7 +298,7 @@ function DEX({ chain, customTokens = {} }) {
       if (!nativeBalance.balance) return { isActive: false, text: 'Loading balances...' }
       if (!hasSufficientBalance) return { isActive: false, text: "Insufficient balance" };
     }
-    if (fromAmount && currentTrade) return { isActive: true, text: "Swap" };
+    if (fromAmount && currentTrade) return { isActive: true, text: "Add Liquidity" };
     return { isActive: false, text: "Select tokens" };
   }, [fromAmount, currentTrade, chainId, chain, buttonStatus]);
 
@@ -332,11 +316,8 @@ function DEX({ chain, customTokens = {} }) {
   }, [toToken, fromToken, fromAmount, chain, shelter, customTaxAmount]);
 
   useEffect(() => {
-    if (currentTrade && chain !== 'bsctest') {
-      getQuote(currentTrade).then((quote) => setQuote(quote));
-    } else if (currentTrade) {
-      getSwapQuote(currentTrade, taxes).then((quote) => setQuote(quote));
-    }
+    console.log('current trade is updated...', currentTrade)
+    if (currentTrade) getLiqQuote(currentTrade).then((quote) => setQuote(quote));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrade]);
 
@@ -411,12 +392,7 @@ function DEX({ chain, customTokens = {} }) {
             </Button>
           </div>
         </Card>
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
-          <div onClick={e => setArrowIsDown(!arrowIsDown)} style={{ cursor: 'pointer' }}>
-            <ArrowDownOutlined />
-          </div>
-        </div>
-        <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
+        <Card style={{ borderRadius: "1rem", marginTop: "10px" }} bodyStyle={{ padding: "0.8rem" }}>
           <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>To</div>
           <div
             style={{
@@ -466,91 +442,6 @@ function DEX({ chain, customTokens = {} }) {
             </Button>
           </div>
         </Card>
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
-          <DashOutlined />
-        </div>
-        { !taxes || !taxes.length 
-          ?  
-            !toToken ? '' : 
-            <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-              <Skeleton active /> 
-            </Card>
-          : 
-            <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-              <Row gutter={16} style={{ textAlign: 'center', justifyContent: 'center' }}>
-              {
-                taxes.filter(t => !t.isCustom && !t.isTotal).map((t, i) => {
-                  return (
-                    <Col span={12} style={{ marginBottom: '5px' }} key={i}>
-                      <Statistic title={t.name} value={t.amount}></Statistic>
-                    </Col>
-                  )
-                })
-              }
-              </Row>
-            </Card>
-        }
-        <div style={{ display: "flex", justifyContent: "center", padding: "10px" }}>
-          
-        </div>
-        <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
-          <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>
-            { customTaxName }
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexFlow: "row nowrap",
-            }}
-          >
-            <div>
-              <InputNumber
-                bordered={false}
-                placeholder="0.00"
-                style={{ ...styles.input, marginLeft: "-10px" }}
-                onChange={setCustomTaxAmount}
-                value={customTaxAmount}
-              />
-              <Text style={{ fontWeight: "600", color: "#434343" }}>
-                { customTaxAmount ? 
-                  <div>
-                    <span style={{ marginRight: '10px' }}>🎉</span>
-                    <span>you're amazing!</span>
-                  </div> : "optional" 
-                }
-              </Text>
-            </div>
-            <Button
-              style={{
-                height: "fit-content",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                borderRadius: "0.6rem",
-                padding: "5px 10px",
-                fontWeight: "500",
-                fontSize: "17px",
-                gap: "7px",
-                border: "none",
-              }}
-              onClick={() => setShelterModalActive(true)}
-            >
-              {shelter ? (
-                <Image
-                  src={shelter?.logoURI || "https://etherscan.io/images/main/empty-token.png"}
-                  alt="nologo"
-                  width="30px"
-                  preview={false}
-                  style={{ borderRadius: "15px" }}
-                />
-              ) : (
-                <span>Select a shelter</span>
-              )}
-              <span>{shelter?.symbol}</span>
-              <Arrow />
-            </Button>
-          </div>
-        </Card>
         {quote && (
           <div>
             <Text
@@ -581,7 +472,7 @@ function DEX({ chain, customTokens = {} }) {
                   borderRadius: "0.6rem",
                   height: "50px",
                 }}
-                onClick={() => attemptAllowance(fromAmount, fromToken)}
+                onClick={() => attemptAllowance(quote)}
                 disabled={!allowanceButton.isActive}
                 loading={allowanceButton.isLoading}
               >
@@ -599,7 +490,7 @@ function DEX({ chain, customTokens = {} }) {
                 borderRadius: "0.6rem",
                 height: "50px",
               }}
-              onClick={() => attemptSwap(currentTrade)}
+              onClick={() => attemptAddLiquidity(quote)}
               disabled={!ButtonState.isActive || allowanceButton.display && (allowanceButton.isActive || allowanceButton.isLoading)}
               loading={ButtonState.isLoading}
             >
@@ -659,7 +550,7 @@ function DEX({ chain, customTokens = {} }) {
   );
 }
 
-export default DEX;
+export default AddLiquidity;
 
 const Arrow = () => (
   <svg
