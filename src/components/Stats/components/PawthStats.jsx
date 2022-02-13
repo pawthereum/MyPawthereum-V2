@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMoralis, useERC20Balances, useTokenPrice } from "react-moralis";
 import Account from "../../Account/Account";
 import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
-import { PAWTH_ADDRESS } from '../../../constants'
+import { PAWTH_ADDRESS, COINGECKO_ID } from '../../../constants'
 import { Row, Col, Statistic, Skeleton } from "antd";
 const CoinGecko = require('coingecko-api')
 
@@ -61,7 +61,7 @@ function PawthStats(props) {
     getCoinGeckoData()
 
     async function getCoinGeckoData() {
-      const coinGeckoData = await CoinGeckoClient.coins.fetch('pawthereum', {})
+      const coinGeckoData = await CoinGeckoClient.coins.fetch(COINGECKO_ID, {})
       const tokenData = coinGeckoData.data
       const marketCap = tokenData.market_data.market_cap.usd
       setMarketCap(marketCap)

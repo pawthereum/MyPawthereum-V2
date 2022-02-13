@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
 import Account from "components/Account/Account";
@@ -23,9 +23,10 @@ import Vote from 'components/Vote';
 import Flooz from 'components/Flooz';
 import Proposal from 'components/Vote/components/Proposal';
 import MenuItems from "./components/MenuItems";
-import { PAWTH_ADDRESS } from "./constants";
+import { PAWTH_ADDRESS, COINGECKO_ID } from "./constants";
 import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
 import AddLiquidity from "components/DEX/components/AddLiquidity";
+const CoinGecko = require('coingecko-api')
  
 const { Header, Footer } = Layout;
 const { useBreakpoint } = Grid;
@@ -74,6 +75,7 @@ const styles = {
 const App = ({ isServerInfo }) => {
   const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId, account } = useMoralis();
 
+  const [logo, setLogo] = useState(null)
   const screens = useBreakpoint()
   const pawthAddress = PAWTH_ADDRESS[chainId]
 
@@ -112,6 +114,17 @@ const App = ({ isServerInfo }) => {
   }
 
   useEffect(() => {
+    getLogo()
+    async function getLogo () {
+      const CoinGeckoClient = new CoinGecko()
+      const coinGeckoData = await CoinGeckoClient.coins.fetch(COINGECKO_ID, {})
+      const tokenData = coinGeckoData.data
+      const tokenLogo = tokenData.image.large
+      return setLogo(tokenLogo)
+    }
+  }, [])
+
+  useEffect(() => {
     const connectorId = window.localStorage.getItem("connectorId");
     if (isAuthenticated && !isWeb3Enabled && !isWeb3EnableLoading) enableWeb3({ provider: connectorId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,7 +145,7 @@ const App = ({ isServerInfo }) => {
                 <TokenPrice
                   address={pawthAddress}
                   chain={getChainNameById(chainId)}
-                  image="https://pawthereum.com/shared-files/2015/?logo-notext-trsp-1.png"
+                  image={logo}
                   size="40px"
                 />
                 <NativeBalance />

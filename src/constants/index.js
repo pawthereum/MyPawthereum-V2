@@ -14,6 +14,8 @@ export const PAWTH_ADDRESS = {
   'bsctest': '0x33ec6D5bdb757109C6929eB9c0B21c23f6a694a8',
 }
 
+export const COINGECKO_ID = 'pawthereum'
+
 export const SNAPSHOT_URL = 'pawthereum.eth'
 
 export const TOTAL_SUPPLY = 858000000

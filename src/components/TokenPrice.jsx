@@ -6,7 +6,6 @@ const styles = {
     padding: "0 7px",
     height: "42px",
     gap: "5px",
-    width: "fit-content",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -24,7 +23,7 @@ function TokenPrice(props) {
 
   return (
     <div style={styles.token}>
-      <img src={props.image || noLogoToken} alt="logo" style={{ height: props?.size || "35px" }} />
+      <img src={props.image || noLogoToken} alt="logo" style={{ width: props?.size || "40px", height: props?.size || "40px" }} />
       <span style={{ cursor: "pointer" }} onClick={toggleDisplayStyle} title={`Show in ${isUSDMode ? "ETH" : "USD"}`}>
         {formattedData && (isUSDMode ? '$' + formattedData.usdPrice.toFixed(4) : formattedData.formattedNative)}
       </span>
