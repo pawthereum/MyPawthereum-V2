@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { COLORS } from '../../../constants'
 
-import { Skeleton, Tabs } from "antd";
+import { Skeleton, Tabs, Row, Col } from "antd";
 import Chart from "react-apexcharts";
 import useBreakpoint from "hooks/useBreakpoint";
 const CoinGecko = require('coingecko-api')
@@ -24,14 +24,6 @@ function PriceChart(props) {
       padding: "10px",
       height: "100px",
       width: "100px"
-    },
-    row: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: isMobile ? "center" : "start",
-      gap: "10px",
-      flexDirection: "row",
-      paddingBottom: "10px",
     },
     rowEnd: {
       display: "flex",
@@ -151,31 +143,33 @@ function PriceChart(props) {
           <h3>Recent Performance</h3>
         </div>
         <Skeleton loading={!priceSeries}>
-          <div style={styles.row}>
-            <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
-              <Tabs.TabPane tab={<span>Price</span>} key="1">
-                <Chart
-                  options={getChartOptions('price')}
-                  series={priceSeries}
-                  width={chartWidth}
-                />
-              </Tabs.TabPane>
-              <Tabs.TabPane tab={<span>Market Cap</span>} key="2">
-                <Chart
-                  options={getChartOptions('marketCap')}
-                  series={marketCapSeries}
-                  width={chartWidth}
-                />
-              </Tabs.TabPane>
-              <Tabs.TabPane tab={<span>Volume</span>} key="3">
-                <Chart
-                  options={getChartOptions('volume')}
-                  series={volumeSeries}
-                  width={chartWidth}
-                />
-              </Tabs.TabPane>
-            </Tabs>
-          </div>
+          <Row>
+            <Col span={24}>
+              <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
+                <Tabs.TabPane tab={<span>Price</span>} key="1">
+                  <Chart
+                    options={getChartOptions('price')}
+                    series={priceSeries}
+                    width={chartWidth}
+                  />
+                </Tabs.TabPane>
+                <Tabs.TabPane tab={<span>Market Cap</span>} key="2">
+                  <Chart
+                    options={getChartOptions('marketCap')}
+                    series={marketCapSeries}
+                    width={chartWidth}
+                  />
+                </Tabs.TabPane>
+                <Tabs.TabPane tab={<span>Volume</span>} key="3">
+                  <Chart
+                    options={getChartOptions('volume')}
+                    series={volumeSeries}
+                    width={chartWidth}
+                  />
+                </Tabs.TabPane>
+              </Tabs>
+            </Col>
+          </Row>
           <div style={styles.rowEnd}>
             <div style={{ marginRight: '50px' }}>
               <a href="https://www.coingecko.com/en/coins/pawthereum">
