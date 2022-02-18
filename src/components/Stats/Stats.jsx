@@ -3,6 +3,7 @@ import Ranks from "./components/Ranks.jsx";
 import PriceChart from './components/PriceChart';
 import Reflections from "./components/Reflections";
 import CharityStats from './components/CharityStats';
+import Badges from './components/Badges'
 import { Card } from "antd";
 import useBreakpoint from 'hooks/useBreakpoint';
 import { useEffect, useState } from 'react';
@@ -86,6 +87,11 @@ function Stats() {
       <div style={styles.row}>
         <Card style={styles.card}>
           <Ranks />
+        </Card>
+      </div>
+      <div style={styles.row}>
+        <Card style={styles.card}>
+          <Badges />
         </Card>
       </div>
       <div style={styles.row}>

@@ -153,3 +153,37 @@ export async function getProposalVoteScores(
     return Promise.reject(e);
   }
 }
+
+export async function getVoterStatus(account, space) {
+  console.log('this is me', account)
+  return fetch('https://hub.snapshot.org/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: `
+        query Votes {
+          votes (
+            first: 10000
+            skip: 0
+            where: {
+              space_in: ["${space}"]
+            },
+            orderBy: "created",
+            orderDirection: desc
+          ) {
+            voter
+          }
+        }        
+      `,
+    }),
+  })
+    .then((res) => res.json())
+    .then((result) => {
+      console.log('my results', result)
+      const votes = result.data ? result.data.votes : []
+      const voters = Object.entries(votes).map(v => v[1].voter)
+      return voters.includes(account)
+    })
+}
