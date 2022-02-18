@@ -2,11 +2,37 @@ import PawthStats from './components/PawthStats';
 import Ranks from "./components/Ranks.jsx";
 import PriceChart from './components/PriceChart';
 import Reflections from "./components/Reflections";
+import CharityStats from './components/CharityStats';
 import { Card } from "antd";
 import useBreakpoint from 'hooks/useBreakpoint';
+import { useEffect, useState } from 'react';
+import { PAWTH_ADDRESS } from '../../constants'
+import { PAWTH_ABI } from '../../constants/abis/pawth'
+import { useMoralis } from "react-moralis";
+import { Skeleton } from 'antd'
 
 function Stats() {
+  const { Moralis, chainId } = useMoralis();
   const { isMobile } = useBreakpoint()
+  const [charityWallet, setCharityWallet] = useState(null)
+
+  useEffect(() => {
+    if (!chainId) return
+
+    getCharityWallet()
+
+    async function getCharityWallet() {
+      const web3Provider = await Moralis.enableWeb3()
+      const pawthAddress = PAWTH_ADDRESS[chainId]
+      const pawthContract = new web3Provider.eth.Contract(
+        JSON.parse(PAWTH_ABI[chainId]),
+        pawthAddress
+      )
+      const pawthCharityWallet = await pawthContract.methods.charityWallet().call()
+      setCharityWallet(pawthCharityWallet)
+    }
+
+  }, [chainId])
 
   const styles = {
     title: {
@@ -60,6 +86,16 @@ function Stats() {
       <div style={styles.row}>
         <Card style={styles.card}>
           <Ranks />
+        </Card>
+      </div>
+      <div style={styles.row}>
+        <Card style={styles.card}>
+          <Skeleton loading={!chainId || !charityWallet}>
+            <CharityStats
+              charityWallet={charityWallet}
+              chainId={chainId}
+            />
+          </Skeleton>
         </Card>
       </div>
     </div>

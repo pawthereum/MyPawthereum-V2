@@ -22,6 +22,8 @@ export const TOTAL_SUPPLY = 858000000
 
 export const DISQUS_ID = 'mypawth'
 
+export const DECIMALS = 9
+
 export const SLIPPAGE = {
   '0x1': 3,
   'eth': 3,
