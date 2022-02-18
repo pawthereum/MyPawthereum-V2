@@ -26,6 +26,7 @@ import MenuItems from "./components/MenuItems";
 import { PAWTH_ADDRESS, COINGECKO_ID } from "./constants";
 import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
 import AddLiquidity from "components/DEX/components/AddLiquidity";
+import DexComingSoon from "components/DEX/DexComingSoon";
 const CoinGecko = require('coingecko-api')
  
 const { Header, Footer } = Layout;
@@ -175,23 +176,24 @@ const App = ({ isServerInfo }) => {
               <Wallet />
             </Route>
             <Route path="/pawswap">
-              <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
-                {/* <Tabs.TabPane tab={<span>Ethereum</span>} key="1">
+              <DexComingSoon />
+              {/* <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
+                <Tabs.TabPane tab={<span>Ethereum</span>} key="1">
                   <DEX chain="eth" />
-                </Tabs.TabPane> */}
+                </Tabs.TabPane>
                 <Tabs.TabPane tab={<span>Binance Smart Chain</span>} key="1">
                   <DEX chain="bsc" />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab={<span>BSC Testnet</span>} key="2">
                   <DEX chain="bsctest" />
                 </Tabs.TabPane>
-                {/* <Tabs.TabPane tab={<span>Polygon</span>} key="4">
+                <Tabs.TabPane tab={<span>Polygon</span>} key="4">
                   <DEX chain="polygon" />
-                </Tabs.TabPane> */}
+                </Tabs.TabPane>
                 <Tabs.TabPane tab={<span>Liquidity</span>} key="3">
                   <AddLiquidity chain="bsctest" />
                 </Tabs.TabPane>
-              </Tabs>
+              </Tabs> */}
             </Route>
             <Route path="/erc20balance">
               <ERC20Balance />

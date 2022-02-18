@@ -24,9 +24,6 @@ function MenuItems() {
       <Menu.Item key="/stats">
         <NavLink to="/stats">📊 Stats</NavLink>
       </Menu.Item>
-      {/* <Menu.Item key="/pawswap">
-        <NavLink to="/pawswap">🐾 PawSwap</NavLink>
-      </Menu.Item> */}
       <Menu.Item key="/vote">
         <NavLink to="/vote">🗳️ Vote</NavLink>
       </Menu.Item>
@@ -35,6 +32,9 @@ function MenuItems() {
       </Menu.Item> */}
       <Menu.Item key="/flooz">
         <NavLink to="/flooz">💳 Credit</NavLink>
+      </Menu.Item>
+      <Menu.Item key="/pawswap">
+        <NavLink to="/pawswap">🐾 PawSwap</NavLink>
       </Menu.Item>
       {/* <Menu.Item key="onramp">
         <NavLink to="/onramp">💵 Fiat</NavLink>
