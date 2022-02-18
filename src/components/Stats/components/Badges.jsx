@@ -7,6 +7,7 @@ import { PAWTH_ABI } from '../../../constants/abis/pawth'
 import useNativeTransactions from 'hooks/useNativeTransactions'
 import { useERC20Transfers } from "hooks/useERC20Transfers"
 import { getVoterStatus } from '../../Vote/components/vote'
+import useBreakpoint from "hooks/useBreakpoint";
 
 import swap from '../../../assets/images/badges/swap.png'
 import vote from '../../../assets/images/badges/vote.png'
@@ -85,6 +86,7 @@ function Badges(props) {
   const { data: assets } = useERC20Balances()
   const { nativeTransactions } = useNativeTransactions()
   const { ERC20Transfers } = useERC20Transfers()
+  const { isMobile } = useBreakpoint()
 
   const [isOriginalSwapper, setIsOriginalSwapper] = useState(false)
   const [isDiamondHands, setIsDiamondHands] = useState(false)
@@ -435,7 +437,7 @@ function Badges(props) {
       </div>
       <Row gutter={16} style={{...styles.badgeCard, display: 'flex', justifyContent: 'center' }}>
         { badges ? badges.filter(b => b.userOwnsBadge).map((b, i) =>
-          <Col key={i} span={12} style={{ marginBottom: '15px' }}>
+          <Col key={i} span={ isMobile ? 24 : 12} style={{ marginBottom: '15px' }}>
             <Row style={{ justifyContent: 'center', paddingBottom: '5px' }}>
               <Col>
                 <img src={b.img} style={{ width: '50px', height: '50px' }}></img>

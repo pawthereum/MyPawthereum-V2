@@ -75,7 +75,7 @@ const styles = {
 const App = ({ isServerInfo }) => {
   const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId, account } = useMoralis();
 
-  const [logo, setLogo] = useState(null)
+  const [logo, setLogo] = useState('https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png')
   const screens = useBreakpoint()
   const pawthAddress = PAWTH_ADDRESS[chainId]
 
@@ -120,6 +120,8 @@ const App = ({ isServerInfo }) => {
       const coinGeckoData = await CoinGeckoClient.coins.fetch(COINGECKO_ID, {})
       const tokenData = coinGeckoData.data
       const tokenLogo = tokenData.image.large
+      console.log('tokenDat', tokenData)
+      console.log('tokenLogo', tokenLogo)
       return setLogo(tokenLogo)
     }
   }, [])
@@ -254,7 +256,7 @@ const App = ({ isServerInfo }) => {
             <TokenPrice
               address={pawthAddress}
               chain={getChainNameById(chainId)}
-              image="https://pawthereum.com/shared-files/2015/?logo-notext-trsp-1.png"
+              image={logo}
               size="40px"
             />
             <NativeBalance />
