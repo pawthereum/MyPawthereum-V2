@@ -3,7 +3,7 @@ import Ranks from "./components/Ranks.jsx";
 import PriceChart from './components/PriceChart';
 import Reflections from "./components/Reflections";
 import CharityStats from './components/CharityStats';
-import Badges from './components/Badges'
+import Badges from './components/Badges.jsx'
 import { Card } from "antd";
 import useBreakpoint from 'hooks/useBreakpoint';
 import { useEffect, useState } from 'react';
@@ -71,14 +71,11 @@ function Stats() {
           <PawthStats />
         </Card>
       </div>
-      {
-        isMobile ? '' :
-        <div style={styles.row}>
-          <Card style={styles.card}>
-            <PriceChart />
-          </Card>
-        </div>
-      }
+      <div style={styles.row}>
+        <Card style={styles.card}>
+          <PriceChart />
+        </Card>
+      </div>
       <div style={styles.row}>
         <Card style={styles.card}>
           <Reflections />

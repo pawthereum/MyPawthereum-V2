@@ -155,7 +155,6 @@ export async function getProposalVoteScores(
 }
 
 export async function getVoterStatus(account, space) {
-  console.log('this is me', account)
   return fetch('https://hub.snapshot.org/graphql', {
     method: 'POST',
     headers: {

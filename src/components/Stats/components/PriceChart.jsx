@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { COLORS } from '../../../constants'
 
 import { Skeleton, Tabs, Row, Col } from "antd";
+import { COINGECKO_ID } from '../../../constants'
+
 import Chart from "react-apexcharts";
 import useBreakpoint from "hooks/useBreakpoint";
 const CoinGecko = require('coingecko-api')
@@ -33,15 +35,6 @@ function PriceChart(props) {
       flexDirection: "row",
       paddingBottom: "10px",
     },
-    rowWithColumns: {
-      display: "flex",
-      alignItems: "center",
-      textAlign: "center",
-      justifyContent: "space-around",
-      gap: "10px",
-      flexDirection: "row",
-      paddingBottom: "10px",
-    },
   };
 
   const pricePrecision = isMobile ? 4 : 5
@@ -55,10 +48,11 @@ function PriceChart(props) {
 
   useEffect(() => {
     const getChart = async () => {
-      const data = await CoinGeckoClient.coins.fetchMarketChart('pawthereum')
-      setPriceSeries([{ name: 'Price', data: data.data.prices }])
-      setVolumeSeries([{ name: 'Volume', data: data.data.total_volumes }])
-      setMarketCapSeries([{ name: 'Market Cap', data: data.data.market_caps }])
+      const chartDataReq = await CoinGeckoClient.coins.fetchMarketChart(COINGECKO_ID)
+      const chartData = chartDataReq.data
+      setPriceSeries([{ name: 'Price', data: chartData.prices }])
+      setVolumeSeries([{ name: 'Volume', data: chartData.total_volumes }])
+      setMarketCapSeries([{ name: 'Market Cap', data: chartData.market_caps }])
     }
 
     getChart()
@@ -91,6 +85,9 @@ function PriceChart(props) {
         id: 'area-datetime',
         type: 'area',
         height: 350,
+        toolbar: {
+          show: false,
+        },
         zoom: {
           autoScaleYaxis: true
         },
@@ -107,7 +104,7 @@ function PriceChart(props) {
       },
       xaxis: {
         type: 'datetime',
-        min: new Date(startDate),
+        // min: new Date(startDate),
         tickAmount: 6
       },
       yaxis: {
@@ -144,7 +141,7 @@ function PriceChart(props) {
         </div>
         <Skeleton loading={!priceSeries}>
           <Row>
-            <Col span={24}>
+            <Col span={ isMobile ? 20 : 24}>
               <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
                 <Tabs.TabPane tab={<span>Price</span>} key="1">
                   <Chart
@@ -153,7 +150,7 @@ function PriceChart(props) {
                     width={chartWidth}
                   />
                 </Tabs.TabPane>
-                <Tabs.TabPane tab={<span>Market Cap</span>} key="2">
+                <Tabs.TabPane style={{ textAlign: 'center' }} tab={<span>Market Cap</span>} key="2">
                   <Chart
                     options={getChartOptions('marketCap')}
                     series={marketCapSeries}
