@@ -87,6 +87,7 @@ function Badges(props) {
   const { nativeTransactions } = useNativeTransactions()
   const { ERC20Transfers } = useERC20Transfers()
   const { isMobile } = useBreakpoint()
+  const [tokenBalance, setTokenBalance] = useState(0)
 
   const [isOriginalSwapper, setIsOriginalSwapper] = useState(false)
   const [isDiamondHands, setIsDiamondHands] = useState(false)
@@ -186,9 +187,14 @@ function Badges(props) {
       }
     }
     async function analyzeTokenTransactions() {
+      const pawthAddress = PAWTH_ADDRESS[chainId]
+      const pawth = assets ? assets.find(a => a.token_address === pawthAddress) : undefined
+      const pawthBalanceRaw = pawth ? pawth.balance : '0'
+      const pawthBalance = pawth ? Moralis.Units.FromWei(pawthBalanceRaw, DECIMALS) : 0
+
       const pawthTransfers = ERC20Transfers.filter(t => t.address === PAWTH_ADDRESS[chainId])
       const soldPawth = pawthTransfers.find(t => t.from_address === account)
-      setIsDiamondHands(!soldPawth)
+      setIsDiamondHands(!soldPawth && pawthBalance > 0)
 
       const startBlockOfNov18Slurp = 13642443
       const endBlockOfNov18Slurp = 13643054
@@ -206,12 +212,12 @@ function Badges(props) {
     }
     if (account) {
       getVisits()
-      getTokenBalance()
       analyzeNativeTransactions()
       checkIfVoter()
 
       if (ERC20Transfers) {
         analyzeTokenTransactions()
+        getTokenBalance()
       }
 
       setIsRedCandleSurvivor(RED_CANDLE_SURVIVORS.includes(account))
