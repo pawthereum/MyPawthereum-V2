@@ -231,11 +231,11 @@ const App = ({ isServerInfo }) => {
         paddingBottom: screens.xs ? '74px' : '0px'
       }}>
         <Text style={{ display: "block" }}>
-          ⭐️ What an awesome piece of info!
+          ⭐️ Version 2.0.1
         </Text>
 
         <Text style={{ display: "block" }}>
-          🐾 More information about Pawthereum!
+          🐾 Follow the Pawth
         </Text>
 
         <Text style={{ display: "block" }}>
@@ -245,7 +245,7 @@ const App = ({ isServerInfo }) => {
             rel="noopener noreferrer"
             href="https://pawthereum.com"
           >
-            the upcoming donation
+            Pawthereum
           </a>
         </Text>
       </Footer>
