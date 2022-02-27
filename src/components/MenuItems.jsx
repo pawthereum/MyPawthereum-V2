@@ -33,6 +33,9 @@ function MenuItems() {
       <Menu.Item key="/flooz">
         <NavLink to="/flooz">💳 Credit</NavLink>
       </Menu.Item>
+      <Menu.Item key="/pawsend">
+        <NavLink to="/pawsend">💸 PawSend</NavLink>
+      </Menu.Item>
       <Menu.Item key="/pawswap">
         <NavLink to="/pawswap">🐾 PawSwap</NavLink>
       </Menu.Item>

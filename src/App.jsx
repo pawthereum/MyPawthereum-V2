@@ -27,6 +27,7 @@ import { PAWTH_ADDRESS, COINGECKO_ID } from "./constants";
 import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
 import AddLiquidity from "components/DEX/components/AddLiquidity";
 import DexComingSoon from "components/DEX/DexComingSoon";
+import PawSend from "components/PawSend/PawSend"
 const CoinGecko = require('coingecko-api')
  
 const { Header, Footer } = Layout;
@@ -194,6 +195,9 @@ const App = ({ isServerInfo }) => {
                   <AddLiquidity chain="bsctest" />
                 </Tabs.TabPane>
               </Tabs> */}
+            </Route>
+            <Route path="/pawsend">
+              <PawSend />
             </Route>
             <Route path="/erc20balance">
               <ERC20Balance />

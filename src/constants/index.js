@@ -3,6 +3,7 @@ import { pawswapFactoryAbi } from './abis/pawswapFactory'
 import { ERC20Abi } from './abis/erc20'
 import { taxStructureAbi } from './abis/taxStructure'
 import { pawswapAbi } from './abis/pawswap'
+import { pawsendAbi } from './abis/pawsend'
 
 export const PAWTH_ADDRESS = {
   '0x1': '0xaecc217a749c2405b5ebc9857a16d58bdc1c367f', // eth mainnet
@@ -10,8 +11,8 @@ export const PAWTH_ADDRESS = {
   '0x38': '0x409e215738e31d8ab252016369c2dd9c2008fee0', // bsc mainnet
   'bsc': '0x409e215738e31d8ab252016369c2dd9c2008fee0',
   '0x4': '', // rinkeby testnet
-  '0x61': '0x33ec6D5bdb757109C6929eB9c0B21c23f6a694a8', // bsc testnet
-  'bsctest': '0x33ec6D5bdb757109C6929eB9c0B21c23f6a694a8',
+  '0x61': '0x3bae287ff1754bb2d390bff103c998f9479b049d', // bsc testnet
+  'bsctest': '0x3bae287ff1754bb2d390bff103c998f9479b049d',
 }
 
 export const SHIBA_LP_ADDRESS = '0xc57dc778a0d2d150d04fc0fd09a0113ebe9d600c'
@@ -39,6 +40,33 @@ export const SLIPPAGE = {
 
 export const ERC20ABI = ERC20Abi
 export const TAX_STRUCTURE_ABI = taxStructureAbi
+
+export const PAWSEND = {
+  '0x1': {
+    abi: pawsendAbi,
+    address: '',
+  },
+  'eth': {
+    abi: pawsendAbi,
+    address: '',
+  },
+  '0x38': {
+    abi: pawsendAbi,
+    address: '',
+  },
+  'bsc': {
+    abi: pawsendAbi,
+    address: '',
+  },
+  '0x61': {
+    abi: pawsendAbi,
+    address: '0x9B09f40f629B87292A72BAD5a351A876F8374DDa',
+  },
+  'bsctest': {
+    abi: pawsendAbi,
+    address: '0x9B09f40f629B87292A72BAD5a351A876F8374DDa',
+  },
+}
 
 export const PAWSWAP = {
   '0x1': {
