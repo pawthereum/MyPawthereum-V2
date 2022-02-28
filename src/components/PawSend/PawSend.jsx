@@ -2,10 +2,11 @@ import { useMoralis } from 'react-moralis'
 import { useERC20Balance } from 'hooks/useERC20Balance';
 import { PAWTH_ADDRESS } from '../../constants'
 import Transfer from './components/Transfer'
+import History from './components/History'
 import NativeBalance from "../NativeBalance";
 import Address from "../Address/Address";
 import Blockie from "../Blockie";
-import { Card } from "antd";
+import { Card, Tabs } from "antd";
 
 const styles = {
   title: {
@@ -36,19 +37,28 @@ function PawSend() {
   const pawthBalance = pawth ? parseInt(pawthBalanceRaw) / 10**parseInt(pawth.decimals) : 0
 
   return (
-    <Card
-      style={styles.card}
-      title={
-        <div style={styles.header}>
-          <Blockie scale={5} avatar currentWallet style />
-          <Address size="6" copyable />
-          <NativeBalance />
-          {pawthBalance.toLocaleString()} PAWTH
-        </div>
-      }
-    >
-      <Transfer pawthBalance={pawthBalance} />
-    </Card>
+    <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
+      <Tabs.TabPane tab={<span>PawSend</span>} key="1">
+        <Card
+          style={styles.card}
+          title={
+            <div style={styles.header}>
+              <Blockie scale={5} avatar currentWallet style />
+              <Address size="6" copyable />
+              <NativeBalance />
+              {pawthBalance.toLocaleString()} PAWTH
+            </div>
+          }
+        >
+          <Transfer pawthBalance={pawthBalance} />
+        </Card>
+      </Tabs.TabPane>
+      <Tabs.TabPane tab={<span>History</span>} key="2">
+        <Card style={styles.card}>
+          <History/>
+        </Card>
+      </Tabs.TabPane>
+    </Tabs>
   );
 }
 

@@ -1,5 +1,5 @@
 import { useMoralis } from "react-moralis";
-import { ERC20ABI, PAWSEND, PAWTH_ADDRESS } from '../constants'
+import { ERC20ABI, PAWSEND, PAWTH_ADDRESS, DECIMALS } from '../constants'
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
@@ -53,9 +53,7 @@ const usePawSend = (chain) => {
       PAWSEND[chain].address,
     ).call()
 
-    const decimals = await tokenContract.methods.decimals().call()
-
-    return parseInt(amount) <= Moralis.Units.FromWei(tokenAllowance, decimals)
+    return parseInt(amount) <= Moralis.Units.FromWei(tokenAllowance, DECIMALS)
   }
 
   async function updateAllowance (amount) {
@@ -66,13 +64,9 @@ const usePawSend = (chain) => {
       PAWTH_ADDRESS[chain]
     )
 
-    console.log('tokenContract is', tokenContract)
-
-    const decimals = await tokenContract.methods.decimals().call()
-
     await tokenContract.methods.approve(
       PAWSEND[chain].address,
-      Moralis.Units.Token(amount, decimals).toString()
+      Moralis.Units.Token(amount, DECIMALS).toString()
     ).send({ from: account })
   }
 
@@ -86,13 +80,8 @@ const usePawSend = (chain) => {
       ERC20ABI, 
       PAWTH_ADDRESS[chain]
     )
-    console.log('PAWTH_ADDRESS', PAWTH_ADDRESS[chain])
-
-    console.log('pawth', pawthereum)
-
-    const decimals = await pawthereum.methods.decimals().call()
-
-    const amount = Moralis.Units.Token(params.amount, decimals).toString();
+    
+    const amount = Moralis.Units.Token(params.amount, DECIMALS).toString();
 
     const pawthereumAllowance = await pawthereum.methods.allowance(
       account,
