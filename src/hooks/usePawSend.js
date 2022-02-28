@@ -3,9 +3,6 @@ import { ERC20ABI, PAWSEND, PAWTH_ADDRESS } from '../constants'
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
-const IsNative = (address) => address === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
-const IsNativeTest = (address) => address === '0xae13d989dac2f0debff460ac112a837c89baa7cd';
-
 const openNotification = ({ message, description, link }) => {
   notification.open({
     message,
@@ -17,15 +14,6 @@ const openNotification = ({ message, description, link }) => {
     placement: 'topRight'
   });
 };
-
-const allowanceSpenderAddress = (spender, chain) => {
-  switch (spender) {
-    case 'router':
-      return PAWSEND[chain].address
-    default:
-      return PAWSEND[chain].address
-  }
-}
 
 const usePawSend = (chain) => {
   const { Moralis, account } = useMoralis();
@@ -51,40 +39,40 @@ const usePawSend = (chain) => {
     return totalTax / 100 + '%'
   }
 
-  async function hasAllowance (amount, token, spender) {
-    if (IsNative(token.address)) return true
-    if (process.env.NODE_ENV !== 'production' && chain === 'bsctest') {
-      if (IsNativeTest(token.address)) return true
-    }
-    
+  async function hasAllowance (amount) {
+    if (!chain) return false
     const web3Provider = await Moralis.enableWeb3();
 
     const tokenContract = new web3Provider.eth.Contract(
       ERC20ABI, 
-      token.address
+      PAWTH_ADDRESS[chain]
     )
 
     const tokenAllowance = await tokenContract.methods.allowance(
       account,
-      allowanceSpenderAddress(spender, chain),
+      PAWSEND[chain].address,
     ).call()
 
-    if (parseInt(tokenAllowance) < parseInt(amount)) {
-      return false
-    }
+    const decimals = await tokenContract.methods.decimals().call()
+
+    return parseInt(amount) <= Moralis.Units.FromWei(tokenAllowance, decimals)
   }
 
-  async function updateAllowance (amount, token, spender) {
+  async function updateAllowance (amount) {
     const web3Provider = await Moralis.enableWeb3();
 
     const tokenContract = new web3Provider.eth.Contract(
       ERC20ABI, 
-      token.address
+      PAWTH_ADDRESS[chain]
     )
 
+    console.log('tokenContract is', tokenContract)
+
+    const decimals = await tokenContract.methods.decimals().call()
+
     await tokenContract.methods.approve(
-      allowanceSpenderAddress(spender, chain),
-      Moralis.Units.Token(amount, token.decimals).toString()
+      PAWSEND[chain].address,
+      Moralis.Units.Token(amount, decimals).toString()
     ).send({ from: account })
   }
 
@@ -155,7 +143,7 @@ const usePawSend = (chain) => {
     return await pawsend.methods.pawSend(
       params.receiver,
       params.amount,
-      params.message
+      params.message || ''
     ).send({ 
       from: account
     }).on('transactionHash', hash => openNotification({

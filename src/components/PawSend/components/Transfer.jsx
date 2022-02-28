@@ -5,9 +5,6 @@ import Text from "antd/lib/typography/Text";
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
 import usePawSend from "hooks/usePawSend";
-const Web3 = require('web3')
-const web3 = new Web3(Web3.givenProvider)
-const eth = web3.eth
 
 const styles = {
   card: {
@@ -51,42 +48,84 @@ function Transfer(props) {
   const [isPending, setIsPending] = useState(false);
   const [receiver, setReceiver] = useState();
   const [totalTax, setTotalTax] = useState();
-  const { totalSendTax, trySend } = usePawSend();
+  const { totalSendTax, trySend, updateAllowance, hasAllowance } = usePawSend(chainId);
+  const [allowanceButton, setAllowanceButton] = useState({
+    display: false,
+    isLoading: false,
+    isActive: false,
+    text: 'Approve'
+  })
 
-  // useEffect(() => {
-  //   amount && account ? setTx({ amount, message }) : setTx();
-  // }, [account, chainId]);
+  async function attemptAllowance () {
+    setAllowanceButton({
+      display: true,
+      isActive: false,
+      isLoading: true,
+      text: `Approving PAWTH`
+    })
+    await updateAllowance(amount)
+    return setAllowanceButton({
+      display: false,
+      isActive: false,
+      isLoading: false,
+      text: 'Approve'
+    })
+  }
 
   useEffect(() => {
-    if (chainId) getTotalTax()
+    if (!chainId) return
+
+    getTotalTax()
+
+    if (amount || receiver) {
+      checkHasSufficientAllowance()
+    }
 
     async function getTotalTax () {
       const tax = await totalSendTax({ chain: chainId })
       setTotalTax(tax)
     }
-  }, [chainId])
 
-  const openNotification = ({ message, description }) => {
-    notification.open({
-      placement: "bottomRight",
-      message,
-      description,
-      onClick: () => {
-        console.log("Notification Clicked!");
-      },
-    });
-  };
+    async function checkHasSufficientAllowance() {
+      if (!amount) {
+        return setAllowanceButton({
+          display: false,
+          isLoading: false,
+          isActive: false,
+          text: `Approve PAWTH`
+        })
+      }
+      const hasSufficientAllowance = await hasAllowance(amount)
+      if (!hasSufficientAllowance) {
+        return setAllowanceButton({
+          display: true,
+          isLoading: false,
+          isActive: receiver && amount,
+          text: `Approve PAWTH`
+        })
+      }
+      return setAllowanceButton({
+        display: false,
+        isLoading: false,
+        isActive: false,
+        text: `Approve PAWTH`
+      })
+    }
+  }, [chainId, amount, receiver])
 
   async function transfer() {
-    console.log('web3.utils.toWei(amount,"eth")', web3.utils.toWei(amount,'ether'))
-
     setIsPending(true);
-    const send = await trySend({ amount, receiver, message, chain: chainId })
-    console.log('send', send)
+    await trySend({ amount, receiver, message, chain: chainId })
 
     setReceiver(null)
     setAmount(null)
     setMessage(null)
+    setAllowanceButton({
+      display: false,
+      isLoading: false,
+      isActive: false,
+      text: `Approve PAWTH`
+    })
     setIsPending(false)
   }
 
@@ -95,7 +134,7 @@ function Transfer(props) {
       <div style={styles.tranfer}>
         <div style={styles.header}>
           <h3>PawSend</h3>
-          <small>Send $PAWTH with only a {totalTax} transaction fee!</small>
+          <small>Send $PAWTH with only a {totalTax} transaction fee! {receiver}</small>
         </div>
         <div style={styles.select}>
           <div style={styles.textWrapper}>
@@ -141,7 +180,46 @@ function Transfer(props) {
             }}
           />
         </div>
-        <Button
+        <Row gutter={6}>
+          {
+            !allowanceButton.display ? '' :
+            <Col span={12}>
+              <Button
+                type="primary"
+                size="large"
+                style={{
+                  width: "100%",
+                  marginTop: "15px",
+                  borderRadius: "0.6rem",
+                  height: "50px",
+                }}
+                onClick={() => attemptAllowance()}
+                disabled={!allowanceButton.isActive}
+                loading={allowanceButton.isLoading}
+              >
+                {allowanceButton.text}
+              </Button>
+            </Col>
+          }
+          <Col span={allowanceButton.display ? 12 : 24}> 
+            <Button
+              type="primary"
+              size="large"
+              style={{
+                width: "100%",
+                marginTop: "15px",
+                borderRadius: "0.6rem",
+                height: "50px",
+              }}
+              onClick={() => transfer()}
+              disabled={!amount || (props.pawthBalance < amount || !receiver) || allowanceButton.display && (allowanceButton.isActive || allowanceButton.isLoading)}
+              loading={isPending}
+            >
+              Send 💸
+            </Button>
+          </Col>
+        </Row>
+        {/* <Button
           type="primary"
           size="large"
           loading={isPending}
@@ -150,7 +228,7 @@ function Transfer(props) {
           disabled={props.pawthBalance < amount || !receiver}
         >
           Send 💸
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
