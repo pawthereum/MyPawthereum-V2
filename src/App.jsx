@@ -75,7 +75,7 @@ const styles = {
   }
 };
 const App = ({ isServerInfo }) => {
-  const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId, account } = useMoralis();
+  const { Moralis, isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId, account } = useMoralis();
 
   const [logo, setLogo] = useState('https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png')
   const screens = useBreakpoint()
@@ -84,9 +84,11 @@ const App = ({ isServerInfo }) => {
   useEffect(() => {
     if (!account) return
     logVisit()
-    async function logVisit() {
+    async function logVisit() { 
+      const web3Provider = await Moralis.enableWeb3();
+      const checkSummedAddress = web3Provider.utils.toChecksumAddress(account)
       const db = getFirestore()
-      const docRef = doc(db, 'pawthereum', 'wallets', `${account}`, 'visits')
+      const docRef = doc(db, 'pawthereum', 'wallets', `${checkSummedAddress}`, 'visits')
       const docSnap = await getDoc(docRef)
       let dates = []
       if (docSnap.exists()) {
