@@ -37,28 +37,26 @@ function PawSend() {
   const pawthBalance = pawth ? parseInt(pawthBalanceRaw) / 10**parseInt(pawth.decimals) : 0
 
   return (
-    <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
-      <Tabs.TabPane tab={<span>PawSend</span>} key="1">
-        <Card
-          style={styles.card}
-          title={
-            <div style={styles.header}>
-              <Blockie scale={5} avatar currentWallet style />
-              <Address size="6" copyable />
-              <NativeBalance />
-              {pawthBalance.toLocaleString()} PAWTH
-            </div>
-          }
-        >
+    <Card
+      style={styles.card}
+      title={
+        <div style={styles.header}>
+          <Blockie scale={5} avatar currentWallet style />
+          <Address size="6" copyable />
+          <NativeBalance />
+          {pawthBalance.toLocaleString()} PAWTH
+        </div>
+      }
+    >
+      <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
+        <Tabs.TabPane tab={<span>PawSend</span>} key="1">
           <Transfer pawthBalance={pawthBalance} />
-        </Card>
-      </Tabs.TabPane>
-      <Tabs.TabPane tab={<span>History</span>} key="2">
-        <Card style={styles.card}>
+        </Tabs.TabPane>
+        <Tabs.TabPane tab={<span>History</span>} key="2">
           <History/>
-        </Card>
-      </Tabs.TabPane>
-    </Tabs>
+        </Tabs.TabPane>
+      </Tabs>
+    </Card>
   );
 }
 

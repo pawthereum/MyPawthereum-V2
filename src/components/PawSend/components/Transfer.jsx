@@ -1,10 +1,11 @@
 import AddressInput from "../../AddressInput";
 import { CreditCardOutlined, MessageOutlined } from "@ant-design/icons";
-import { Alert, Row, Col, Button, Input, notification } from "antd";
+import { Alert, Row, Col, Button, Input, InputNumber } from "antd";
 import Text from "antd/lib/typography/Text";
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
 import usePawSend from "hooks/usePawSend";
+import useBreakpoint from "hooks/useBreakpoint";
 
 const styles = {
   card: {
@@ -55,6 +56,7 @@ function Transfer(props) {
     isActive: false,
     text: 'Approve'
   })
+  const { isMobile } = useBreakpoint();
 
   async function attemptAllowance () {
     setAllowanceButton({
@@ -133,25 +135,32 @@ function Transfer(props) {
     <div style={styles.card}>
       <div style={styles.tranfer}>
         <div style={styles.header}>
-          <h3>PawSend</h3>
-          <small>Send $PAWTH with only a {totalTax} transaction fee! {receiver}</small>
+          <small>Send $PAWTH with only a {totalTax} transaction fee!</small>
         </div>
         <div style={styles.select}>
-          <div style={styles.textWrapper}>
-            <Text strong>Address:</Text>
-          </div>
+          { 
+            isMobile ? '' :
+            <div style={styles.textWrapper}>
+              <Text strong>Address:</Text>
+            </div>
+          }
           <AddressInput autoFocus onChange={setReceiver} />
         </div>
         <div style={styles.select}>
-          <div style={styles.textWrapper}>
-            <Text strong>Amount:</Text>
-          </div>
-          <Input
+          { 
+            isMobile ? '' :
+            <div style={styles.textWrapper}>
+              <Text strong>Amount:</Text>
+            </div>
+          }
+          <InputNumber
             size="large"
             value={amount}
+            placeholder="Amount"
+            style={{ width: '100%' }}
             prefix={<CreditCardOutlined />}
-            onChange={(e) => {
-              setAmount(`${e.target.value}`);
+            onChange={(value) => {
+              setAmount(value);
             }}
           />
         </div>
@@ -168,13 +177,17 @@ function Transfer(props) {
             </Row>
           }
         <div style={styles.select}>
-          <div style={styles.textWrapper}>
-            <Text strong>Message:</Text>
-          </div>
+          { 
+            isMobile ? '' :
+            <div style={styles.textWrapper}>
+              <Text strong>Message:</Text>
+            </div>
+          }
           <Input
             size="large"
             prefix={<MessageOutlined />}
             value={message}
+            placeholder="Optional Message"
             onChange={(e) => {
               setMessage(`${e.target.value}`);
             }}
