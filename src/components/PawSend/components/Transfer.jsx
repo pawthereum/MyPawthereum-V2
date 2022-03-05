@@ -63,7 +63,7 @@ function Transfer(props) {
       display: true,
       isActive: false,
       isLoading: true,
-      text: `Approving PAWTH`
+      text: `Approving`
     })
     await updateAllowance(amount)
     return setAllowanceButton({
@@ -94,7 +94,7 @@ function Transfer(props) {
           display: false,
           isLoading: false,
           isActive: false,
-          text: `Approve PAWTH`
+          text: `Approve`
         })
       }
       const hasSufficientAllowance = await hasAllowance(amount)
@@ -103,14 +103,14 @@ function Transfer(props) {
           display: true,
           isLoading: false,
           isActive: receiver && amount,
-          text: `Approve PAWTH`
+          text: `Approve`
         })
       }
       return setAllowanceButton({
         display: false,
         isLoading: false,
         isActive: false,
-        text: `Approve PAWTH`
+        text: `Approve`
       })
     }
   }, [chainId, amount, receiver])
@@ -126,7 +126,7 @@ function Transfer(props) {
       display: false,
       isLoading: false,
       isActive: false,
-      text: `Approve PAWTH`
+      text: `Approve`
     })
     setIsPending(false)
   }

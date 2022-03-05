@@ -52,11 +52,11 @@ export const PAWSEND = {
   },
   '0x38': {
     abi: pawsendAbi,
-    address: '',
+    address: '0x03bD989C8eB782B4a9f53407865F5A14790f95c4',
   },
   'bsc': {
     abi: pawsendAbi,
-    address: '',
+    address: '0x03bD989C8eB782B4a9f53407865F5A14790f95c4',
   },
   '0x61': {
     abi: pawsendAbi,

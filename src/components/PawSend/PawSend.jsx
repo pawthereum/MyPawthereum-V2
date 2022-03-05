@@ -36,6 +36,9 @@ function PawSend() {
   const pawthBalanceRaw = pawth ? pawth.balance : '0'
   const pawthBalance = pawth ? parseInt(pawthBalanceRaw) / 10**parseInt(pawth.decimals) : 0
 
+  const pawSwapSupportedChains = ['0x38', '0x61'] // bsc mainnet and testnet
+  const pawSwapIsSupported = pawSwapSupportedChains.includes(chainId)
+
   return (
     <Card
       style={styles.card}
@@ -48,14 +51,22 @@ function PawSend() {
         </div>
       }
     >
-      <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
-        <Tabs.TabPane tab={<span>PawSend</span>} key="1">
-          <Transfer pawthBalance={pawthBalance} />
-        </Tabs.TabPane>
-        <Tabs.TabPane tab={<span>History</span>} key="2">
-          <History/>
-        </Tabs.TabPane>
-      </Tabs>
+      { 
+        pawSwapIsSupported
+        ?
+          <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
+          <Tabs.TabPane tab={<span>PawSend</span>} key="1">
+              <Transfer pawthBalance={pawthBalance} />
+            </Tabs.TabPane>
+            <Tabs.TabPane tab={<span>History</span>} key="2">
+              <History/>
+            </Tabs.TabPane>
+          </Tabs>
+        :
+          <div style={{ textAlign: 'center' }}>
+            PawSend is not supported on this chain
+          </div>
+      }
     </Card>
   );
 }
