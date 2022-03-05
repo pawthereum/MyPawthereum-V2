@@ -141,9 +141,7 @@ function Badges(props) {
   useEffect(() => {
     async function getVisits() {
       const web3Provider = await Moralis.enableWeb3();
-      console.log('web3provider', web3Provider)
       const checkSummedAddress = web3Provider.utils.toChecksumAddress(account)
-      console.log('checked', checkSummedAddress)
       const db = getFirestore()
       const docRef = doc(db, 'pawthereum', 'wallets', `${checkSummedAddress}`, 'visits')
       const docSnap = await getDoc(docRef)
