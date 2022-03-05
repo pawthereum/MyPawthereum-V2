@@ -235,7 +235,7 @@ function Badges(props) {
       if (visits.length === 0) return
       let badges = []
       for (const visit of visits) {
-        const date = new Date(visit.toDate()).getTime() / 1000
+        const date = visit.toDate().getTime() / 1000
         badges = badges.concat(badgeEvents.filter(e => {
           return date >= e.start && date <= e.end
         }))
