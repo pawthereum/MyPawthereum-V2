@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import { useMoralis, useERC20Balances, useTokenPrice } from "react-moralis";
+import { useMoralis, useTokenPrice } from "react-moralis";
+import { useERC20Balance, useBscERC20Balance, useEthERC20Balance } from "../../../hooks/useERC20Balance"
 import Account from "../../Account/Account";
 import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import { PAWTH_ADDRESS, COINGECKO_ID } from '../../../constants'
@@ -48,9 +49,9 @@ const styles = {
 function PawthStats() {
   const globalContext = useContext(AppContext);
 
-  const { data: bscAssets } = useERC20Balances({ chain: '0x38' });
-  const { data: ethAssets } = useERC20Balances({ chain: '0x1' });
-  const { data: assets } =  useERC20Balances();
+  const { bscAssets } = useBscERC20Balance();
+  const { ethAssets } = useEthERC20Balance();
+  const { assets } =  useERC20Balance();
 
   const bscPawthAddress = PAWTH_ADDRESS['0x38']
   const { data: bscPriceData } = useTokenPrice({
@@ -138,18 +139,6 @@ function PawthStats() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-
-  function getChainNameById (chainId) {
-    switch (chainId) {
-      case '0x1':
-        return 'eth'
-      case '0x38':
-        return 'bsc'
-      default:
-        return 'eth'
-    }
-  }
 
   if (!account) {
     return (

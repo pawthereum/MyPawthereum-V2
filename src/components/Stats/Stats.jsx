@@ -83,7 +83,7 @@ function Stats() {
       </div>
       <div style={styles.row}>
         <Card style={styles.card}>
-          <Ranks />
+          {/* <Ranks /> */}
         </Card>
       </div>
       <div style={styles.row}>
@@ -94,10 +94,10 @@ function Stats() {
       <div style={styles.row}>
         <Card style={styles.card}>
           <Skeleton loading={!chainId || !charityWallet}>
-            <CharityStats
+            {/* <CharityStats
               charityWallet={charityWallet}
               chainId={chainId}
-            />
+            /> */}
           </Skeleton>
         </Card>
       </div>
