@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Grid, Menu, Dropdown, Button } from "antd";
 import { DownOutlined } from "@ant-design/icons";
-import { AvaxLogo, PolygonLogo, BSCLogo, ETHLogo } from "./Logos";
+import { AvaxLogo, PolygonLogo, BSCLogo, ETHLogo, MultichainLogo } from "./Logos";
 import { useChain, useMoralis } from "react-moralis";
 import AppContext from '../../AppContext'
 
@@ -86,7 +86,7 @@ const menuItems = [
   {
     key: "multi",
     value: "Mutlichain",
-    icon: <ETHLogo />,
+    icon: <MultichainLogo />,
   },
 ]
 .filter(c => {
