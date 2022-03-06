@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Grid, Menu, Dropdown, Button } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { AvaxLogo, PolygonLogo, BSCLogo, ETHLogo } from "./Logos";
 import { useChain, useMoralis } from "react-moralis";
+import AppContext from '../../AppContext'
 
 const { useBreakpoint } = Grid
 
@@ -82,13 +83,19 @@ const menuItems = [
     value: "Avalanche Testnet",
     icon: <AvaxLogo />,
   },
+  {
+    key: "multi",
+    value: "Mutlichain",
+    icon: <ETHLogo />,
+  },
 ]
 .filter(c => {
   return process.env.NODE_ENV !== 'production' ? true :
-  c.value === 'Ethereum' || c.value === 'Binance'
+  c.value === 'Ethereum' || c.value === 'Binance' || c.value === 'Multichain'
 });
 
 function Chains() {
+  const globalContext = useContext(AppContext)
   const { switchNetwork, chainId, chain } = useChain();
   const { isAuthenticated } = useMoralis();
   const [selected, setSelected] = useState({});
@@ -101,11 +108,11 @@ function Chains() {
     if (!chainId) return null;
     const newSelected = menuItems.find((item) => item.key === chainId);
     setSelected(newSelected);
-    console.log("current chainId: ", chainId);
   }, [chainId]);
 
   const handleMenuClick = (e) => {
-    console.log("switch to: ", e.key);
+    if (e.key === 'multi') return globalContext.toggleUseMultichain(true)
+    globalContext.toggleUseMultichain(false)
     switchNetwork(e.key);
   };
 

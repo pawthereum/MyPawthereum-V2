@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AppContext from './AppContext';
 import { useMoralis } from "react-moralis";
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
 import Account from "components/Account/Account";
@@ -77,6 +78,16 @@ const styles = {
 const App = ({ isServerInfo }) => {
   const { Moralis, isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId, account } = useMoralis();
 
+  const [multichainEnabled, setMultichainEnabled] = useState(false);
+  const toggleUseMultichain = (toggle) => {
+    setMultichainEnabled(toggle)
+  }
+
+  const globalState = {
+    multichainEnabled,
+    toggleUseMultichain
+  }
+
   const [logo, setLogo] = useState('https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png')
   const screens = useBreakpoint()
   const pawthAddress = PAWTH_ADDRESS[chainId]
@@ -137,142 +148,144 @@ const App = ({ isServerInfo }) => {
   }, [isAuthenticated, isWeb3Enabled]);
 
   return (
-    <Layout style={{ overflow: "auto", minHeight: '100vh' }}>
-      <Router>
-        <Header style={styles.header}>
-          <Logo />
-          <MenuItems />
-          { screens.xs ? <Chains /> : '' }
-          <div style={styles.headerRight}>
-            {
-              screens.xs ? '' :
-              <>
-                <Chains />
-                <TokenPrice
-                  address={pawthAddress}
-                  chain={getChainNameById(chainId)}
-                  image={logo}
-                  size="40px"
-                />
-                <NativeBalance />
-                <Account />
-              </>
-            }
+    <AppContext.Provider value={globalState}>
+      <Layout style={{ overflow: "auto", minHeight: '100vh' }}>
+        <Router>
+          <Header style={styles.header}>
+            <Logo />
+            <MenuItems />
+            { screens.xs ? <Chains /> : '' }
+            <div style={styles.headerRight}>
+              {
+                screens.xs ? '' :
+                <>
+                  <Chains />
+                  <TokenPrice
+                    address={pawthAddress}
+                    chain={getChainNameById(chainId)}
+                    image={logo}
+                    size="40px"
+                  />
+                  <NativeBalance />
+                  <Account />
+                </>
+              }
+            </div>
+          </Header>
+
+          <div style={styles.content}>
+            <Switch>
+              <Route exact path="/quickstart">
+                <QuickStart isServerInfo={isServerInfo} />
+              </Route>
+              <Route path="/stats">
+                <Stats />
+              </Route>
+              <Route path="/vote/:id">
+                <Proposal />
+              </Route>
+              <Route path="/vote">
+                <Vote />
+              </Route>
+              <Route path="/wallet">
+                <Wallet />
+              </Route>
+              <Route path="/pawswap">
+                <DexComingSoon />
+                {/* <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
+                  <Tabs.TabPane tab={<span>Ethereum</span>} key="1">
+                    <DEX chain="eth" />
+                  </Tabs.TabPane>
+                  <Tabs.TabPane tab={<span>Binance Smart Chain</span>} key="1">
+                    <DEX chain="bsc" />
+                  </Tabs.TabPane>
+                  <Tabs.TabPane tab={<span>BSC Testnet</span>} key="2">
+                    <DEX chain="bsctest" />
+                  </Tabs.TabPane>
+                  <Tabs.TabPane tab={<span>Polygon</span>} key="4">
+                    <DEX chain="polygon" />
+                  </Tabs.TabPane>
+                  <Tabs.TabPane tab={<span>Liquidity</span>} key="3">
+                    <AddLiquidity chain="bsctest" />
+                  </Tabs.TabPane>
+                </Tabs> */}
+              </Route>
+              <Route path="/pawsend">
+                <PawSend />
+              </Route>
+              <Route path="/erc20balance">
+                <ERC20Balance />
+              </Route>
+              <Route path="/flooz">
+                <Flooz />
+              </Route>
+              <Route path="/onramp">
+                <Ramper />
+              </Route>
+              <Route path="/erc20transfers">
+                <ERC20Transfers />
+              </Route>
+              <Route path="/nftBalance">
+                <NFTBalance />
+              </Route>
+              <Route path="/contract">
+                <Contract />
+              </Route>
+              <Route path="/donate">
+                <Donate />
+              </Route>
+              <Route path="/ethereum-boilerplate">
+                <Redirect to="/quickstart" />
+              </Route>
+              <Route path="/nonauthenticated">
+                <>Please login using the "Authenticate" button</>
+              </Route>
+              <Route path="/">
+                <Stats />
+              </Route>
+            </Switch>
           </div>
-        </Header>
+        </Router>
+        <Footer style={{ 
+          textAlign: "center", 
+          paddingBottom: screens.xs ? '74px' : '0px'
+        }}>
+          <Text style={{ display: "block" }}>
+            ⭐️ Version 2.0.1
+          </Text>
 
-        <div style={styles.content}>
-          <Switch>
-            <Route exact path="/quickstart">
-              <QuickStart isServerInfo={isServerInfo} />
-            </Route>
-            <Route path="/stats">
-              <Stats />
-            </Route>
-            <Route path="/vote/:id">
-              <Proposal />
-            </Route>
-            <Route path="/vote">
-              <Vote />
-            </Route>
-            <Route path="/wallet">
-              <Wallet />
-            </Route>
-            <Route path="/pawswap">
-              <DexComingSoon />
-              {/* <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
-                <Tabs.TabPane tab={<span>Ethereum</span>} key="1">
-                  <DEX chain="eth" />
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={<span>Binance Smart Chain</span>} key="1">
-                  <DEX chain="bsc" />
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={<span>BSC Testnet</span>} key="2">
-                  <DEX chain="bsctest" />
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={<span>Polygon</span>} key="4">
-                  <DEX chain="polygon" />
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={<span>Liquidity</span>} key="3">
-                  <AddLiquidity chain="bsctest" />
-                </Tabs.TabPane>
-              </Tabs> */}
-            </Route>
-            <Route path="/pawsend">
-              <PawSend />
-            </Route>
-            <Route path="/erc20balance">
-              <ERC20Balance />
-            </Route>
-            <Route path="/flooz">
-              <Flooz />
-            </Route>
-            <Route path="/onramp">
-              <Ramper />
-            </Route>
-            <Route path="/erc20transfers">
-              <ERC20Transfers />
-            </Route>
-            <Route path="/nftBalance">
-              <NFTBalance />
-            </Route>
-            <Route path="/contract">
-              <Contract />
-            </Route>
-            <Route path="/donate">
-              <Donate />
-            </Route>
-            <Route path="/ethereum-boilerplate">
-              <Redirect to="/quickstart" />
-            </Route>
-            <Route path="/nonauthenticated">
-              <>Please login using the "Authenticate" button</>
-            </Route>
-            <Route path="/">
-              <Stats />
-            </Route>
-          </Switch>
-        </div>
-      </Router>
-      <Footer style={{ 
-        textAlign: "center", 
-        paddingBottom: screens.xs ? '74px' : '0px'
-      }}>
-        <Text style={{ display: "block" }}>
-          ⭐️ Version 2.0.1
-        </Text>
+          <Text style={{ display: "block" }}>
+            🐾 Follow the Pawth
+          </Text>
 
-        <Text style={{ display: "block" }}>
-          🐾 Follow the Pawth
-        </Text>
-
-        <Text style={{ display: "block" }}>
-          📖 Read more about{" "}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://pawthereum.com"
-          >
-            Pawthereum
-          </a>
-        </Text>
-      </Footer>
-      {
-        screens.xs 
-        ?
-          <Footer style={{ textAlign: "center", ...styles.mobileFooter }}>
-            <TokenPrice
-              address={pawthAddress}
-              chain={getChainNameById(chainId)}
-              image={logo}
-              size="40px"
-            />
-            <NativeBalance />
-            <Account />
-          </Footer>
-        : ''
-      }
-    </Layout>
+          <Text style={{ display: "block" }}>
+            📖 Read more about{" "}
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://pawthereum.com"
+            >
+              Pawthereum
+            </a>
+          </Text>
+        </Footer>
+        {
+          screens.xs 
+          ?
+            <Footer style={{ textAlign: "center", ...styles.mobileFooter }}>
+              <TokenPrice
+                address={pawthAddress}
+                chain={getChainNameById(chainId)}
+                image={logo}
+                size="40px"
+              />
+              <NativeBalance />
+              <Account />
+            </Footer>
+          : ''
+        }
+      </Layout>
+    </AppContext.Provider>
   );
 };
 
