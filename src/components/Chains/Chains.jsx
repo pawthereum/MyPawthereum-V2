@@ -85,7 +85,7 @@ const menuItems = [
   },
   {
     key: "multi",
-    value: "Mutlichain",
+    value: "Multichain",
     icon: <MultichainLogo />,
   },
 ]
