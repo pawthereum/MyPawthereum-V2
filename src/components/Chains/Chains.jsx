@@ -111,7 +111,16 @@ function Chains() {
   }, [chainId]);
 
   const handleMenuClick = (e) => {
-    if (e.key === 'multi') return globalContext.toggleUseMultichain(true)
+    // do not actually switch networks if selecting multichain
+    if (e.key === 'multi') {
+      globalContext.toggleUseMultichain(true)
+      setSelected(menuItems.find((item) => item.key === 'multi'))
+      return
+    }
+    // reset menu to chain if coming from multichain
+    if (globalContext.multichainEnabled) {
+      setSelected(menuItems.find((item) => item.key === e.key))
+    }
     globalContext.toggleUseMultichain(false)
     switchNetwork(e.key);
   };

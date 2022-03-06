@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useMoralis, useERC20Balances, useTokenPrice } from "react-moralis";
 import Account from "../../Account/Account";
 import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
 import { PAWTH_ADDRESS, COINGECKO_ID } from '../../../constants'
 import { Row, Col, Statistic, Skeleton } from "antd";
+import AppContext from '../../../AppContext'
 const CoinGecko = require('coingecko-api')
 
 const styles = {
@@ -44,18 +45,82 @@ const styles = {
   },
 };
 
-function PawthStats(props) {
-  const { data: assets } = useERC20Balances(props);
+function PawthStats() {
+  const globalContext = useContext(AppContext);
+
+  const { data: bscAssets } = useERC20Balances({ chain: '0x38' });
+  const { data: ethAssets } = useERC20Balances({ chain: '0x1' });
+  const { data: assets } =  useERC20Balances();
+
+  const bscPawthAddress = PAWTH_ADDRESS['0x38']
+  const { data: bscPriceData } = useTokenPrice({
+    address: bscPawthAddress,
+    chain: '0x38'
+  })
+  const ethPawthAddress = PAWTH_ADDRESS['0x1']
+  const { data: ethPriceData } = useTokenPrice({
+    address: ethPawthAddress,
+    chain: '0x1'
+  })
+
+  const [pawthBalance, setPawthBalance] = useState(0)
+
   const { account, chainId } = useMoralis();
   const [logo, setLogo] = useState(null)
-  const pawthAddress = PAWTH_ADDRESS[chainId]
-  const pawth = assets ? assets.find(a => a.token_address === pawthAddress) : undefined
-  const pawthBalanceRaw = pawth ? pawth.balance : '0'
-  const pawthBalance = pawth ? parseInt(pawthBalanceRaw) / 10**parseInt(pawth.decimals) : 0
+  const [usdValue, setUsdValue] = useState(0)
+  const [price, setPrice] = useState(0)
+
   const [marketCap, setMarketCap] = useState(0)
   const [priceChange24h, setPriceChange24h] = useState(null)
   const [marketCapChange24h, setMarketCapChange24h] = useState(null)
   const CoinGeckoClient = new CoinGecko()
+
+  useEffect(() => {
+    // bsc
+    const bscPawth = bscAssets ? bscAssets.find(a => a.token_address === bscPawthAddress) : []
+    const bscPawthBalanceRaw = bscPawth ? bscPawth.balance : '0'
+    const bscPawthBalance = bscPawth ? parseInt(bscPawthBalanceRaw) / 10**parseInt(bscPawth.decimals) : 0
+    const bscUsdValue = bscPriceData ? bscPriceData.usdPrice * bscPawthBalance : 0
+
+    // eth
+    const ethPawth = ethAssets ? ethAssets.find(a => a.token_address === ethPawthAddress) : []
+    const ethPawthBalanceRaw = ethPawth ? ethPawth.balance : '0'
+    const ethPawthBalance = ethPawth ? parseInt(ethPawthBalanceRaw) / 10**parseInt(ethPawth.decimals) : 0
+    const ethUsdValue = ethPriceData ? ethPriceData.usdPrice * ethPawthBalance : 0
+
+    // current chain
+    const pawthAddress = PAWTH_ADDRESS[chainId]
+    const pawth = assets ? assets.find(a => a.token_address === pawthAddress) : undefined
+    const pawthBalanceRaw = pawth ? pawth.balance : '0'
+    const pawthBalance = pawth ? parseInt(pawthBalanceRaw) / 10**parseInt(pawth.decimals) : 0
+
+    const multichainBalance = bscPawthBalance + ethPawthBalance
+
+    const chainData = {
+      '0x1': {
+        balance: ethPawthBalance,
+        usdValue: ethUsdValue, // val of balance
+        price: ethPriceData?.usdPrice || 0
+      },
+      '0x38': {
+        balance: bscPawthBalance,
+        usdValue: bscUsdValue,
+        price: bscPriceData?.usdPrice || 0
+      }
+    }
+
+    if (globalContext.multichainEnabled) {
+      setPawthBalance(multichainBalance)
+      setUsdValue(bscUsdValue + ethUsdValue)
+      setPrice((chainData['0x1'].price + chainData['0x38'].price) / 2) // avg price
+      return
+    }
+
+    setPawthBalance(chainData[chainId]?.balance || pawthBalance)
+    setUsdValue(chainData[chainId]?.usdValue || 0)
+    setPrice(chainData[chainId]?.price || 0)
+
+  }, [globalContext.multichainEnabled, chainId, bscAssets, ethAssets, bscPriceData, ethPriceData])
 
   useEffect(() => {
     getCoinGeckoData()
@@ -74,18 +139,6 @@ function PawthStats(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  let price = 0, usdValue = 0
-
-  const { data: priceData } = useTokenPrice({
-    address: pawthAddress || PAWTH_ADDRESS['0x1'],
-    chain: getChainNameById(chainId)
-  })
-
-  if (priceData) {
-    price = priceData.usdPrice
-    usdValue = pawthBalance * price
-    // marketCap = price * TOTAL_SUPPLY
-  }
 
   function getChainNameById (chainId) {
     switch (chainId) {
@@ -119,7 +172,7 @@ function PawthStats(props) {
         <div style={styles.header}>
           <h3>Your Wallet</h3>
         </div>
-        <Skeleton loading={!assets}>
+        <Skeleton loading={!bscAssets || !ethAssets}>
           <Row gutter={16}>
             <Col span={24} style={{ textAlign: 'center', justifyContent: 'center' }}>
               <div>
