@@ -24,6 +24,9 @@ function MenuItems() {
       <Menu.Item key="/stats">
         <NavLink to="/stats">📊 Stats</NavLink>
       </Menu.Item>
+      <Menu.Item key="/donaet">
+        <NavLink to="/donate">🇺🇦 Donate</NavLink>
+      </Menu.Item>
       <Menu.Item key="/vote">
         <NavLink to="/vote">🗳️ Vote</NavLink>
       </Menu.Item>
@@ -48,9 +51,7 @@ function MenuItems() {
       <Menu.Item key="/erc20transfers">
         <NavLink to="/erc20transfers">💸 Transfers</NavLink>
       </Menu.Item> */}
-      {/* <Menu.Item key="/donaet">
-        <NavLink to="/donate">💖 Donate</NavLink>
-      </Menu.Item>
+      {/*
       <Menu.Item key="/nftBalance">
         <NavLink to="/nftBalance">🖼 NFTs</NavLink>
       </Menu.Item>

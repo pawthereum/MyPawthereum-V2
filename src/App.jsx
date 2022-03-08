@@ -251,7 +251,7 @@ const App = ({ isServerInfo }) => {
           paddingBottom: screens.xs ? '74px' : '0px'
         }}>
           <Text style={{ display: "block" }}>
-            ⭐️ Version 2.0.1
+            ⭐️ Version 2.0.2
           </Text>
 
           <Text style={{ display: "block" }}>
