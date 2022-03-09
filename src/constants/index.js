@@ -10,7 +10,7 @@ export const PAWTH_ADDRESS = {
   'eth': '0xaecc217a749c2405b5ebc9857a16d58bdc1c367f',
   '0x38': '0x409e215738e31d8ab252016369c2dd9c2008fee0', // bsc mainnet
   'bsc': '0x409e215738e31d8ab252016369c2dd9c2008fee0',
-  '0x4': '', // rinkeby testnet
+  '0x4': '0xAFFBAD7157D22B6E7A53afe097387503A1792351', // rinkeby testnet
   '0x61': '0x3bae287ff1754bb2d390bff103c998f9479b049d', // bsc testnet
   'bsctest': '0x3bae287ff1754bb2d390bff103c998f9479b049d',
 }
