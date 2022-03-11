@@ -2,6 +2,7 @@ import { useMoralis, useTokenPrice } from "react-moralis";
 import { PAWTH_ADDRESS, DECIMALS } from '../../../constants'
 import { Alert, Row, Col, Statistic } from "antd";
 import { useEffect, useState } from "react";
+import CharityTransactions from '../components/CharityTransactions';
 
 const styles = {
   card: {
@@ -100,6 +101,11 @@ function CharityStats(props) {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}/>
+          </Col>
+        </Row>
+        <Row>
+          <Col span={24}>
+            <CharityTransactions chainId={props.chainId} charityWallet={props.charityWallet} />
           </Col>
         </Row>
       </div>

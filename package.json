@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^12.1.10",
     "@uniswap/widgets": "^0.0.21-beta",
     "@walletconnect/web3-provider": "^1.6.6",
+    "abi-decoder": "^2.4.0",
     "antd": "^4.16.13",
     "apexcharts": "^3.33.0",
     "coingecko-api": "^1.0.10",
