@@ -1,52 +1,39 @@
-import { useMoralis, useMoralisWeb3Api } from "react-moralis";
+import { useMoralis, useMoralisWeb3Api, useMoralisQuery } from "react-moralis";
 import { Table, Skeleton } from "antd";
 import { useEffect, useState } from "react";
 import { networkConfigs } from "helpers/networks";
 import { charityWalletAbi } from "constants/abis/charityWallet";
-import { getFirestore, doc, getDoc, Timestamp } from 'firebase/firestore'
 const abiDecoder = require('abi-decoder');
 
 abiDecoder.addABI(charityWalletAbi)
 
 function CharityTransactions(props) {
-  const { Moralis } = useMoralis()
+  const { Moralis, chainId } = useMoralis()
+
+  const isToCharityAddress = new Moralis.Query("EthTransactions")
+  isToCharityAddress.equalTo("to_address", props?.charityWallet?.toLowerCase())
+
+  const isFromCharityAddress = new Moralis.Query("EthTransactions")
+  isFromCharityAddress.equalTo("from_address", props?.charitywallet?.toLowerCase())
+
+  const charityTransactionQuery = new Moralis.Query.or(isToCharityAddress, isFromCharityAddress)
+
   const [charityTransactions, setCharityTransactions] = useState([])
 
-  const Web3Api = useMoralisWeb3Api();
-
   useEffect(() => {
-    if (!props.chainId || !props.charityWallet) return
-    fetchTransactions()
-
-    async function fetchTransactions () {
-      const db = getFirestore()
-      const docRef = doc(db, 'pawthereum', 'transactions')
-      const docSnap = await getDoc(docRef)
-      let transactionDescriptions = []
-      if (docSnap.exists()) {
-        transactionDescriptions = docSnap.data().charity || []
-      }
-      console.log('transactionDescriptions', transactionDescriptions)
-
-      const options = {
-        chain: props.chainId,
-        address: props.charityWallet,
-        order: "desc",
-        from_block: "0",
-      };
-      const transactionQuery = await Web3Api.account.getTransactions(options);
-      const transactions = transactionQuery.result.map(t => {
-        t.description = transactionDescriptions[t.hash] || 'Unknown'
-        const decodedTx = abiDecoder.decodeMethod(t.input)
-        if (!decodedTx) return t
-        const value = decodedTx.params.find(p => p.name === 'value')
-        if (!value) return t
-        t.ethTransferred = Moralis.Units.FromWei(value.value)
-        return t
-      })
-      setCharityTransactions(transactions)
-    }
-  }, [props])
+    charityTransactionQuery.find()
+    .then(results => {
+      console.log('resaults', results)
+      setCharityTransactions(results.map(r => {
+        r.hash = r.attributes?.hash
+        r.description = r.attributes?.description || 'No description'
+        r.value = r.attributes?.value || 'No value'
+        r.link = r.attributes?.link || false
+        r.blockTimestamp = r.attributes?.block_timestamp || null
+        return r
+      }))
+    })
+  }, [chainId])
 
   if (charityTransactions.length === 0) return ( <Skeleton></Skeleton> )
 
@@ -65,18 +52,21 @@ function CharityTransactions(props) {
       }
     },
     {
-      title: 'ETH',
-      dataIndex: 'ethTransferred',
-      key: 'ethTransferred',
-      render: (value) => value.toLocaleString([], { minimumFractionDigits: 0, maximumFractionDigits: 2 }),
-      sorter: (a, b) => a - b,
+      title: 'Timestamp',
+      dataIndex: 'blockTimestamp',
+      key: 'timestamp',
+      render: (timestamp) => new Date(timestamp).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-      render: (description) => description,
-      onFilter: (value, record) => record.description.toLowerCase().includes(value),
+      render: (description, record) => record?.link ? <a href={record.link}>{description}</a> : description,
+      onFilter: (value, record) => record?.description.toLowerCase().includes(value.toLowerCase()),
     }
   ]
 
@@ -85,7 +75,7 @@ function CharityTransactions(props) {
       dataSource={charityTransactions}
       columns={columns}
       rowKey={(record) => {
-        return record.hash
+        return record.id
       }}
     />
   );
