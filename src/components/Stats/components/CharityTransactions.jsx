@@ -10,11 +10,13 @@ abiDecoder.addABI(charityWalletAbi)
 function CharityTransactions(props) {
   const { Moralis, chainId } = useMoralis()
 
-  const isToCharityAddress = new Moralis.Query("EthTransactions")
+  const table = chainId === '0x38' ? "BscTransactions" : "EthTransactions"
+
+  const isToCharityAddress = new Moralis.Query(table)
   isToCharityAddress.equalTo("to_address", props?.charityWallet?.toLowerCase())
 
-  const isFromCharityAddress = new Moralis.Query("EthTransactions")
-  isFromCharityAddress.equalTo("from_address", props?.charitywallet?.toLowerCase())
+  const isFromCharityAddress = new Moralis.Query(table)
+  isFromCharityAddress.equalTo("from_address", props?.charityWallet?.toLowerCase())
 
   const charityTransactionQuery = new Moralis.Query.or(isToCharityAddress, isFromCharityAddress)
 
