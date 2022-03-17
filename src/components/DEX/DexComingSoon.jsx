@@ -1,3 +1,4 @@
+import Uniswap from './components/Uniswap'
 import useBreakpoint from 'hooks/useBreakpoint';
 import { Row, Col, Card } from 'antd'
 
@@ -22,11 +23,16 @@ function DexComingSoon(props) {
   return (
     <Card style={styles.card}>
       <div style={styles.header}>
-        <h3>PawSwap</h3>
+        <h3>🐾 PawSwap</h3>
       </div>
-      <Row style={{ textAlign: 'center' }}>
+      <Row>
+        <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
+          <Uniswap style={{ boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)" }} />
+        </Col>
+      </Row>
+      <Row style={{ textAlign: 'center', marginTop: '50px' }}>
         <Col span={24} style={{ textAlign: 'center' }}>
-          PawSwap is coming soon...
+          PawSwap is a DEX by Pawthereum coming soon...
         </Col>
       </Row>
       <Row style={{ textAlign: 'center' }}>
