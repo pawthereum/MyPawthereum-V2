@@ -35,7 +35,7 @@ function CharityTransactions(props) {
         return r
       }))
     })
-  }, [chainId])
+  }, [chainId, props.charityWallet])
 
   if (charityTransactions.length === 0) return ( <Skeleton></Skeleton> )
 
