@@ -2,7 +2,8 @@
 import { useMoralis, useERC20Balances } from "react-moralis";
 import Account from "../../Account/Account";
 import { PAWTH_ADDRESS } from '../../../constants'
-import { Skeleton } from "antd";
+import { Row, Col, Skeleton, Modal, Button } from "antd";
+import { ExpandAltOutlined } from "@ant-design/icons";
 import { ranks } from './ranks';
 import { useContext, useEffect, useState } from "react";
 import AppContext from '../../../AppContext'
@@ -85,11 +86,36 @@ function Ranks() {
     distanceToNextRank = '+' + parseInt(rank.threshold - pawthBalance)
   }
 
+  const rankImg = 'https://cdn.discordapp.com/attachments/891351589162483732/931878322676322304/finfinfin.png'
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
   if (!account) {
     return (
       <div style={styles.card}>
         <div style={styles.header}>
-          <h3>Your Pawther Rank</h3>
+          <Row>
+            <Col>
+              <h3>Your Pawther Rank</h3>
+            </Col>
+            <Col>
+              <Button type="primary" onClick={showModal}>
+                Open Modal
+              </Button>
+              <Modal 
+                title="Basic Modal" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+                <img src={rankImg}/>
+              </Modal>
+            </Col>
+          </Row>
         </div>
         <div style={styles.row}>
           <Account />
@@ -101,7 +127,32 @@ function Ranks() {
   return (
     <div style={styles.card}>
       <div style={styles.header}>
-        <h3>Your Pawther Rank</h3>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <Col>
+            <h3>Your Pawther Rank</h3>
+          </Col>
+          <Col style={{ display: 'flex', justifySelf: 'end' }}>
+            <Button type="link" onClick={showModal}>
+              View All
+            </Button>
+            <Modal 
+              title="Pawther Ranks" 
+              visible={isModalVisible} 
+              onOk={handleOk} 
+              onCancel={handleCancel}
+              footer={[
+                <Button key="close" type="text" onClick={handleOk}>
+                  Close
+                </Button>
+              ]}
+            >
+              <img src={rankImg}/>
+              <a style={{ paddingTop: '10px', display: 'flex', justifyContent: 'end', width: '100%' }} href={rankImg}>
+                View Bigger <ExpandAltOutlined />
+              </a>
+            </Modal>
+          </Col>
+        </Row>
       </div>
       <Skeleton loading={!bscAssets || !ethAssets}>
         <div style={styles.row}>
