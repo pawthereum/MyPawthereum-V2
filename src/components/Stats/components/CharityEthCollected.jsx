@@ -26,8 +26,6 @@ function CharityEthCollected(props) {
     query.greaterThan("block_timestamp", oneDayAgo)
   );
 
-  console.log('data', data)
-  
   useEffect(() => {
     if (!data) return
     setWethCollected(data.reduce((p, c) => {
