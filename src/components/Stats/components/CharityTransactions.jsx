@@ -33,7 +33,7 @@ function CharityTransactions(props) {
         r.link = r.attributes?.link || false
         r.blockTimestamp = r.attributes?.block_timestamp || null
         return r
-      }))
+      }).sort((a, b) => a.blockTimestamp - b.blockTimestamp ? 1 : -1))
     })
   }, [chainId, props.charityWallet])
 
