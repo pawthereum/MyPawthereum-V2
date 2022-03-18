@@ -25,6 +25,8 @@ function CharityEthCollected(props) {
   const { data, error, isLoading } = useMoralisQuery(table, query =>
     query.greaterThan("block_timestamp", oneDayAgo)
   );
+
+  console.log('data', data)
   
   useEffect(() => {
     if (!data) return

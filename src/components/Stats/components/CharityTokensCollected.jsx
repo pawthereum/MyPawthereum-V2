@@ -1,12 +1,10 @@
 
-import { useMoralis, useTokenPrice } from "react-moralis";
-import { PAWTH_ADDRESS, DECIMALS } from '../../../constants'
+import { useTokenPrice, useMoralisQuery } from "react-moralis";
+import { PAWTH_ADDRESS } from '../../../constants'
 import { useEffect, useState } from "react";
-import { Row, Col, Statistic } from "antd";
+import { Alert, Row, Col, Statistic, Skeleton } from "antd";
 
 function CharityTokensCollected(props) {
-  const { Moralis } = useMoralis()
-
   const [tokensCollected, setTokensCollected] = useState(0)
   const [usdValueCollected, setUsdValueCollected] = useState(0)
 
@@ -16,6 +14,23 @@ function CharityTokensCollected(props) {
   })
 
   const price = priceData ? priceData.usdPrice : 0
+
+  const oneDayAgo = new Date(new Date().getTime() - (24 * 60 * 60 * 1000)) // this time 24h ago 
+  const table = props.chainId === '0x38' || props.chainid === '0x64' ? 'BscTokenTransfers' : 'EthTokenTransfers'
+  const { data, error, isLoading } = useMoralisQuery(table, query =>
+    query
+      .greaterThan("block_timestamp", oneDayAgo)
+      .equalTo("token_address", PAWTH_ADDRESS[props.chainId] ? PAWTH_ADDRESS[props.chainId].toLowerCase() : '')
+      .equalTo("to_address", props.charityWallet ? props.charityWallet.toLowerCase() : '')
+  );
+
+  useEffect(() => {
+    if (!data) return
+    setTokensCollected(data.reduce((p, c) => {
+      return p + parseFloat(c.attributes.decimal.value.$numberDecimal)
+    }, 0))
+  }, [data])
+
 
   function getChainNameById (chainId) {
     switch (chainId) {
@@ -32,23 +47,14 @@ function CharityTokensCollected(props) {
     setUsdValueCollected(tokensCollected * price)
   }, [tokensCollected, price])
 
-  useEffect(() => {
-    makeTokenTransactionsReq()
+  if (isLoading) return (<Skeleton></Skeleton>)
+  if (error) return (
+    <Alert
+      message="There was a problem fetching the Charity Wallet data" 
+      type="error"
+    ></Alert>
+  )
 
-    async function makeTokenTransactionsReq() {
-      const options = { 
-        chain: props.chainId, 
-        address: props.charityWallet,
-        to_date: new Date().getTime(),
-        from_date: new Date(new Date().getTime() - (24 * 60 * 60 * 1000)) // this time 24h ago
-      };
-      const transfers = await Moralis.Web3API.account.getTokenTransfers(options)
-      if (!transfers || !transfers.result) return []
-      const transfersToCharity = transfers.result.filter(t => t.to_address === props.charityWallet.toLowerCase())
-      const tokenAmount = transfersToCharity.map(t => Moralis.Units.FromWei(t.value, DECIMALS)).reduce((prev, current) => prev + current, 0)
-      setTokensCollected(tokenAmount)
-    }
-  }, [props])
   return (
     <Row gutter={16}>
       <Col span={12} style={{ textAlign: 'center' }}>
