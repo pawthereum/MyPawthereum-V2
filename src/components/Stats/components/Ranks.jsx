@@ -102,17 +102,29 @@ function Ranks() {
     return (
       <div style={styles.card}>
         <div style={styles.header}>
-          <Row>
+          <Row style={{ justifyContent: 'space-between' }}>
             <Col>
               <h3>Your Pawther Rank</h3>
             </Col>
-            <Col>
-              <Button type="primary" onClick={showModal}>
-                Open Modal
+            <Col style={{ display: 'flex', justifySelf: 'end' }}>
+              <Button type="link" onClick={showModal}>
+                View All
               </Button>
               <Modal 
-                title="Basic Modal" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+                title="Pawther Ranks" 
+                visible={isModalVisible} 
+                onOk={handleOk} 
+                onCancel={handleCancel}
+                footer={[
+                  <Button key="close" type="text" onClick={handleOk}>
+                    Close
+                  </Button>
+                ]}
+              >
                 <img src={rankImg}/>
+                <a style={{ paddingTop: '10px', display: 'flex', justifyContent: 'end', width: '100%' }} href={rankImg}>
+                  View Bigger <ExpandAltOutlined />
+                </a>
               </Modal>
             </Col>
           </Row>
