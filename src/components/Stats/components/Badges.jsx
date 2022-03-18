@@ -40,6 +40,7 @@ import slothConservationFoundation from '../../../assets/images/badges/slothCons
 import northShoreAnimalLeague from '../../../assets/images/badges/northShoreAnimalLeague.png'
 import bridge from '../../../assets/images/badges/bridge.png' 
 import perrysPlace from '../../../assets/images/badges/heavenOnEarth.png'
+import safemoonswap from '../../../assets/images/badges/safemoonswap.png'
 
 import {
   BRIDGE_TESTERS,
@@ -120,6 +121,7 @@ function Badges(props) {
   const [isShibaLpProvider, setIsShibaLpProvider] = useState(false)
   const [isUniLpProvider, setIsUniLpProvider] = useState(false)
   const [isPerrysPlaceVisitor, setIsPerrysPlaceVisitor] = useState(false)
+  const [isSafemoonSwapVisitor, setIsSafemoonSwapVisitor] = useState(false)
 
   const badgeEvents = [
     { name: '12 Days of Giving' , start: 1639458000, end: 1640451599, setState: setIs12DaysVisitor },
@@ -136,6 +138,7 @@ function Badges(props) {
     { name: 'Sloth Conservation Foundation', start: 1640356200, end: 1640442600, setState: setIsSlothFoundationVisitor },
     { name: 'North Shore Animal League', start: 1640442600, end: 1640529000, setState: setIsNorthShoreAnimalLeagueVisitor },
     { name: 'Perrys Place', start: 1642377600, end: 1642500000, setState: setIsPerrysPlaceVisitor },
+    { name: 'Safemoonswap Launch', start: 1647489600, end: 1647576000, setState: setIsSafemoonSwapVisitor },
   ]
 
   useEffect(() => {
@@ -432,9 +435,15 @@ function Badges(props) {
     },
     {
       title: "Perry's Place",
-      description: 'Visited on Donation Day: 17-Jan-2021',
+      description: 'Visited on Donation Day: 17-Jan-2022',
       img: perrysPlace,
       userOwnsBadge: isPerrysPlaceVisitor
+    },
+    {
+      title: "Safemoon Swap",
+      description: 'Visited on Launch Day: 17-Mar-2022',
+      img: safemoonswap,
+      userOwnsBadge: isSafemoonSwapVisitor
     }
   ]
 
