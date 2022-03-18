@@ -14,8 +14,7 @@ const styles = {
     width: "100%",
   },
   header: {
-    padding: "10px",
-    paddingBottom: "0px"
+    padding: "10px"
   },
   body: {
     textAlign: "center",
@@ -47,6 +46,11 @@ function CharityStats(props) {
     '24h': new Date(new Date().getTime() - (24 * 60 * 60 * 1000)), // this time 24h ago
     '1w': new Date(new Date().getTime() - (7 * 24 * 60 * 60 * 1000)), // this time 1w ago
     '1m': new Date(new Date().getTime() - (30 * 24 * 60 * 60 * 1000)) // this time 1m ago
+  }
+  const timeFrameTitle = {
+    '24h': '24h',
+    '1w': 'Week',
+    '1m': 'Month'
   }
 
   const WETH_ADDRESS = !chainId ? null : networkConfigs[chainId].wrapped
@@ -83,7 +87,7 @@ function CharityStats(props) {
               chainId={props.chainId} 
               charityWallet={props.charityWallet} 
               timeFrame={timeFrames[timeFrame]}
-              timeFrameTitle={timeFrame}
+              timeFrameTitle={timeFrameTitle[timeFrame]}
               wethPrice={wethPrice}
             />
           :
@@ -91,7 +95,7 @@ function CharityStats(props) {
               chainId={props.chainId} 
               charityWallet={props.charityWallet} 
               timeFrame={timeFrames[timeFrame]}
-              timeFrameTitle={timeFrame}
+              timeFrameTitle={timeFrameTitle[timeFrame]}
               tokenPrice={tokenPrice}
             />
         }

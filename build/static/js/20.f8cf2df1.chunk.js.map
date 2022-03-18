@@ -1,0 +1,1 @@
+{"version":3,"sources":["../node_modules/@uniswap/widgets/dist/locales/pseudo.js"],"names":["pseudo","messages"],"mappings":"wHAAA,+CAEA,IAAIA,EAAO,CAACC,SAAS","file":"static/js/20.f8cf2df1.chunk.js","sourcesContent":["/*eslint-disable*/\n\nvar pseudo={messages:{}};\n\nexport { pseudo as default };\n"],"sourceRoot":""}
