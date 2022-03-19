@@ -1,6 +1,6 @@
 
 import { useMoralis, useTokenPrice } from "react-moralis";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Divider, Row, Col, Radio  } from "antd";
 import CharityTransactions from '../components/CharityTransactions';
 import CharityTokensCollected from '../components/CharityTokensCollected';
@@ -53,18 +53,26 @@ function CharityStats(props) {
     '1m': 'Month'
   }
 
+  const [wethPrice, setWethPrice] = useState(0)
   const WETH_ADDRESS = !chainId ? null : networkConfigs[chainId].wrapped
   const { data: wethData } = useTokenPrice({
     address: WETH_ADDRESS,
     chain: getChainNameById(chainId || '0x38')
   })
-  const wethPrice = wethData ? wethData.usdPrice : 0
+  useEffect(() => {
+    if (!wethData || !wethData.usdPrice) return
+    setWethPrice(wethData.usdPrice)
+  }, [wethData])
 
+  const [tokenPrice, setTokenPrice] = useState(0)
   const { data: tokenData } = useTokenPrice({
     address: PAWTH_ADDRESS[chainId] || PAWTH_ADDRESS['0x1'],
     chain: getChainNameById(chainId || '0x1')
   })
-  const tokenPrice = tokenData ? tokenData.usdPrice : 0
+  useEffect(() => {
+    if (!tokenData || !tokenData.usdPrice) return
+    setTokenPrice(tokenData.usdPrice)
+  }, [tokenData])
 
   return (
     <div style={styles.card}>

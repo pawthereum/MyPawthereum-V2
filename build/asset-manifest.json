@@ -67,8 +67,8 @@
     "static/js/32.1b663096.chunk.js": "/static/js/32.1b663096.chunk.js",
     "static/js/32.1b663096.chunk.js.map": "/static/js/32.1b663096.chunk.js.map",
     "main.css": "/static/css/main.02e08821.chunk.css",
-    "main.js": "/static/js/main.47a7a4fa.chunk.js",
-    "main.js.map": "/static/js/main.47a7a4fa.chunk.js.map",
+    "main.js": "/static/js/main.37e4a623.chunk.js",
+    "main.js.map": "/static/js/main.37e4a623.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.a6dc8261.js",
     "runtime-main.js.map": "/static/js/runtime-main.a6dc8261.js.map",
     "static/css/35.4fedf42e.chunk.css": "/static/css/35.4fedf42e.chunk.css",
@@ -122,6 +122,7 @@
     "static/media/ragdoll.b05ebcd5.png": "/static/media/ragdoll.b05ebcd5.png",
     "static/media/sabertooth.745287a1.png": "/static/media/sabertooth.745287a1.png",
     "static/media/sadCat.d4ebaf15.png": "/static/media/sadCat.d4ebaf15.png",
+    "static/media/safemoonswap.342a972a.png": "/static/media/safemoonswap.342a972a.png",
     "static/media/sandCat.eb0118d2.png": "/static/media/sandCat.eb0118d2.png",
     "static/media/savasSafeHaven.660825c6.png": "/static/media/savasSafeHaven.660825c6.png",
     "static/media/scottishFold.2c22cea6.png": "/static/media/scottishFold.2c22cea6.png",
@@ -145,6 +146,6 @@
     "static/css/35.4fedf42e.chunk.css",
     "static/js/35.99b0098a.chunk.js",
     "static/css/main.02e08821.chunk.css",
-    "static/js/main.47a7a4fa.chunk.js"
+    "static/js/main.37e4a623.chunk.js"
   ]
 }
