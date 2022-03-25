@@ -67,13 +67,13 @@
     "static/js/32.1e5eeb05.chunk.js": "/static/js/32.1e5eeb05.chunk.js",
     "static/js/32.1e5eeb05.chunk.js.map": "/static/js/32.1e5eeb05.chunk.js.map",
     "main.css": "/static/css/main.02e08821.chunk.css",
-    "main.js": "/static/js/main.39748568.chunk.js",
-    "main.js.map": "/static/js/main.39748568.chunk.js.map",
+    "main.js": "/static/js/main.4c9440bb.chunk.js",
+    "main.js.map": "/static/js/main.4c9440bb.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.d98fc500.js",
     "runtime-main.js.map": "/static/js/runtime-main.d98fc500.js.map",
     "static/css/35.4fedf42e.chunk.css": "/static/css/35.4fedf42e.chunk.css",
-    "static/js/35.89d27cac.chunk.js": "/static/js/35.89d27cac.chunk.js",
-    "static/js/35.89d27cac.chunk.js.map": "/static/js/35.89d27cac.chunk.js.map",
+    "static/js/35.a354565a.chunk.js": "/static/js/35.a354565a.chunk.js",
+    "static/js/35.a354565a.chunk.js.map": "/static/js/35.a354565a.chunk.js.map",
     "static/js/36.bcbd9490.chunk.js": "/static/js/36.bcbd9490.chunk.js",
     "static/js/36.bcbd9490.chunk.js.map": "/static/js/36.bcbd9490.chunk.js.map",
     "static/js/37.6ea2787b.chunk.js": "/static/js/37.6ea2787b.chunk.js",
@@ -81,7 +81,7 @@
     "index.html": "/index.html",
     "static/css/35.4fedf42e.chunk.css.map": "/static/css/35.4fedf42e.chunk.css.map",
     "static/css/main.02e08821.chunk.css.map": "/static/css/main.02e08821.chunk.css.map",
-    "static/js/35.89d27cac.chunk.js.LICENSE.txt": "/static/js/35.89d27cac.chunk.js.LICENSE.txt",
+    "static/js/35.a354565a.chunk.js.LICENSE.txt": "/static/js/35.a354565a.chunk.js.LICENSE.txt",
     "static/js/36.bcbd9490.chunk.js.LICENSE.txt": "/static/js/36.bcbd9490.chunk.js.LICENSE.txt",
     "static/media/Coin98.1e4e4073.png": "/static/media/Coin98.1e4e4073.png",
     "static/media/MathWallet.19212234.svg": "/static/media/MathWallet.19212234.svg",
@@ -99,6 +99,7 @@
     "static/media/cloudedLeopard.e4da9401.png": "/static/media/cloudedLeopard.e4da9401.png",
     "static/media/cornishRex.0c111529.png": "/static/media/cornishRex.0c111529.png",
     "static/media/desertLynx.4b5a3b5b.png": "/static/media/desertLynx.4b5a3b5b.png",
+    "static/media/dog.8973ab87.png": "/static/media/dog.8973ab87.png",
     "static/media/dwarfCat.a147ca03.png": "/static/media/dwarfCat.a147ca03.png",
     "static/media/edinburgh.7bbfed25.png": "/static/media/edinburgh.7bbfed25.png",
     "static/media/fist.35e1cefb.png": "/static/media/fist.35e1cefb.png",
@@ -144,8 +145,8 @@
   "entrypoints": [
     "static/js/runtime-main.d98fc500.js",
     "static/css/35.4fedf42e.chunk.css",
-    "static/js/35.89d27cac.chunk.js",
+    "static/js/35.a354565a.chunk.js",
     "static/css/main.02e08821.chunk.css",
-    "static/js/main.39748568.chunk.js"
+    "static/js/main.4c9440bb.chunk.js"
   ]
 }
