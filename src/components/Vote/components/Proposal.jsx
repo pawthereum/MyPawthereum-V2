@@ -186,7 +186,7 @@ function Proposal(props) {
       minute: '2-digit',
       timeZoneName: 'short',
     }
-    const votingEnded = now.getTime() >= proposal.end
+    const votingEnded = now.getTime() >= proposal.end * 1000
     if (votingEnded) {
       setDeadlineText(`Voting ended ${endDate.toLocaleString([], timeOpts)}`)
     } else {
