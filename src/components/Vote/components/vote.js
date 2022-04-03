@@ -180,7 +180,6 @@ export async function getVoterStatus(account, space) {
   })
     .then((res) => res.json())
     .then((result) => {
-      console.log('my results', result)
       const votes = result.data ? result.data.votes : []
       const voters = Object.entries(votes).map(v => v[1].voter)
       return voters.includes(account)

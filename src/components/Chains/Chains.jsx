@@ -102,8 +102,6 @@ function Chains() {
 
   const screens = useBreakpoint()
 
-  console.log("chain", chain);
-
   useEffect(() => {
     if (!chainId) return null;
     const newSelected = menuItems.find((item) => item.key === chainId);

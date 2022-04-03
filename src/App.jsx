@@ -94,6 +94,7 @@ const App = ({ isServerInfo }) => {
 
   useEffect(() => {
     if (!account) return
+    console.log(' I AM ABOUT TO DO DUMB SHIT ')
     logVisit()
     async function logVisit() { 
       const web3Provider = await Moralis.enableWeb3();
@@ -135,14 +136,13 @@ const App = ({ isServerInfo }) => {
       const coinGeckoData = await CoinGeckoClient.coins.fetch(COINGECKO_ID, {})
       const tokenData = coinGeckoData.data
       const tokenLogo = tokenData.image.large
-      console.log('tokenDat', tokenData)
-      console.log('tokenLogo', tokenLogo)
       return setLogo(tokenLogo)
     }
   }, [])
 
   useEffect(() => {
     const connectorId = window.localStorage.getItem("connectorId");
+    console.log({ isAuthenticated, isWeb3Enabled, isWeb3EnableLoading, connectorId, account })
     if (isAuthenticated && !isWeb3Enabled && !isWeb3EnableLoading) enableWeb3({ provider: connectorId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isWeb3Enabled]);
