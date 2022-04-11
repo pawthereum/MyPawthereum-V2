@@ -99,6 +99,8 @@ function Proposal(props) {
   const [disabledButtons, setDisabledButtons] = useState({})
   const [loadingButtons, setLoadingButtons] = useState({}) 
 
+  const unsupportedProposalTypes = ['weighted']
+
   const { data: assets } = useERC20Balances(props);
   const pawthAddress = PAWTH_ADDRESS[chainId]
   const pawth = assets ? assets.find(a => a.token_address === pawthAddress) : undefined
@@ -276,6 +278,7 @@ function Proposal(props) {
 
   async function fetchProposal () {
     const proposal = await getProposal(id)
+    console.log('proposal', proposal)
     setProposal(proposal)
   }
 
@@ -356,6 +359,20 @@ function Proposal(props) {
               <small>{deadlineText}</small>
             </Skeleton>
           </div>
+          {
+            unsupportedProposalTypes.includes(proposal?.type) ?
+              <Alert
+                message={`This is a ${proposal.type} vote - please use Snapshot.org to cast your vote`}
+                type="warning"
+                style={{ marginTop: '10px' }}
+                action={
+                  <Button size="small" type="primary" onClick={() => window.location = proposal.link}>
+                    Go to Snapshot.org
+                  </Button>
+                }
+              />
+            : ''
+          }
           <div style={{...styles.row, marginTop: '20px' }}>
             <h4>Results</h4>
           </div>
@@ -435,19 +452,23 @@ function Proposal(props) {
           <div style={{ marginTop: '20px' }}>
             <h4>Discussion</h4>
             {
-              disqusConfig.identifier !== '' ? (
-                <div>
-                  <Alert
-                    message="Beware of scammers. The Pawthereum team will never ask you for your seedphrase or any other credentials!"
-                    type="warning"
-                    closable
-                  />
-                  <DiscussionEmbed
-                    shortname={DISQUS_ID}
-                    config={disqusConfig}
-                  />
-                </div>
-            ) : ''}
+              proposal?.discussion ? 
+                  (<a href={proposal.discussion} target="_blank">Link to Discussion</a>)
+                :
+                  disqusConfig.identifier !== '' ? (
+                    <div>
+                      <Alert
+                        message="Beware of scammers. The Pawthereum team will never ask you for your seedphrase or any other credentials!"
+                        type="warning"
+                        closable
+                      />
+                      <DiscussionEmbed
+                        shortname={DISQUS_ID}
+                        config={disqusConfig}
+                      />
+                    </div>
+                  ) : ''
+              }
           </div>
         </Card>
       </div>

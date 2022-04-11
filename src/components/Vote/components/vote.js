@@ -66,6 +66,8 @@ export async function getProposal (id) {
             plugins
             network
             link
+            discussion
+            type
             strategies {
               name
               params
