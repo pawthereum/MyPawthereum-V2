@@ -278,7 +278,6 @@ function Proposal(props) {
 
   async function fetchProposal () {
     const proposal = await getProposal(id)
-    console.log('proposal', proposal)
     setProposal(proposal)
   }
 

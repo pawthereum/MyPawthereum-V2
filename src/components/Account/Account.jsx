@@ -47,7 +47,7 @@ const styles = {
 };
 
 function Account() {
-  const { authenticate, isAuthenticated, account, chainId, logout, enableWeb3 } = useMoralis();
+  const { authenticate, isAuthenticated, account, chainId, logout } = useMoralis();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isAuthModalVisible, setIsAuthModalVisible] = useState(false);
   const screens = useBreakpoint()
@@ -90,10 +90,6 @@ function Account() {
                       provider: connectorId,
                       signingMessage: 'My Pawthereum' 
                     });
-                    console.log('enabling web3')
-                    await enableWeb3({
-                      provider: connectorId
-                    })
                     window.localStorage.setItem("connectorId", connectorId);
                     setIsAuthModalVisible(false);
                   } catch (e) {
