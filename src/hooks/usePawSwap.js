@@ -289,7 +289,6 @@ const usePawSwap = (chain) => {
   async function getTaxStructure (params) {
     if (!PAWSWAP[params.chain].address) return []
     const { tokenAddress, side } = params
-    console.log('tokenAddress', tokenAddress)
 
     const testnetBnb = networkConfigs.bsctest.wrapped
     if (tokenAddress === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' ||
@@ -301,10 +300,6 @@ const usePawSwap = (chain) => {
       PAWSWAP[params.chain].abi, 
       PAWSWAP[params.chain].address
     )
-
-    console.log(PAWSWAP[params.chain].address)
-
-    console.log('tokenAddr', tokenAddress)
 
     const taxStructureContractAddress = await pawswap.methods.tokenTaxContracts(
       tokenAddress

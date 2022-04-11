@@ -20,7 +20,6 @@ function CharityEthCollected(props) {
 
   const currencySymbol = !props.chainId ? '...' : networkConfigs[props.chainId].currencySymbol
 
-  console.log('time frame is', props.timeFrame)
   const table = props.chainId === '0x38' || props.chainid === '0x61' ? 'SwapAndLiquifyBsc' : 'SwapAndLiquifyEth'
   const { data, error, isLoading } = useMoralisQuery(table, query =>
     query.greaterThan("block_timestamp", props.timeFrame),
@@ -28,7 +27,6 @@ function CharityEthCollected(props) {
   );
 
   useEffect(() => {
-    console.log('the data is', data)
     if (!data) return
     setWethCollected(data.reduce((p, c) => {
       return p + Moralis.Units.FromWei(c.attributes.ethForCharity)

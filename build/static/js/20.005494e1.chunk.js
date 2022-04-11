@@ -1,2 +1,0 @@
-(this["webpackJsonpmy-pawthereum"]=this["webpackJsonpmy-pawthereum"]||[]).push([[20],{1066:function(e,s,t){"use strict";t.r(s),t.d(s,"default",(function(){return u}));var u={messages:{}}}}]);
-//# sourceMappingURL=20.005494e1.chunk.js.map

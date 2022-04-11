@@ -269,7 +269,6 @@ function DEX({ chain, customTokens = {} }) {
   }, [tokens, fromToken]);
 
   useEffect(() => {
-    console.log('chain---------', chain)
     async function getTaxes() {
       if (toToken && !IsNative(toToken) && !IsNativeTest(toToken.address)) {
         const t = await getTaxStructure({ tokenAddress: toToken.address, chain, side: 'buy' })

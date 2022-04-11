@@ -135,8 +135,6 @@ const App = ({ isServerInfo }) => {
       const coinGeckoData = await CoinGeckoClient.coins.fetch(COINGECKO_ID, {})
       const tokenData = coinGeckoData.data
       const tokenLogo = tokenData.image.large
-      console.log('tokenDat', tokenData)
-      console.log('tokenLogo', tokenLogo)
       return setLogo(tokenLogo)
     }
   }, [])
