@@ -42,6 +42,9 @@ function MenuItems() {
       <Menu.Item key="/pawswap">
         <NavLink to="/pawswap">🐾 PawSwap</NavLink>
       </Menu.Item>
+      <Menu.Item key="/rovingdogs">
+        <NavLink to="/rovingdogs">🐕 Roving Dogs</NavLink>
+      </Menu.Item>
       {/* <Menu.Item key="onramp">
         <NavLink to="/onramp">💵 Fiat</NavLink>
       </Menu.Item> */}

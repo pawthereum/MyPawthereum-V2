@@ -11,6 +11,7 @@ import { DiscussionEmbed } from 'disqus-react'
 import { hexlify } from '@ethersproject/bytes'
 import fetch from 'node-fetch'
 import useBreakpoint from "hooks/useBreakpoint";
+import Web3 from "web3"; 
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -123,7 +124,7 @@ function Proposal(props) {
     setDisabledButtons(disabledButtonUpdate)
 
     try {
-      const web3Provider = await Moralis.enableWeb3();
+      const web3Provider = new Web3(Moralis.provider)
       const msg = {
         version: '0.1.3',
         timestamp: (Date.now() / 1e3).toFixed(),

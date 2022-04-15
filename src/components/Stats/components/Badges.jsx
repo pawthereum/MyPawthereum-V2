@@ -146,8 +146,8 @@ function Badges(props) {
 
   useEffect(() => {
     async function getVisits() {
-      const web3Provider = await Moralis.enableWeb3();
-      const checkSummedAddress = web3Provider.utils.toChecksumAddress(account)
+      const web3Provider = Moralis.web3Library;
+      const checkSummedAddress = web3Provider.utils.getAddress(account)
       const db = getFirestore()
       const docRef = doc(db, 'pawthereum', 'wallets', `${checkSummedAddress}`, 'visits')
       const docSnap = await getDoc(docRef)
@@ -183,12 +183,12 @@ function Badges(props) {
       }
     }
     async function analyzeNativeTransactions() {
-      const web3Provider = await Moralis.enableWeb3();
-      const pawth = new web3Provider.eth.Contract(
+      const web3Provider = Moralis.web3Library;
+      const pawth = new web3Provider.Contract(
         JSON.parse(PAWTH_ABI[chainId]),
         PAWTH_ADDRESS[chainId]
       )
-      const marketingWallet = await pawth.methods.marketingWallet().call()
+      const marketingWallet = await pawth.methods.marketingWallet()
       const toMarketingWallet = nativeTransactions.find(t => t.to_address === marketingWallet)
       if (toMarketingWallet) {
         setIsMarketingDonor(true)
@@ -220,7 +220,7 @@ function Badges(props) {
     }
     if (account) {
       getVisits()
-      analyzeNativeTransactions()
+      // analyzeNativeTransactions()
       checkIfVoter()
 
       if (ERC20Transfers) {

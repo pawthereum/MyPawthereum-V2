@@ -6,7 +6,7 @@ import { SHELTER_LIST } from '../../../constants/shelterList'
 import { PAWTH_ABI } from '../../../constants/abis/pawth'
 
 function ShelterModal({ open, onClose, setShelter, chain }) {
-  const { Moralis } = useMoralis();
+  const { Moralis, web3 } = useMoralis();
   const [fetchingPawthListItem, setFetchingPawthListItem] = useState(false)
   const [pawthListItem, setPawthListItem] = useState(null)
   const [query, setQuery] = useState(null)
@@ -45,13 +45,14 @@ function ShelterModal({ open, onClose, setShelter, chain }) {
 
   async function addPawthToList () {
     setFetchingPawthListItem(true)
-    const web3Provider = await Moralis.enableWeb3();
-    const pawth = new web3Provider.eth.Contract(
+    const web3Provider = Moralis.web3Library;
+    const pawth = new web3Provider.Contract(
+      PAWTH_ADDRESS[chain],
       JSON.parse(PAWTH_ABI[chain]),
-      PAWTH_ADDRESS[chain]
+      web3.getSigner()
     )
 
-    const charityWallet = await pawth.methods.charityWallet().call()
+    const charityWallet = await pawth.charityWallet()
     const pawthItem = {
       address: charityWallet,
       logoURI: 'https://pawthereum.com/shared-files/2015/?logo-notext-trsp-1.png',
