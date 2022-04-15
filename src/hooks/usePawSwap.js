@@ -29,7 +29,7 @@ const allowanceSpenderAddress = (spender, chain) => {
 }
 
 const usePawSwap = (chain) => {
-  const { Moralis, account } = useMoralis();
+  const { Moralis, account, web3 } = useMoralis();
   const [tokenList, setTokenlist] = useState();
 
   useEffect(() => {
@@ -60,17 +60,18 @@ const usePawSwap = (chain) => {
       if (IsNativeTest(token.address)) return true
     }
     
-    const web3Provider = await Moralis.enableWeb3();
+    const web3Provider = Moralis.web3Library;
 
-    const tokenContract = new web3Provider.eth.Contract(
+    const tokenContract = new web3Provider.Contract(
+      token.address,
       ERC20ABI, 
-      token.address
+      web3.getSigner()
     )
 
-    const tokenAllowance = await tokenContract.methods.allowance(
+    const tokenAllowance = await tokenContract.allowance(
       account,
       allowanceSpenderAddress(spender, chain),
-    ).call()
+    )
 
     if (parseInt(tokenAllowance) < parseInt(amount)) {
       return false
@@ -78,14 +79,15 @@ const usePawSwap = (chain) => {
   }
 
   async function updateAllowance (amount, token, spender) {
-    const web3Provider = await Moralis.enableWeb3();
+    const web3Provider = Moralis.web3Library;
 
-    const tokenContract = new web3Provider.eth.Contract(
+    const tokenContract = new web3Provider.Contract(
+      token.address,
       ERC20ABI, 
-      token.address
+      web3.getSigner()
     )
 
-    await tokenContract.methods.approve(
+    await tokenContract.approve(
       allowanceSpenderAddress(spender, chain),
       Moralis.Units.Token(amount, token.decimals).toString()
     ).send({ from: account })
@@ -96,17 +98,18 @@ const usePawSwap = (chain) => {
     console.log('params', params)
     const amount = Moralis.Units.Token(fromAmount, fromToken.decimals).toString();
     if (fromToken.address.toLowerCase() === PAWTH_ADDRESS[chain].toLowerCase()) {
-      const web3Provider = await Moralis.enableWeb3();
+      const web3Provider = Moralis.web3Library;
 
-      const pawthereum = new web3Provider.eth.Contract(
+      const pawthereum = new web3Provider.Contract(
+        fromToken.address,
         ERC20ABI, 
-        fromToken.address
+        web3.getSigner()
       )
 
-      const pawthereumAllowance = await pawthereum.methods.allowance(
+      const pawthereumAllowance = await pawthereum.allowance(
         account,
         PAWSWAP[chain].address
-      ).call()
+      )
 
       if (parseInt(pawthereumAllowance) < parseInt(amount)) {
         await pawthereum.methods.approve(
@@ -139,11 +142,12 @@ const usePawSwap = (chain) => {
   }
 
   async function doSwap(params) {
-    const web3Provider = await Moralis.enableWeb3();
+    const web3Provider = Moralis.web3Library;
 
-    const pawswap = new web3Provider.eth.Contract(
+    const pawswap = new web3Provider.Contract(
+      PAWSWAP[params.chain].address,
       PAWSWAP[params.chain].abi, 
-      PAWSWAP[params.chain].address
+      web3.getSigner()
     )
 
     const customTaxWallet = params.shelter ? params.shelter.address : account
@@ -179,17 +183,18 @@ const usePawSwap = (chain) => {
   async function getQuote (params) {
     const { fromToken, fromAmount, toToken, chain  } = params;
 
-    const web3Provider = await Moralis.enableWeb3();
+    const web3Provider = Moralis.web3Library;
 
-    const router = new web3Provider.eth.Contract(
+    const router = new web3Provider.Contract(
+      PAWSWAP_ROUTER[params.chain].address,
       PAWSWAP_ROUTER[params.chain].abi, 
-      PAWSWAP_ROUTER[params.chain].address
+      web3.getSigner()
     )
 
-    const amountOut = await router.methods.getAmountsOut(
+    const amountOut = await router.getAmountsOut(
       Moralis.Units.Token(fromAmount, fromToken.decimals).toString(),
       [fromToken.address, toToken.address]
-    ).call()
+    )
 
     console.log('amount out', amountOut)
 
@@ -218,17 +223,18 @@ const usePawSwap = (chain) => {
     console.log('params', params)
     const amount = Moralis.Units.Token(fromAmount, fromToken.decimals).toString();
     if (fromToken.address.toLowerCase() === PAWTH_ADDRESS[chain].toLowerCase()) {
-      const web3Provider = await Moralis.enableWeb3();
+      const web3Provider = Moralis.web3Library;
 
-      const pawthereum = new web3Provider.eth.Contract(
+      const pawthereum = new web3Provider.Contract(
+        fromToken.address,
         ERC20ABI, 
-        fromToken.address
+        web3.getSigner()
       )
 
-      const pawthereumAllowance = await pawthereum.methods.allowance(
+      const pawthereumAllowance = await pawthereum.allowance(
         account,
         PAWSWAP_ROUTER[chain].address
-      ).call()
+      )
 
       if (parseInt(pawthereumAllowance) < parseInt(amount)) {
         await pawthereum.methods.approve(
@@ -262,11 +268,12 @@ const usePawSwap = (chain) => {
   }
 
   async function doAddLiquidity(params) {
-    const web3Provider = await Moralis.enableWeb3();
+    const web3Provider = Moralis.web3Library;
 
-    const router = new web3Provider.eth.Contract(
+    const router = new web3Provider.Contract(
+      PAWSWAP_ROUTER[params.chain].address,
       PAWSWAP_ROUTER[params.chain].abi, 
-      PAWSWAP_ROUTER[params.chain].address
+      web3.getSigner()
     )
     console.log('adoing with router', router)
     console.log(params)
@@ -294,21 +301,19 @@ const usePawSwap = (chain) => {
     if (tokenAddress === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' ||
         tokenAddress === testnetBnb) return null
     
-    const web3Provider = await Moralis.enableWeb3();
+    const web3Provider = Moralis.web3Library
 
-    const pawswap = new web3Provider.eth.Contract(
+    const pawswap = new web3Provider.Contract(
+      PAWSWAP[params.chain].address,
       PAWSWAP[params.chain].abi, 
-      PAWSWAP[params.chain].address
+      web3.getSigner()
     )
 
-    const taxStructureContractAddress = await pawswap.methods.tokenTaxContracts(
+    const taxStructureContractAddress = await pawswap.tokenTaxContracts(
       tokenAddress
-    ).call((err, result) => {
-      console.log('err', err)
-      console.log('result', result)
-    })
+    )
 
-    const taxStructureContract = new web3Provider.eth.Contract(
+    const taxStructureContract = new web3Provider.Contract(
       TAX_STRUCTURE_ABI, 
       taxStructureContractAddress
     )

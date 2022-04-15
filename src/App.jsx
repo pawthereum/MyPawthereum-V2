@@ -29,6 +29,7 @@ import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebas
 import AddLiquidity from "components/DEX/components/AddLiquidity";
 import DexComingSoon from "components/DEX/DexComingSoon";
 import PawSend from "components/PawSend/PawSend"
+import RovingDogs from 'components/RovingDogs'
 const CoinGecko = require('coingecko-api')
  
 const { Header, Footer } = Layout;
@@ -93,11 +94,11 @@ const App = ({ isServerInfo }) => {
   const pawthAddress = PAWTH_ADDRESS[chainId]
 
   useEffect(() => {
-    if (!account) return
+    if (!account || !isWeb3Enabled) return
     logVisit()
-    async function logVisit() { 
-      const web3Provider = await Moralis.enableWeb3();
-      const checkSummedAddress = web3Provider.utils.toChecksumAddress(account)
+    async function logVisit() {
+      const web3Provider = Moralis.web3Library;
+      const checkSummedAddress = web3Provider.utils.getAddress(account)
       const db = getFirestore()
       const docRef = doc(db, 'pawthereum', 'wallets', `${checkSummedAddress}`, 'visits')
       const docSnap = await getDoc(docRef)
@@ -115,7 +116,7 @@ const App = ({ isServerInfo }) => {
         })
       }
     }
-  }, [account])
+  }, [account, isWeb3Enabled])
 
   function getChainNameById (chainId) {
     switch (chainId) {
@@ -210,6 +211,9 @@ const App = ({ isServerInfo }) => {
               </Route>
               <Route path="/pawsend">
                 <PawSend />
+              </Route>
+              <Route path="/rovingdogs">
+                <RovingDogs />
               </Route>
               <Route path="/erc20balance">
                 <ERC20Balance />

@@ -35,7 +35,8 @@ function AddressInput(props) {
             });
         };
         if (value.endsWith(".eth")) {
-          processPromise(web3.eth.ens.getAddress(value));
+          console.log('web3', web3)
+          processPromise(web3.resolveName(value));
         } else {
           processPromise(
             resolveDomain({
@@ -51,7 +52,7 @@ function AddressInput(props) {
         setIsDomain(false);
       }
     },
-    [resolveDomain, web3.eth.ens]
+    [resolveDomain, web3.resolveName]
   );
 
   const Cross = () => (

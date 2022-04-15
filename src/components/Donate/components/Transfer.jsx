@@ -6,8 +6,6 @@ import { useMoralis } from "react-moralis";
 import { networkConfigs } from "helpers/networks";
 import isMobile from 'hooks/useBreakpoint'
 const Web3 = require('web3')
-const web3 = new Web3(Web3.givenProvider)
-const eth = web3.eth
 
 const styles = {
   card: {
@@ -47,7 +45,7 @@ const styles = {
 const { Panel } = Collapse;
 
 function Transfer() {
-  const { account, chainId } = useMoralis();
+  const { account, chainId, Moralis } = useMoralis();
   const [message, setMessage] = useState();
   const [tx, setTx] = useState();
   const [amount, setAmount] = useState();
@@ -70,6 +68,8 @@ function Transfer() {
 
   async function transfer() {
     const { amount, message } = tx;
+    const web3 = new Web3(Moralis.provider)
+    const eth = web3.eth
     console.log('web3.utils.toWei(amount,"eth")', web3.utils.toWei(amount,'ether'))
 
     setIsPending(true);

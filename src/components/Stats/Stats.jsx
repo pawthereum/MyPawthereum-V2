@@ -13,23 +13,24 @@ import { useMoralis } from "react-moralis";
 import { Skeleton } from 'antd'
 
 function Stats() {
-  const { Moralis, chainId } = useMoralis();
+  const { Moralis, chainId, web3 } = useMoralis();
   const { isMobile } = useBreakpoint()
   const [charityWallet, setCharityWallet] = useState(null)
 
   useEffect(() => {
     if (!chainId) return
 
-    getCharityWallet()
+    // getCharityWallet()
 
     async function getCharityWallet() {
-      const web3Provider = await Moralis.enableWeb3()
+      const web3Provider = Moralis.web3Library
       const pawthAddress = PAWTH_ADDRESS[chainId]
-      const pawthContract = new web3Provider.eth.Contract(
+      const pawthContract = new web3Provider.Contract(
+        pawthAddress,
         JSON.parse(PAWTH_ABI[chainId]),
-        pawthAddress
+        web3.getSigner()
       )
-      const pawthCharityWallet = await pawthContract.methods.charityWallet().call()
+      const pawthCharityWallet = await pawthContract.charityWallet()
       setCharityWallet(pawthCharityWallet)
     }
 
