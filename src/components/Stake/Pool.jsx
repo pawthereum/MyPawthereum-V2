@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMoralis, useERC20Balances } from 'react-moralis'
-import { Statistic, Divider, Row, Col, Card } from 'antd'
+import { Statistic, Divider, Row, Col, Card, Tag } from 'antd'
 import useStakingPool from 'hooks/useStakingPool'
 import PoolDeposit from './components/PoolDeposit'
 import PoolWithdraw from './components/PoolWithdraw'
@@ -18,15 +18,35 @@ const styles = {
   },
 }
 
+const roundBig = (number) => {
+  if (!number) return 0
+
+  return Math.abs(Number(number)) >= 1.0e+9
+  
+  ? (Math.abs(Number(number)) / 1.0e+9).toPrecision(2) + "B"
+  // Six Zeroes for Millions 
+  : Math.abs(Number(number)) >= 1.0e+6
+
+  ? (Math.abs(Number(number)) / 1.0e+6).toPrecision(2) + "M"
+  // Three Zeroes for Thousands
+  : Math.abs(Number(number)) >= 1.0e+3
+
+  ? (Math.abs(Number(number)) / 1.0e+3).toPrecision(2) + "K"
+
+  : Math.abs(Number(number));
+}
+
 function Pool() {
   const { account, chainId, Moralis, web3 } = useMoralis()
-  const { viewPendingReward, viewAmountStaked } = useStakingPool()
+  const { viewPendingReward, viewAmountStaked, getApy, getTotalStaked } = useStakingPool()
   const { data: assets } = useERC20Balances();
 
   const [pendingRewards, setPendingRewards] = useState(null)
   const [currentBlock, setCurrentBlock] = useState(null)
   const [amountStaked, setAmountStaked] = useState(null)
   const [pawthBalance, setPawthBalance] = useState(null)
+  const [apy, setApy] = useState(null)
+  const [totalStaked, setTotalStaked] = useState(null)
 
   useEffect(() => {
     if (!chainId) return
@@ -51,15 +71,28 @@ function Pool() {
     async function refreshAwards() {
       const requests = await Promise.all([
         viewPendingReward(),
-        viewAmountStaked()
+        viewAmountStaked(),
+        getApy(),
+        getTotalStaked()
       ])
       const refreshedRewards = requests[0]
       const amountStaked = requests[1]
+      const apy = requests[2]
+      const totalStaked = requests[3]
       if (refreshedRewards) {
         setPendingRewards(parseFloat(refreshedRewards).toLocaleString([], {
           maximumFractionDigits: 0,
           minimumFractionDigits: 0
         }))
+      }
+      if (apy) {
+        setApy(apy.toLocaleString([], {
+          maximumFractionDigits: 0,
+          minimumFractionDigits: 0
+        }))
+      }
+      if (totalStaked) {
+        setTotalStaked(roundBig(parseInt(totalStaked)))
       }
       setAmountStaked(amountStaked)
       try {
@@ -79,7 +112,15 @@ function Pool() {
   }, [currentBlock])
 
   return (
-    <Card style={styles.card} title="Staking Pool">
+    <Card 
+      style={styles.card} 
+      title='Staking Pool'
+      extra={
+        <div>
+          <Tag>Total Staked {totalStaked}</Tag>
+          <Tag>APY {apy}%</Tag>
+        </div>
+      }>
       <Row>
         <Col span={12} style={{ display: 'flex', justifyContent: 'center' }}>
           <Statistic 

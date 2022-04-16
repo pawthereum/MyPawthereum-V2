@@ -42,9 +42,9 @@ function MenuItems() {
       <Menu.Item key="/pawswap">
         <NavLink to="/pawswap">🐾 PawSwap</NavLink>
       </Menu.Item>
-      <Menu.Item key="/staking/pools">
+      {/* <Menu.Item key="/staking/pools">
         <NavLink to="/staking/pools">🥩 Staking</NavLink>
-      </Menu.Item>
+      </Menu.Item> */}
       {/* <Menu.Item key="/rovingdogs">
         <NavLink to="/rovingdogs">🐕 Roving Dogs</NavLink>
       </Menu.Item> */}

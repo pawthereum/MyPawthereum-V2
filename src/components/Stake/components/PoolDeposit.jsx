@@ -20,9 +20,9 @@ function PoolDeposit () {
   async function tryDeposit () {
     if (!depositAmount) return
     setIsDepositLoading(true)
-    const depositReq = await deposit(depositAmount)
-    console.log('dr', depositReq)
+    await deposit(depositAmount)
     setDepositAmount(null)
+    setIsDepositDisabled(true)
     setAllowanceButton({
       display: false,
       isLoading: false,

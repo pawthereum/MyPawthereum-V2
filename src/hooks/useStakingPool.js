@@ -18,6 +18,45 @@ const openNotification = ({ message, description, link }) => {
 const useStakingPool = () => {
   const { Moralis, account, web3, chainId } = useMoralis(); 
 
+  async function getTotalStaked () {
+    if (!chainId) return
+
+    const web3Provider = Moralis.web3Library;
+
+    const stakingPoolContract = new web3Provider.Contract(
+      STAKING_POOL[chainId]?.address,
+      STAKING_POOL[chainId]?.abi, 
+      web3.getSigner()
+    )
+
+    try {
+      const totalStaked = await stakingPoolContract.totalStaked()
+      return Moralis.Units.FromWei(totalStaked, DECIMALS)
+    } catch (e) {
+      console.log('error getting total staked', e)
+    }
+  }
+
+  async function getApy () {
+    if (!chainId) return
+
+    const web3Provider = Moralis.web3Library;
+
+    const stakingPoolContract = new web3Provider.Contract(
+      STAKING_POOL[chainId]?.address,
+      STAKING_POOL[chainId]?.abi, 
+      web3.getSigner()
+    )
+
+    try {
+      const accTokenPerShare = await stakingPoolContract.accTokenPerShare()
+      const precisionFactor = await stakingPoolContract.PRECISION_FACTOR()
+      return accTokenPerShare / precisionFactor
+    } catch (e) {
+      console.log('error getting apy', e)
+    }
+  }
+
   async function deposit (amount) {
     if (!chainId) return false
     const web3Provider = Moralis.web3Library;
@@ -266,7 +305,7 @@ const useStakingPool = () => {
     }
   }
 
-  return { deposit, claim, compound, withdraw, viewAmountStaked, hasAllowance, updateAllowance, viewPendingReward };
+  return { deposit, claim, compound, withdraw, viewAmountStaked, getApy, getTotalStaked, hasAllowance, updateAllowance, viewPendingReward };
 }
 
 export default useStakingPool;
