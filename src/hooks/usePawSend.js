@@ -146,7 +146,7 @@ const usePawSend = (chain) => {
     } catch (e) {
       openNotification({
         message: "⚠️ Send Error!",
-        description: `${e.message}`
+        description: `${e.message} ${e.data?.message}`
       });
     }
   }
