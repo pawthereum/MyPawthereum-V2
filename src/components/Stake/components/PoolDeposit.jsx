@@ -134,7 +134,7 @@ function PoolDeposit () {
             }}
             onClick={() => tryDeposit()}
             loading={isDepositLoading}
-            disabled={isDepositDisabled}
+            disabled={isDepositDisabled || allowanceButton.display}
           >
             Deposit 💰
           </Button>

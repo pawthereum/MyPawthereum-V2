@@ -29,7 +29,6 @@ const useStakingPool = () => {
     )
 
     try {
-      console.log('performanceFee', Moralis.Units.Token(amount, DECIMALS))
       const depositReq = await stakingPoolContract.deposit(
         Moralis.Units.Token(amount, DECIMALS)
       )
@@ -144,7 +143,6 @@ const useStakingPool = () => {
     )
     try {
       const performanceFee = await stakingPoolContract.performanceFee()
-      console.log('performanceFee', performanceFee)
       const claimReq = await stakingPoolContract.claimReward(
         { value: performanceFee }
       )
@@ -162,6 +160,38 @@ const useStakingPool = () => {
     } catch (e) {
       openNotification({
         message: "⚠️ Claim Error!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  async function withdraw (amount) {
+    if (!chainId) return
+    const web3Provider = Moralis.web3Library;
+
+    const stakingPoolContract = new web3Provider.Contract(
+      STAKING_POOL[chainId]?.address,
+      STAKING_POOL[chainId]?.abi, 
+      web3.getSigner()
+    )
+    try {
+      const claimReq = await stakingPoolContract.withdraw(
+        Moralis.Units.Token(amount, DECIMALS)
+      )
+      openNotification({
+        message: "🔊 Withdraw Submitted!",
+        description: `${claimReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + claimReq.hash
+      })
+      const tx = await claimReq.wait()
+      openNotification({
+        message: "🎉 Withdraw Complete!",
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      openNotification({
+        message: "⚠️ Withdraw Error!",
         description: `${e.message} ${e.data?.message}`
       });
     }
@@ -236,7 +266,7 @@ const useStakingPool = () => {
     }
   }
 
-  return { deposit, claim, compound, viewAmountStaked, hasAllowance, updateAllowance, viewPendingReward };
+  return { deposit, claim, compound, withdraw, viewAmountStaked, hasAllowance, updateAllowance, viewPendingReward };
 }
 
 export default useStakingPool;
