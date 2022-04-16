@@ -70,7 +70,64 @@ const useStakingPool = () => {
     } catch (e) {
       console.log('err', e)
       openNotification({
-        message: "⚠️ Error viewing Pending Rewards!",
+        message: "⚠️ Error viewing pending rewards!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  async function viewAmountStaked () {
+    if (!chainId) return
+
+    const web3Provider = Moralis.web3Library;
+
+    const stakingPoolContract = new web3Provider.Contract(
+      STAKING_POOL[chainId]?.address,
+      STAKING_POOL[chainId]?.abi, 
+      web3.getSigner()
+    )
+    try {
+      const userInfo = await stakingPoolContract.userInfo(
+        account
+      )
+      return Moralis.Units.FromWei(userInfo.amount, DECIMALS)
+    } catch (e) {
+      console.log('err', e)
+      openNotification({
+        message: "⚠️ Error viewing amount staked!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  async function compound () {
+    if (!chainId) return
+    const web3Provider = Moralis.web3Library;
+
+    const stakingPoolContract = new web3Provider.Contract(
+      STAKING_POOL[chainId]?.address,
+      STAKING_POOL[chainId]?.abi, 
+      web3.getSigner()
+    )
+    try {
+      const performanceFee = await stakingPoolContract.performanceFee()
+      const compoundReq = await stakingPoolContract.compoundReward(
+        { value: performanceFee }
+      )
+      openNotification({
+        message: "🔊 Compound Submitted!",
+        description: `${compoundReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + compoundReq.hash
+      })
+      const tx = await compoundReq.wait()
+      openNotification({
+        message: "🎉 Compound Complete!",
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      openNotification({
+        message: "⚠️ Compound Error!",
         description: `${e.message} ${e.data?.message}`
       });
     }
@@ -91,8 +148,22 @@ const useStakingPool = () => {
       const claimReq = await stakingPoolContract.claimReward(
         { value: performanceFee }
       )
+      openNotification({
+        message: "🔊 Claim Submitted!",
+        description: `${claimReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + claimReq.hash
+      })
+      const tx = await claimReq.wait()
+      openNotification({
+        message: "🎉 Claim Complete!",
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
     } catch (e) {
-      console.log('err', e)
+      openNotification({
+        message: "⚠️ Claim Error!",
+        description: `${e.message} ${e.data?.message}`
+      });
     }
   }
 
@@ -165,7 +236,7 @@ const useStakingPool = () => {
     }
   }
 
-  return { deposit, claim, hasAllowance, updateAllowance, viewPendingReward };
+  return { deposit, claim, compound, viewAmountStaked, hasAllowance, updateAllowance, viewPendingReward };
 }
 
 export default useStakingPool;
