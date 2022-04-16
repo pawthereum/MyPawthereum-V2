@@ -3,6 +3,7 @@ import { useMoralis, useERC20Balances } from 'react-moralis'
 import { Statistic, Divider, Row, Col, Card } from 'antd'
 import useStakingPool from 'hooks/useStakingPool'
 import PoolDeposit from './components/PoolDeposit'
+import PoolWithdraw from './components/PoolWithdraw'
 import PoolClaim from './components/PoolClaim'
 import { PAWTH_ADDRESS, DECIMALS, ERC20ABI } from '../../constants'
 
@@ -107,7 +108,7 @@ function Pool() {
       <Divider orientation="center">Deposit</Divider>
       <PoolDeposit />
       <Divider orientation="center">Withdraw</Divider>
-      <PoolDeposit />
+      <PoolWithdraw />
     </Card>
   );
 }

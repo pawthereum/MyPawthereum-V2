@@ -90,9 +90,12 @@ function PoolDeposit () {
   return (
     <div>
       <Row>
-        <Col>
+        <Col span={24}>
           <Input
             size="large"
+            style={{
+              width: "100%"
+            }}
             placeholder="Deposit Amount"
             prefix={<CreditCardOutlined />}
             onChange={(e) => {
