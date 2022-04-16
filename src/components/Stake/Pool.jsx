@@ -1,5 +1,6 @@
 import { Row, Col, Card } from 'antd'
 import PoolDeposit from './components/PoolDeposit'
+import PoolClaim from './components/PoolClaim'
 
 const styles = {
   card: {
@@ -14,11 +15,12 @@ const styles = {
 
 function Pool() {
   return (
-    <Card style={styles.card}>
+    <Card style={styles.card} title="Staking Pool">
       <Row>
         <Col>Staking Pool</Col>
       </Row>
       <PoolDeposit />
+      <PoolClaim />
     </Card>
   );
 }

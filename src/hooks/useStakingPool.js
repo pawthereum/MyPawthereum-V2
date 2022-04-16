@@ -52,6 +52,30 @@ const useStakingPool = () => {
     }
   }
 
+  async function viewPendingReward () {
+    if (!chainId) return
+
+    const web3Provider = Moralis.web3Library;
+
+    const stakingPoolContract = new web3Provider.Contract(
+      STAKING_POOL[chainId]?.address,
+      STAKING_POOL[chainId]?.abi, 
+      web3.getSigner()
+    )
+    try {
+      const pendingReward = await stakingPoolContract.pendingReward(
+        account
+      )
+      return Moralis.Units.FromWei(pendingReward, DECIMALS)
+    } catch (e) {
+      console.log('err', e)
+      openNotification({
+        message: "⚠️ Error viewing Pending Rewards!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
   async function claim () {
     if (!chainId) return
     const web3Provider = Moralis.web3Library;
@@ -64,7 +88,7 @@ const useStakingPool = () => {
     try {
       const performanceFee = await stakingPoolContract.performanceFee()
       console.log('performanceFee', performanceFee)
-      const claimReq = await stakingPoolContract.claim(
+      const claimReq = await stakingPoolContract.claimReward(
         { value: performanceFee }
       )
     } catch (e) {
@@ -141,7 +165,7 @@ const useStakingPool = () => {
     }
   }
 
-  return { deposit, claim, hasAllowance, updateAllowance };
+  return { deposit, claim, hasAllowance, updateAllowance, viewPendingReward };
 }
 
 export default useStakingPool;

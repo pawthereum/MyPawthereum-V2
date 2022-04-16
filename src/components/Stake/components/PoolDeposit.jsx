@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react'
 import { Row, Col, Button, Input } from "antd";
 import { CreditCardOutlined } from "@ant-design/icons";
 import useStakingPool from 'hooks/useStakingPool'
-import useBreakpoint from 'hooks/useBreakpoint';
-
 
 function PoolDeposit () {
   const { chainId } = useMoralis()
