@@ -4,7 +4,8 @@ import { Statistic, Divider, Row, Col, Card, Tag } from 'antd'
 import useStakingPool from 'hooks/useStakingPool'
 import PoolDeposit from './components/PoolDeposit'
 import PoolWithdraw from './components/PoolWithdraw'
-import PoolClaim from './components/PoolClaim'
+import PoolClaimReward from './components/PoolClaimReward'
+import PoolClaimDividend from './components/PoolClaimDividend'
 import { PAWTH_ADDRESS, DECIMALS, ERC20ABI } from '../../constants'
 
 const styles = {
@@ -38,14 +39,15 @@ const roundBig = (number) => {
 
 function Pool() {
   const { account, chainId, Moralis, web3 } = useMoralis()
-  const { viewPendingReward, viewAmountStaked, getApy, getTotalStaked } = useStakingPool()
+  const { viewPendingReward, viewPendingDividend, viewAmountStaked, getApr, getTotalStaked } = useStakingPool()
   const { data: assets } = useERC20Balances();
 
   const [pendingRewards, setPendingRewards] = useState(null)
+  const [pendingDividend, setPendingDividend] = useState(null)
   const [currentBlock, setCurrentBlock] = useState(null)
   const [amountStaked, setAmountStaked] = useState(null)
   const [pawthBalance, setPawthBalance] = useState(null)
-  const [apy, setApy] = useState(null)
+  const [apr, setApr] = useState(null)
   const [totalStaked, setTotalStaked] = useState(null)
 
   useEffect(() => {
@@ -67,26 +69,35 @@ function Pool() {
   }, [account, chainId])
 
   useEffect(() => {
+    if (!web3 || !account || !currentBlock) return
     refreshAwards()
     async function refreshAwards() {
       const requests = await Promise.all([
         viewPendingReward(),
+        viewPendingDividend(),
         viewAmountStaked(),
-        getApy(),
+        getApr(currentBlock),
         getTotalStaked()
       ])
       const refreshedRewards = requests[0]
-      const amountStaked = requests[1]
-      const apy = requests[2]
-      const totalStaked = requests[3]
+      const refreshedDividends = requests[1]
+      const amountStaked = requests[2]
+      const apr = requests[3]
+      const totalStaked = requests[4]
       if (refreshedRewards) {
         setPendingRewards(parseFloat(refreshedRewards).toLocaleString([], {
           maximumFractionDigits: 0,
           minimumFractionDigits: 0
         }))
       }
-      if (apy) {
-        setApy(apy.toLocaleString([], {
+      if (refreshedDividends) {
+        setPendingDividend(parseFloat(refreshedDividends).toLocaleString([], {
+          maximumFractionDigits: 0,
+          minimumFractionDigits: 0
+        }))
+      }
+      if (apr) {
+        setApr(apr.toLocaleString([], {
           maximumFractionDigits: 0,
           minimumFractionDigits: 0
         }))
@@ -109,7 +120,7 @@ function Pool() {
         console.log('error getting balance', e)
       }
     }
-  }, [currentBlock])
+  }, [account, currentBlock, web3])
 
   return (
     <Card 
@@ -118,7 +129,7 @@ function Pool() {
       extra={
         <div>
           <Tag>Total Staked {totalStaked}</Tag>
-          <Tag>APY {apy}%</Tag>
+          <Tag>APR {apr}%</Tag>
         </div>
       }>
       <Row>
@@ -139,13 +150,20 @@ function Pool() {
           />
         </Col>
       </Row>
-      <Divider orientation="center">Claim</Divider>
+      <Divider orientation="center">Earned $PAWTH</Divider>
       <Row>
         <Col>
           Rewards to Compound or Claim: {pendingRewards || 'Loading...'}
         </Col>  
       </Row>
-      <PoolClaim isClaimDisabled={pendingRewards === '0'} />
+      <PoolClaimReward isClaimDisabled={pendingRewards === '0'} />
+      <Divider orientation="center">Reflected $PAWTH</Divider>
+      <Row>
+        <Col>
+          Reflections to Compound or Claim: {pendingDividend || 'Loading...'}
+        </Col>  
+      </Row>
+      <PoolClaimDividend isClaimDisabled={pendingDividend === '0'} />
       <Divider orientation="center">Deposit</Divider>
       <PoolDeposit />
       <Divider orientation="center">Withdraw</Divider>

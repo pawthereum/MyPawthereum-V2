@@ -19,7 +19,7 @@ const useStakingPool = () => {
   const { Moralis, account, web3, chainId } = useMoralis(); 
 
   async function getTotalStaked () {
-    if (!chainId) return
+    if (!chainId || !web3) return
 
     const web3Provider = Moralis.web3Library;
 
@@ -37,7 +37,7 @@ const useStakingPool = () => {
     }
   }
 
-  async function getApy () {
+  async function getApr (currentBlock) {
     if (!chainId) return
 
     const web3Provider = Moralis.web3Library;
@@ -49,11 +49,40 @@ const useStakingPool = () => {
     )
 
     try {
-      const accTokenPerShare = await stakingPoolContract.accTokenPerShare()
-      const precisionFactor = await stakingPoolContract.PRECISION_FACTOR()
-      return accTokenPerShare / precisionFactor
+      const stakingInfo = await Promise.all([
+        stakingPoolContract.accTokenPerShare(),
+        stakingPoolContract.PRECISION_FACTOR(),
+        stakingPoolContract.lastRewardBlock(),
+        stakingPoolContract.rewardPerBlock(),
+        stakingPoolContract.bonusEndBlock(),
+        stakingPoolContract.totalStaked()
+      ])
+      const accTokenPerShare = stakingInfo[0]
+      const precisionFactor = stakingInfo[1]
+      const lastRewardBlock = stakingInfo[2]
+      const rewardPerBlock = stakingInfo[3]
+      const bonusEndBlock = stakingInfo[4]
+      const totalStaked = stakingInfo[5]
+
+      if (currentBlock > lastRewardBlock && totalStaked != 0 && lastRewardBlock > 0) {
+        const getMultiplier = (from, to) => {
+          if (to <= bonusEndBlock) return to - from
+          if (from >= bonusEndBlock) return 0
+          return bonusEndBlock - from
+        }
+  
+        const multiplier = getMultiplier(lastRewardBlock, currentBlock)
+        const pawthReward = multiplier * rewardPerBlock
+        const adjustedTokenPerShare = accTokenPerShare + pawthReward * precisionFactor / totalStaked
+        const reward = adjustedTokenPerShare / precisionFactor
+        return reward * 100
+      }
+
+      const reward = accTokenPerShare / precisionFactor
+      return reward * 100
+
     } catch (e) {
-      console.log('error getting apy', e)
+      console.log('error getting r', e)
     }
   }
 
@@ -109,6 +138,30 @@ const useStakingPool = () => {
       console.log('err', e)
       openNotification({
         message: "⚠️ Error viewing pending rewards!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  async function viewPendingDividend () {
+    if (!chainId) return
+
+    const web3Provider = Moralis.web3Library;
+
+    const stakingPoolContract = new web3Provider.Contract(
+      STAKING_POOL[chainId]?.address,
+      STAKING_POOL[chainId]?.abi, 
+      web3.getSigner()
+    )
+    try {
+      const pendingDividend = await stakingPoolContract.pendingDividends(
+        account
+      )
+      return Moralis.Units.FromWei(pendingDividend, DECIMALS)
+    } catch (e) {
+      console.log('err', e)
+      openNotification({
+        message: "⚠️ Error viewing pending dividends!",
         description: `${e.message} ${e.data?.message}`
       });
     }
@@ -171,7 +224,7 @@ const useStakingPool = () => {
     }
   }
 
-  async function claim () {
+  async function claimReward () {
     if (!chainId) return
     const web3Provider = Moralis.web3Library;
 
@@ -183,6 +236,39 @@ const useStakingPool = () => {
     try {
       const performanceFee = await stakingPoolContract.performanceFee()
       const claimReq = await stakingPoolContract.claimReward(
+        { value: performanceFee }
+      )
+      openNotification({
+        message: "🔊 Claim Submitted!",
+        description: `${claimReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + claimReq.hash
+      })
+      const tx = await claimReq.wait()
+      openNotification({
+        message: "🎉 Claim Complete!",
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      openNotification({
+        message: "⚠️ Claim Error!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  async function claimDividend () {
+    if (!chainId) return
+    const web3Provider = Moralis.web3Library;
+
+    const stakingPoolContract = new web3Provider.Contract(
+      STAKING_POOL[chainId]?.address,
+      STAKING_POOL[chainId]?.abi, 
+      web3.getSigner()
+    )
+    try {
+      const performanceFee = await stakingPoolContract.performanceFee()
+      const claimReq = await stakingPoolContract.claimDividend(
         { value: performanceFee }
       )
       openNotification({
@@ -305,7 +391,7 @@ const useStakingPool = () => {
     }
   }
 
-  return { deposit, claim, compound, withdraw, viewAmountStaked, getApy, getTotalStaked, hasAllowance, updateAllowance, viewPendingReward };
+  return { deposit, claimReward, claimDividend, compound, withdraw, viewAmountStaked, getApr, getTotalStaked, hasAllowance, updateAllowance, viewPendingReward, viewPendingDividend };
 }
 
 export default useStakingPool;
