@@ -153,11 +153,11 @@ export const PAWSWAP_FACTORY = {
 export const STAKING_POOL = {
   '0x61': {
     abi: stakingPoolAbi,
-    address: '0xf193B214b84923CF6CA50538762b1C70056e6D52'
+    address: '0xaD04172eF81f05095F677B9Dd4cB3b58D2ac6D8e'
   },
   'bsctest': {
     abi: stakingPoolAbi,
-    address: '0xf193B214b84923CF6CA50538762b1C70056e6D52'
+    address: '0xaD04172eF81f05095F677B9Dd4cB3b58D2ac6D8e'
   }
 }
 
