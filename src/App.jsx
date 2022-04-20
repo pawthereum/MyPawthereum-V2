@@ -30,6 +30,7 @@ import AddLiquidity from "components/DEX/components/AddLiquidity";
 import DexComingSoon from "components/DEX/DexComingSoon";
 import PawSend from "components/PawSend/PawSend"
 import RovingDogs from 'components/RovingDogs'
+import Pool from 'components/Stake'
 const CoinGecko = require('coingecko-api')
  
 const { Header, Footer } = Layout;
@@ -215,6 +216,9 @@ const App = ({ isServerInfo }) => {
               <Route path="/rovingdogs">
                 <RovingDogs />
               </Route>
+              <Route path="/staking/pools">
+                <Pool />
+              </Route>
               <Route path="/erc20balance">
                 <ERC20Balance />
               </Route>
@@ -253,7 +257,7 @@ const App = ({ isServerInfo }) => {
           paddingBottom: screens.xs ? '74px' : '0px'
         }}>
           <Text style={{ display: "block" }}>
-            ⭐️ Version 2.0.4
+            ⭐️ Version 2.0.5
           </Text>
 
           <Text style={{ display: "block" }}>

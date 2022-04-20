@@ -4,6 +4,7 @@ import { ERC20Abi } from './abis/erc20'
 import { taxStructureAbi } from './abis/taxStructure'
 import { pawswapAbi } from './abis/pawswap'
 import { pawsendAbi } from './abis/pawsend'
+import { stakingPoolAbi } from './abis/stakingPool'
 
 export const PAWTH_ADDRESS = {
   '0x1': '0xaecc217a749c2405b5ebc9857a16d58bdc1c367f', // eth mainnet
@@ -11,8 +12,8 @@ export const PAWTH_ADDRESS = {
   '0x38': '0x409e215738e31d8ab252016369c2dd9c2008fee0', // bsc mainnet
   'bsc': '0x409e215738e31d8ab252016369c2dd9c2008fee0',
   '0x4': '0x459BC05bF203cEd24E76c598B507aEAa9eD36C28', // rinkeby testnet
-  '0x61': '0x3bae287ff1754bb2d390bff103c998f9479b049d', // bsc testnet
-  'bsctest': '0x3bae287ff1754bb2d390bff103c998f9479b049d',
+  '0x61': '0x2F7D5B09a0Ad9d31dD1e6Ad8f3d0509aD3aeafFe', // bsc testnet
+  'bsctest': '0x2F7D5B09a0Ad9d31dD1e6Ad8f3d0509aD3aeafFe',
 }
 
 export const SHIBA_LP_ADDRESS = '0xc57dc778a0d2d150d04fc0fd09a0113ebe9d600c'
@@ -147,6 +148,17 @@ export const PAWSWAP_FACTORY = {
     abi: pawswapFactoryAbi,
     address: '0xAd40b45e2E94D4D78D40866Dde642881542aA5eD',
   },
+}
+
+export const STAKING_POOL = {
+  '0x61': {
+    abi: stakingPoolAbi,
+    address: '0xaD04172eF81f05095F677B9Dd4cB3b58D2ac6D8e'
+  },
+  'bsctest': {
+    abi: stakingPoolAbi,
+    address: '0xaD04172eF81f05095F677B9Dd4cB3b58D2ac6D8e'
+  }
 }
 
 export const COLORS = {
