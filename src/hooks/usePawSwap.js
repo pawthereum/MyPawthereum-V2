@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
-import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI, PAWSWAP_ROUTER, PAWSWAP_FACTORY } from '../constants'
+import { PAWSWAP, PAWTH_ADDRESS, ERC20ABI, TAX_STRUCTURE_ABI, PAWSWAP_ROUTER, PAWSWAP_FACTORY} from '../constants'
+import { tokenList as defaultTokenList } from '../constants/tokenList'
 import { notification } from "antd";
 import { networkConfigs } from '../helpers/networks'
 
@@ -33,6 +34,7 @@ const usePawSwap = (chain) => {
   const [tokenList, setTokenlist] = useState();
 
   useEffect(() => {
+    return setTokenlist(defaultTokenList?.tokens)
     if (!Moralis?.["Plugins"]?.["oneInch"]) return null;
     Moralis.Plugins.oneInch.getSupportedTokens({ chain }).then((tokens) => setTokenlist(tokens.tokens));
   }, [Moralis, Moralis.Plugins, chain]);

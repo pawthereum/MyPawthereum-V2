@@ -8,6 +8,7 @@ import TokenPrice from "components/TokenPrice";
 import ERC20Balance from "components/ERC20Balance";
 import ERC20Transfers from "components/ERC20Transfers";
 import DEX from "components/DEX";
+import PawSwap from 'components/DEX/PawSwap';
 import NFTBalance from "components/NFTBalance";
 import Wallet from "components/Wallet";
 import { Grid, Layout, Tabs } from "antd";
@@ -191,7 +192,8 @@ const App = ({ isServerInfo }) => {
                 <Wallet />
               </Route>
               <Route path="/pawswap">
-                <DexComingSoon />
+                {/* <DexComingSoon /> */}
+                <PawSwap />
                 {/* <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
                   <Tabs.TabPane tab={<span>Ethereum</span>} key="1">
                     <DEX chain="eth" />
