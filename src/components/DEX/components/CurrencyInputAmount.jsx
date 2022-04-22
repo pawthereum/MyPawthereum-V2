@@ -4,7 +4,7 @@ import CurrencyPicker from './CurrencyPicker'
 import AppContext from 'AppContext'
 
 function CurrencyAmountInput (props) {
-  const { trade, estimatedSide, updateInputAmount, updateOutputAmount } = useContext(AppContext);
+  const { trade, estimatedSide, updateInputAmount, updateOutputAmount, inputCurrency, outputCurrency } = useContext(AppContext);
   const [value, setValue] = useState(null)
 
   useEffect(() => {
@@ -22,6 +22,16 @@ function CurrencyAmountInput (props) {
     ? updateInputAmount({ amount, updateEstimated: true }) 
     : updateOutputAmount({ amount, updateEstimated: true })
   }
+
+  useEffect(() => {
+    if (props.side === 'input') {
+      if (!inputCurrency) return
+      setValue(0)
+    } else {
+      if (!outputCurrency) return
+      setValue(0)
+    }
+  }, [inputCurrency, outputCurrency])
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
