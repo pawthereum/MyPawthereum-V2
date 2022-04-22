@@ -15,14 +15,12 @@ const useSwapContext = () => {
     setEstimatedSide(side)
   }
 
-  const updateInputCurrency = (currency) => {
-    console.log('setting currency', currency)
-    setInputCurrency(currency)
-    if (!inputAmount) return
-    updateInputAmount(inputAmount)
+  const updateInputCurrency = async (currency) => {
+    await setInputCurrency(currency)
   }
 
   const updateInputAmount = ({ amount, updateEstimated }) => {
+    //TODO: check for updated decimals in a hook and update the input amount
     if (updateEstimated) {
       updateEstimatedSide('output')
     }
@@ -30,13 +28,12 @@ const useSwapContext = () => {
     setInputAmount(Moralis.Units.Token(amount, decimals))
   }
 
-  const updateOutputCurrency = (currency) => {
-    setOutputCurrency(currency)
-    if (!outputAmount) return
-    setOutputCurrency(inputAmount)
+  const updateOutputCurrency = async (currency) => {
+    await setOutputCurrency(currency)
   }
 
   const updateOutputAmount = ({ amount, updateEstimated }) => {
+    //TODO: check for updated decimals in a hook and update the output amount
     if (updateEstimated) {
       updateEstimatedSide('input')
     }

@@ -20,6 +20,7 @@ function CurrencyAmountInput (props) {
       style={{
         width: '100%',
       }}
+      bordered={false}
       placeholder="0"
       size="large"
       defaultValue={null}

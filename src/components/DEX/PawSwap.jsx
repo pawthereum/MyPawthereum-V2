@@ -14,6 +14,11 @@ const styles = {
     fontSize: "16px",
     fontWeight: "500",
   },
+  inset: {
+    backgroundColor: '#dfdfdf',
+    padding: '14px',
+    borderRadius: '1rem'
+  }
 }
 
 function PawSwap() {
@@ -35,7 +40,7 @@ function PawSwap() {
             </Row>
           }>            
             <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-              <Row>
+              <Row style={styles.inset}>
                 <Col span={24}>
                   <span>From {estimatedSide === 'input' ? '(estimated)' : ''} </span>
                   <CurrencyAmountInput side="input" />
@@ -46,7 +51,7 @@ function PawSwap() {
                   <ArrowDownOutlined />
                 </Col>
               </Row>
-              <Row>
+              <Row style={styles.inset}>
                 <Col span={24}>
                   <span>To {estimatedSide === 'output' ? '(estimated)' : ''}</span>
                   <CurrencyAmountInput side="output" />
