@@ -1,9 +1,12 @@
+import { useContext, useEffect, useState } from 'react';
 import { Row, Col, Space, Card } from 'antd'
 import { SettingOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import CurrencyAmountInput from './components/CurrencyInputAmount.jsx'
-// import useSwap from 'hooks/useSwap.js';
-import { useContext } from 'react';
 import AppContext from '../../AppContext'
+import { useERC20Balance } from '../../hooks/useERC20Balance';
+import { useMoralis } from 'react-moralis'
+
+const defaultBg = '#dfdfdf';
 
 const styles = {
   card: {
@@ -15,15 +18,46 @@ const styles = {
     fontWeight: "500",
   },
   inset: {
-    backgroundColor: '#dfdfdf',
+    backgroundColor: defaultBg,
     padding: '14px',
     borderRadius: '1rem'
   }
 }
-
 function PawSwap() {
-  const { estimatedSide } = useContext(AppContext);
-  console.log('this is the estimated side', estimatedSide)
+  const { Moralis } = useMoralis()
+  const { assets } = useERC20Balance()
+  const [inputColor, setInputColor] = useState(defaultBg)
+  const [outputColor, setOutputColor] = useState(defaultBg)
+  const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
+  const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
+  const { estimatedSide, inputCurrency, outputCurrency } = useContext(AppContext);
+
+
+  useEffect(() => {
+    if (!inputCurrency) return setInputCurrencyBalance(null)
+    if (!assets) return setInputCurrencyBalance(0)
+    console.log('assets', assets)
+    const asset = assets.find(a => a.token_address === inputCurrency.address.toLowerCase())
+    if (!asset) return setInputCurrencyBalance(0)
+    setInputCurrencyBalance(Moralis.Units.FromWei(asset.balance, asset.decimals))
+  }, [assets, inputCurrency])
+
+  useEffect(() => {
+    if (!outputCurrency) return setOutputCurrencyBalance(null)
+    if (!assets) return setOutputCurrencyBalance(0)
+    const asset = assets.find(a => a.token_address === outputCurrency.address.toLowerCase())
+    if (!asset) return setOutputCurrencyBalance(0)
+    setOutputCurrencyBalance(Moralis.Units.FromWei(asset.balance, asset.decimals))
+  }, [assets, outputCurrency])
+
+  useEffect(() => {
+    if (inputCurrency) {
+      setInputColor(inputCurrency?.color)
+    }
+    if (outputCurrency) {
+      setOutputColor(outputCurrency?.color)
+    }
+  }, [inputCurrency, outputCurrency])
 
   return (
     <div>
@@ -40,10 +74,32 @@ function PawSwap() {
             </Row>
           }>            
             <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-              <Row style={styles.inset}>
+              <Row style={{ 
+                ...styles.inset, 
+                background: `linear-gradient(to top, ${inputColor} -105%, ${defaultBg})` 
+              }}>
                 <Col span={24}>
-                  <span>From {estimatedSide === 'input' ? '(estimated)' : ''} </span>
-                  <CurrencyAmountInput side="input" />
+                  <Row style={{ marginBottom: '5px' }}>
+                    <Col span={8}>
+                      <small>From {estimatedSide === 'input' ? '(estimated)' : ''} </small>
+                    </Col>
+                    {
+                      inputCurrencyBalance !== null
+                      ?
+                        <Col span={16} style={{ display: 'flex', justifyContent: 'end' }}>
+                          <small>Balance: {parseFloat(inputCurrencyBalance).toLocaleString([], {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 4
+                          })}</small>
+                        </Col>
+                      : <></>
+                    }
+                  </Row>
+                  <Row>
+                    <Col span={24}>
+                      <CurrencyAmountInput side="input" />
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
               <Row>
@@ -51,10 +107,32 @@ function PawSwap() {
                   <ArrowDownOutlined />
                 </Col>
               </Row>
-              <Row style={styles.inset}>
+              <Row style={{ 
+                ...styles.inset, 
+                background: `linear-gradient(to top, ${outputColor} -105%, ${defaultBg})` 
+              }}>
                 <Col span={24}>
-                  <span>To {estimatedSide === 'output' ? '(estimated)' : ''}</span>
-                  <CurrencyAmountInput side="output" />
+                  <Row style={{ marginBottom: '5px' }}>
+                    <Col span={8}>
+                      <small>To {estimatedSide === 'output' ? '(estimated)' : ''} </small>
+                    </Col>
+                    {
+                      outputCurrencyBalance !== null
+                      ?
+                        <Col span={16} style={{ display: 'flex', justifyContent: 'end' }}>
+                          <small>Balance: {parseFloat(outputCurrencyBalance).toLocaleString([], {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 4
+                          })}</small>
+                        </Col>
+                      : <></>
+                    }
+                  </Row>
+                  <Row>
+                    <Col span={24}>
+                      <CurrencyAmountInput side="output" />
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
             </Space>

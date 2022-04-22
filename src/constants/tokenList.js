@@ -18,7 +18,8 @@ export const tokenList = {
       "decimals": 9,
       "logoURI": "https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png",
       "typicalBuyTax": 8,
-      "typicalSellTax": 8
+      "typicalSellTax": 8,
+      "color": "#ff65b3"
     },
     {
       "name": "Wrapped BNB",
@@ -28,7 +29,8 @@ export const tokenList = {
       "decimals": 18,
       "logoURI": "https://pancake.kiemtienonline360.com/images/coins/0xae13d989dac2f0debff460ac112a837c89baa7cd.png",
       "typicalBuyTax": 0,
-      "typicalSellTax": 0
+      "typicalSellTax": 0,
+      "color": "#F0BA03"
     },
     {
       "name": "Kodi Coin",
@@ -39,7 +41,8 @@ export const tokenList = {
       "logoURI": "https://bafybeievtapjdh32pqp3kljnhhymzf6fc2kxkqsajsujac34j5wto3aisy.ipfs.infura-ipfs.io",
       "dex": "pancakeswap",
       "typicalBuyTax": 11,
-      "typicalSellTax": 12
+      "typicalSellTax": 12,
+      "color": "#8751D8"
     }
   ]
 }

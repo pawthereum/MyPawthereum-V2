@@ -77,8 +77,14 @@ function CurrencyPicker (props) {
   }
 
   return (
-    <div style={{ cursor: 'pointer', minWidth: '100px', }}>
-      <div onClick={showModal} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ 
+      cursor: 'pointer',
+      minWidth: '150px', 
+      background: 'linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2))',
+      borderRadius: '24px',
+      padding: '5px'
+    }}>
+      <div onClick={showModal} style={{ display: 'flex',  alignItems: 'center', justifyContent: 'center' }}>
         { pickedCurrency ? <img src={pickedCurrency.logoURI} width="20px" /> : <></> } 
         <span style={{ marginLeft: '5px'}}>{
           pickedCurrency?.symbol || 'Select a token'

@@ -16,19 +16,23 @@ function CurrencyAmountInput (props) {
   }
 
   return (
-    <InputNumber
-      style={{
-        width: '100%',
-      }}
-      bordered={false}
-      placeholder="0"
-      size="large"
-      defaultValue={null}
-      min="0"
-      onChange={onInputChange}
-      stringMode
-      addonAfter={<CurrencyPicker side={props.side} />}
-    />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <InputNumber
+        style={{
+          width: '100%',
+          fontWeight: 900,
+          fontSize: '1.25em',
+        }}
+        bordered={false}
+        placeholder="0"
+        size="large"
+        defaultValue={null}
+        min="0"
+        onChange={onInputChange}
+        stringMode
+      />
+      <CurrencyPicker side={props.side} />
+    </div>
   )
 }
 
