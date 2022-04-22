@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { useERC20Balance } from '../../../hooks/useERC20Balance'
 import { AutoComplete, Avatar, Input, List, Modal } from 'antd'
 import { CaretDownOutlined } from "@ant-design/icons";
-import useSwap from 'hooks/useSwap';
+import AppContext from '../../../AppContext'
 
 function CurrencyPicker (props) {
-  const { tokenList, inputCurrency, outputCurrency, updateInputCurrency, updateOutputCurrency } = useSwap()
+  const { tokenList, updateInputCurrency, updateOutputCurrency } = useContext(AppContext)
   const { assets } = useERC20Balance()
   const { Moralis } = useMoralis()
   const [tokenListWithBalances, setTokenListWithBalances] = useState([])
@@ -70,23 +70,15 @@ function CurrencyPicker (props) {
   ];
 
   const pickCurrency = (currency) => {
-    console.log('picking', currency)
-    console.log('token add', tokenList)
-    setPickedCurrency(tokenList.find(t => t.address === currency))
-    props.side === "input" ? updateInputCurrency(currency) : updateOutputCurrency(currency)
+    const selection = tokenList.find(t => t.address === currency)
+    setPickedCurrency(selection)
+    props.side === "input" ? updateInputCurrency(selection) : updateOutputCurrency(selection)
     handleOk()
-  }
-
-  const getTokenSymbol = (address) => {
-    if (!address) return null
-    if (!tokenList) return address
-    const token = tokenList?.find(t => t.token_address.toLowerCase() === address)
-    return token?.symbol || address
   }
 
   return (
     <div style={{ cursor: 'pointer', minWidth: '100px' }}>
-      <div onClick={showModal} style={{ display: 'flex', alignItems: 'center' }}>
+      <div onClick={showModal} style={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
         { pickedCurrency ? <img src={pickedCurrency.logoURI} width="20px" /> : <></> } 
         <span style={{ marginLeft: '5px'}}>{
           pickedCurrency?.symbol || 'Select a token'

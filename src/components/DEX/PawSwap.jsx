@@ -1,6 +1,10 @@
-import { Row, Col, Space, Card, InputNumber } from 'antd'
+import { Row, Col, Space, Card } from 'antd'
 import { SettingOutlined, ArrowDownOutlined } from "@ant-design/icons";
-import CurrencyPicker from './components/CurrencyPicker'
+import CurrencyAmountInput from './components/CurrencyInputAmount.jsx'
+// import useSwap from 'hooks/useSwap.js';
+import { useContext } from 'react';
+import AppContext from '../../AppContext'
+
 const styles = {
   card: {
     boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
@@ -13,9 +17,8 @@ const styles = {
 }
 
 function PawSwap() {
-  function onInputChange(value) {
-    console.log('changed', value);
-  }
+  const { estimatedSide } = useContext(AppContext);
+  console.log('this is the estimated side', estimatedSide)
 
   return (
     <div>
@@ -34,18 +37,8 @@ function PawSwap() {
             <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
               <Row>
                 <Col span={24}>
-                  <span>From</span>
-                  <InputNumber
-                    style={{
-                      width: '100%',
-                    }}
-                    size="large"
-                    defaultValue="0"
-                    min="0"
-                    onChange={onInputChange}
-                    stringMode
-                    addonAfter={<CurrencyPicker side="input" />}
-                  />
+                  <span>From {estimatedSide === 'input' ? '(estimated)' : ''} </span>
+                  <CurrencyAmountInput side="input" />
                 </Col>
               </Row>
               <Row>
@@ -55,18 +48,8 @@ function PawSwap() {
               </Row>
               <Row>
                 <Col span={24}>
-                  <span>To</span>
-                  <InputNumber
-                    style={{
-                      width: '100%',
-                    }}
-                    size="large"
-                    defaultValue="0"
-                    min="0"
-                    onChange={onInputChange}
-                    stringMode
-                    addonAfter={<CurrencyPicker side="output"/>}
-                  />
+                  <span>To {estimatedSide === 'output' ? '(estimated)' : ''}</span>
+                  <CurrencyAmountInput side="output" />
                 </Col>
               </Row>
             </Space>

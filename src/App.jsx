@@ -32,6 +32,7 @@ import DexComingSoon from "components/DEX/DexComingSoon";
 import PawSend from "components/PawSend/PawSend"
 import RovingDogs from 'components/RovingDogs'
 import Pool from 'components/Stake'
+import useSwapContext from "hooks/swapContext";
 const CoinGecko = require('coingecko-api')
  
 const { Header, Footer } = Layout;
@@ -86,9 +87,12 @@ const App = ({ isServerInfo }) => {
     setMultichainEnabled(toggle)
   }
 
+  const swapContext = useSwapContext()
+
   const globalState = {
     multichainEnabled,
-    toggleUseMultichain
+    toggleUseMultichain,
+    ...swapContext
   }
 
   const [logo, setLogo] = useState('https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png')
