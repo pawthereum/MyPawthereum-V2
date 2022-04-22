@@ -26,10 +26,10 @@ function CurrencyAmountInput (props) {
   useEffect(() => {
     if (props.side === 'input') {
       if (!inputCurrency) return
-      setValue(0)
+      setValue(null)
     } else {
       if (!outputCurrency) return
-      setValue(0)
+      setValue(null)
     }
   }, [inputCurrency, outputCurrency])
 
