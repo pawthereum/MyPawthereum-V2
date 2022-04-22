@@ -1,14 +1,22 @@
 import { useContext, useEffect, useState } from 'react'
 import { InputNumber } from 'antd'
 import CurrencyPicker from './CurrencyPicker'
-import { useERC20Balance } from '../../../hooks/useERC20Balance'
 import AppContext from 'AppContext'
 
 function CurrencyAmountInput (props) {
-  const { updateInputAmount, updateOutputAmount } = useContext(AppContext);
+  const { trade, estimatedSide, updateInputAmount, updateOutputAmount } = useContext(AppContext);
+  const [value, setValue] = useState(null)
+
+  useEffect(() => {
+    if (!trade) return
+    if (estimatedSide === props.side) {
+      setValue(trade?.amountOut)
+    } else {
+      setValue(trade?.amountIn)
+    }
+  }, [trade])
 
   function onInputChange(amount) {
-    console.log('changed', amount);
     if (!props.side) return
     props.side === 'input' 
     ? updateInputAmount({ amount, updateEstimated: true }) 
@@ -28,7 +36,10 @@ function CurrencyAmountInput (props) {
         size="large"
         defaultValue={null}
         min="0"
+        value={value}
         onChange={onInputChange}
+        controls={false}
+        keyboard={false}
         stringMode
       />
       <CurrencyPicker side={props.side} />

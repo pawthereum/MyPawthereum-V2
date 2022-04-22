@@ -80,13 +80,13 @@ function PawSwap() {
               }}>
                 <Col span={24}>
                   <Row style={{ marginBottom: '5px' }}>
-                    <Col span={8}>
+                    <Col span={10}>
                       <small>From {estimatedSide === 'input' ? '(estimated)' : ''} </small>
                     </Col>
                     {
                       inputCurrencyBalance !== null
                       ?
-                        <Col span={16} style={{ display: 'flex', justifyContent: 'end' }}>
+                        <Col span={14} style={{ display: 'flex', justifyContent: 'end' }}>
                           <small>Balance: {parseFloat(inputCurrencyBalance).toLocaleString([], {
                             minimumFractionDigits: 0,
                             maximumFractionDigits: 4
@@ -113,13 +113,13 @@ function PawSwap() {
               }}>
                 <Col span={24}>
                   <Row style={{ marginBottom: '5px' }}>
-                    <Col span={8}>
+                    <Col span={10}>
                       <small>To {estimatedSide === 'output' ? '(estimated)' : ''} </small>
                     </Col>
                     {
                       outputCurrencyBalance !== null
                       ?
-                        <Col span={16} style={{ display: 'flex', justifyContent: 'end' }}>
+                        <Col span={14} style={{ display: 'flex', justifyContent: 'end' }}>
                           <small>Balance: {parseFloat(outputCurrencyBalance).toLocaleString([], {
                             minimumFractionDigits: 0,
                             maximumFractionDigits: 4
