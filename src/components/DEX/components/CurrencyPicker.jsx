@@ -6,12 +6,20 @@ import { CaretDownOutlined } from "@ant-design/icons";
 import AppContext from '../../../AppContext'
 
 function CurrencyPicker (props) {
-  const { tokenList, updateInputCurrency, updateOutputCurrency } = useContext(AppContext)
+  const { 
+    tokenList, 
+    updateInputCurrency, 
+    updateOutputCurrency,
+    inputCurrency,
+    outputCurrency,
+    estimatedSide
+  } = useContext(AppContext)
   const { assets } = useERC20Balance()
   const { Moralis } = useMoralis()
   const [tokenListWithBalances, setTokenListWithBalances] = useState([])
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [pickedCurrency, setPickedCurrency] = useState(null);
+  const [omittedSelectionAddresses, setOmittedSelectionAddresses] = useState([])
 
   useEffect(() => {
     if (!tokenList) return
@@ -63,9 +71,23 @@ function CurrencyPicker (props) {
     ),
   });
 
+  useEffect(() => {
+    if (props.side === 'input' && inputCurrency) {
+      setOmittedSelectionAddresses([inputCurrency?.address.toLowerCase()])
+    } 
+    if (props.side === 'output' && outputCurrency) {
+      setOmittedSelectionAddresses([outputCurrency?.address.toLowerCase()])
+    }
+
+    console.log(omittedSelectionAddresses)
+
+  }, [props.side, estimatedSide, inputCurrency, outputCurrency])
+
   const options = [
     {
-      options: tokenListWithBalances.map(t => renderItem(t)),
+      options: tokenListWithBalances
+        .filter(t => !omittedSelectionAddresses.includes(t.address.toLowerCase()))
+        .map(t => renderItem(t)),
     },
   ];
 
