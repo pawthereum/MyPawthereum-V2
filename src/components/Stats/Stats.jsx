@@ -20,7 +20,7 @@ function Stats() {
   useEffect(() => {
     if (!chainId) return
 
-    // getCharityWallet()
+    getCharityWallet()
 
     async function getCharityWallet() {
       const web3Provider = Moralis.web3Library

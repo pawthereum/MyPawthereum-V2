@@ -29,7 +29,7 @@ function CharityEthCollected(props) {
   useEffect(() => {
     if (!data) return
     setWethCollected(data.reduce((p, c) => {
-      return p + Moralis.Units.FromWei(c.attributes.ethForCharity)
+      return p + Number(Moralis.Units.FromWei(c.attributes.ethForCharity))
     }, 0))
   }, [data])
 
@@ -50,6 +50,7 @@ function CharityEthCollected(props) {
       <Col span={12} style={{ textAlign: 'center' }}>
         <Statistic 
           title={`${currencySymbol} Collected Last ${props.timeFrameTitle}`}
+          precision={4}
           value={wethCollected.toLocaleString([], { 
             minimumFractionDigits: 0,
             maximumFractionDigits: 4
