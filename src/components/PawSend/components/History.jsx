@@ -9,16 +9,16 @@ import { DECIMALS } from '../../../constants'
 function History() {
   const { account, Moralis } = useMoralis();
   
-  const isReceiverQuery = new Moralis.Query("Sends")
+  const isReceiverQuery = new Moralis.Query("PawSends")
   isReceiverQuery.equalTo("receiver", account)
 
-  const isSenderQuery = new Moralis.Query("Sends")
+  const isSenderQuery = new Moralis.Query("PawSends")
   isSenderQuery.equalTo("sender", account)
 
   const sendsQuery = new Moralis.Query.or(isReceiverQuery, isSenderQuery)
   
   const { data, error, isLoading } = useMoralisQuery(
-    "Sends",
+    "PawSends",
     query => sendsQuery,
     [],
     { live: true }

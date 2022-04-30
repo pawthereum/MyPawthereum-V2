@@ -2,13 +2,16 @@
 import { useMoralisQuery } from "react-moralis";
 import { PAWTH_ADDRESS } from '../../../constants'
 import { useEffect, useState } from "react";
+import { networkConfigs } from "helpers/networks";
 import { Alert, Row, Col, Statistic, Skeleton } from "antd";
 
 function CharityTokensCollected(props) {
   const [tokensCollected, setTokensCollected] = useState(0)
   const [usdValueCollected, setUsdValueCollected] = useState(0)
 
-  const table = props.chainId === '0x38' || props.chainid === '0x61' ? 'BscTokenTransfers' : 'EthTokenTransfers'
+  const chainCurrencySymbol = networkConfigs[props.chainId]?.currencySymbol
+
+  const table = chainCurrencySymbol === 'BNB' ? 'BscTokenTransfers' : 'EthTokenTransfers'
   const { data, error, isLoading } = useMoralisQuery(table, query =>
     query
       .greaterThan("block_timestamp", props.timeFrame)
