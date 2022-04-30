@@ -67,6 +67,10 @@ function PawSwap() {
     }
   }, [inputCurrency, outputCurrency])
 
+  useEffect(() => {
+    console.log('got a trade', trade)
+  }, [trade])
+
   return (
     <div>
       <Row>

@@ -134,18 +134,20 @@ const useSwapContext = () => {
     const amountIn = estimatedSide === 'input'
       ? inputAmount
       : Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals)
+    
+    const side = determineSide(inputCurrency)
 
     setTrade({
       tokenIn: inputCurrency,
       tokenOut: outputCurrency,
       amountIn,
-      amountOut
+      amountOut,
+      side
     })
   }
 
   async function executeSwap (trade) {
-    const { tokenIn, tokenOut, amountIn, amountOut } = trade
-    const side = determineSide(tokenIn)
+    const { tokenIn, tokenOut, amountIn, amountOut, side } = trade
     const web3Provider = Moralis.web3Library;
     const pawswap = new web3Provider.Contract(
       PAWSWAP[chainId]?.address,
