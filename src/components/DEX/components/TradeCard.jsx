@@ -2,6 +2,7 @@ import { Row, Col, Card, Divider } from 'antd'
 import QueueAnim from 'rc-queue-anim'
 import AppContext from '../../../AppContext'
 import { useContext, useEffect, useState } from 'react'
+import Sider from 'antd/lib/layout/Sider'
 
 const styles = {
   card: {
@@ -20,15 +21,40 @@ const styles = {
 
 function TradeCard () {
   const [showTradeCard, setShowTradeCard] = useState(false)
-  const { trade } = useContext(AppContext);
+  const { trade, taxes } = useContext(AppContext);
+  const [totalTax, setTotalTax] = useState(0)
+  const [formattedTaxes, setFormattedTaxes] = useState(null)
 
-  const formatAmount = (amt) => {
+  const formatMinAmount = (amt) => {
     const maxDigits = Number(amt) > 1 ? 0 : 6
-    return amt.toLocaleString([], {
+    return Math.floor(amt).toLocaleString([], {
       minimumFractionDigits: 0,
       maximumFractionDigits: maxDigits
     })
   }
+
+  const formatTax = (tax) => {
+    return tax / 100 + '%'
+  }
+
+  useEffect(() => {
+    if (!taxes || taxes.length === 0) return
+    if (!trade?.side) return
+    const totalTax = taxes.reduce((p, t) => {
+      if (!t[trade.side]) return p + 0
+      return p + Number(t[trade.side])
+    }, 0)
+    setTotalTax(totalTax)
+    const formattedTaxes = taxes.filter(t => {
+      return Number(t[trade.side]) !== 0
+    }).map(t => {
+      return {
+        name: t.name,
+        amount: formatTax(Number(t[trade.side]))
+      }
+    })
+    setFormattedTaxes(formattedTaxes)
+  }, [taxes, trade])
 
   useEffect(() => {
     console.log('got a trade', trade)
@@ -50,13 +76,21 @@ function TradeCard () {
             <Card style={styles.card} key='trade-card'>
               <Row style={styles.tradeCardRow}>
                 <Col>Minimum received</Col>
-                <Col>{`${formatAmount(trade.amountOut)} ${trade?.tokenOut?.symbol}`}</Col>
+                <Col>{`${formatMinAmount(trade.amountOut)} ${trade?.tokenOut?.symbol}`}</Col>
               </Row>
               <Divider></Divider>
               <Row style={styles.tradeCardRow}>
-                <Col>Total Tax</Col>
-                <Col>50%</Col>
+                <Col><strong>Total Tax</strong></Col>
+                <Col><strong>{formatTax(totalTax)}</strong></Col>
               </Row>
+              {
+                formattedTaxes ? formattedTaxes.map(t =>
+                  <Row style={styles.tradeCardRow}>
+                    <Col>{t?.name}</Col>
+                    <Col>{t.amount}</Col>
+                  </Row>
+                ) : ''
+              }
             </Card>
           }
         </QueueAnim>

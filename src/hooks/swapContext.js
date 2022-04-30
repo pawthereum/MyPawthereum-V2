@@ -99,31 +99,38 @@ const useSwapContext = () => {
     }
   }
 
-  const getAndSetTaxes = async (taxStructContract) => {
-    console.log('taxstruct', taxStructContract)
-    const taxList = await Promise.all([
-      taxStructContract.burnTaxBuyAmount(account),
-      taxStructContract.burnTaxSellAmount(account),
-      taxStructContract.liquidityTaxBuyAmount(account),
-      taxStructContract.liquidityTaxSellAmount(account),
-      taxStructContract.tax1Name(),
-      taxStructContract.tax1BuyAmount(account),
-      taxStructContract.tax1SellAmount(account),
-      taxStructContract.tax2Name(),
-      taxStructContract.tax2BuyAmount(account),
-      taxStructContract.tax2SellAmount(account),
-      taxStructContract.tax3Name(),
-      taxStructContract.tax3BuyAmount(account),
-      taxStructContract.tax3SellAmount(account),
-      taxStructContract.tax4Name(),
-      taxStructContract.tax4BuyAmount(account),
-      taxStructContract.tax4SellAmount(account),
-      taxStructContract.tokenTaxName(),
-      taxStructContract.tokenTaxBuyAmount(account),
-      taxStructContract.tokenTaxSellAmount(account),
-      taxStructContract.customTaxName(),
-    ])
-    console.log(taxList)
+  const getTaxes = async (taxStructContract) => {
+    let taxList = []
+    try {
+      taxList = await Promise.all([
+        taxStructContract.burnTaxBuyAmount(account),
+        taxStructContract.burnTaxSellAmount(account),
+        taxStructContract.liquidityTaxBuyAmount(account),
+        taxStructContract.liquidityTaxSellAmount(account),
+        taxStructContract.tax1Name(),
+        taxStructContract.tax1BuyAmount(account),
+        taxStructContract.tax1SellAmount(account),
+        taxStructContract.tax2Name(),
+        taxStructContract.tax2BuyAmount(account),
+        taxStructContract.tax2SellAmount(account),
+        taxStructContract.tax3Name(),
+        taxStructContract.tax3BuyAmount(account),
+        taxStructContract.tax3SellAmount(account),
+        taxStructContract.tax4Name(),
+        taxStructContract.tax4BuyAmount(account),
+        taxStructContract.tax4SellAmount(account),
+        taxStructContract.tokenTaxName(),
+        taxStructContract.tokenTaxBuyAmount(account),
+        taxStructContract.tokenTaxSellAmount(account),
+        taxStructContract.customTaxName(),
+      ])
+    } catch (e) {
+      console.log('error getting tax list', e)
+      return openNotification({
+        message: "⚠️ Error getting taxes for token!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
     const taxes = [
       {
         name: 'Burn Tax',
@@ -166,7 +173,7 @@ const useSwapContext = () => {
         sell: 0
       }
     ]
-    setTaxes(taxes)
+    return taxes
   }
 
   const fetchTaxStructure = async (tokenAddr) => {
@@ -187,8 +194,8 @@ const useSwapContext = () => {
         web3.getSigner()
       )
       setTokenTaxContract(newStruct)
-      const taxes = await getAndSetTaxes(newStruct)
-      console.log('taxes', taxes)
+      const taxes = await getTaxes(newStruct)
+      setTaxes(taxes)
       return { taxStructureContract: newStruct, taxes }
     } catch (e) {
       console.log('error getting token tax contract')
@@ -223,7 +230,6 @@ const useSwapContext = () => {
     const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency
     const taxStructure = await fetchTaxStructure(tokenRequiringTaxStructure.address)
     const { taxStructureContract, taxes } = taxStructure
-    console.log('taxstruct', taxStructure)
 
     const amount = estimatedSide === 'input' 
       ? Number(Moralis.Units.FromWei(outputAmount, outputCurrency?.decimals))
@@ -249,7 +255,8 @@ const useSwapContext = () => {
       tokenOut: outputCurrency,
       amountIn,
       amountOut,
-      side
+      side,
+      taxes
     })
   }
 
@@ -322,6 +329,7 @@ const useSwapContext = () => {
     tokenList,
     trade,
     executeSwap,
+    taxes,
   }
 }
 
