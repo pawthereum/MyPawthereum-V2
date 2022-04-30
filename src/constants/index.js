@@ -32,6 +32,8 @@ export const DISQUS_ID = 'mypawth'
 
 export const DECIMALS = 9
 
+export const DEFAULT_SLIPPAGE = 0.02
+
 export const SLIPPAGE = {
   '0x1': 3,
   'eth': 3,

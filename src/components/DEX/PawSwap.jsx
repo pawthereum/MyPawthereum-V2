@@ -1,11 +1,13 @@
 import { useContext, useEffect, useState } from 'react';
 import { Button, Row, Col, Space, Card } from 'antd'
-import { SettingOutlined, ArrowDownOutlined } from "@ant-design/icons";
+import { ArrowDownOutlined } from "@ant-design/icons";
 import CurrencyAmountInput from './components/CurrencyInputAmount.jsx'
 import AppContext from '../../AppContext'
 import { useERC20Balance } from '../../hooks/useERC20Balance';
 import { useMoralis } from 'react-moralis'
-import TradeCard from './components/TradeCard.jsx';
+import TradeCard from './components/TradeCard';
+import Settings from './components/Settings'
+import { DEFAULT_SLIPPAGE } from '../../constants'
 
 const defaultBg = '#dfdfdf';
 
@@ -31,7 +33,7 @@ function PawSwap() {
   const [outputColor, setOutputColor] = useState(defaultBg)
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
   const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
-  const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap } = useContext(AppContext);
+  const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap, slippage } = useContext(AppContext);
   const [swapButtonIsLoading, setSwapButtonIsLoading] = useState(false)
 
   const trySwap = async () => {
@@ -78,7 +80,7 @@ function PawSwap() {
                 PawSwap
               </Col>
               <Col span={12} style={{ display: 'flex', justifyContent: 'end' }}>
-                <SettingOutlined />
+                <Settings />
               </Col>
             </Row>
           }>            
@@ -144,6 +146,13 @@ function PawSwap() {
                   </Row>
                 </Col>
               </Row>
+              {
+                slippage === DEFAULT_SLIPPAGE ? '' :
+                <Row style={{ fontSize: '0.80rem', display: 'flex', justifyContent: 'space-between' }}>
+                  <Col span={12}>Slippage Tolerance</Col>
+                  <Col>{slippage * 100}%</Col>
+                </Row>
+              }
               <Row>
                 <Col span={24}>
                   <Button
@@ -151,7 +160,7 @@ function PawSwap() {
                     size="large"
                     style={{
                       width: "100%",
-                      marginTop: "15px",
+                      marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,
                       borderRadius: "0.6rem",
                       height: "50px",
                     }}

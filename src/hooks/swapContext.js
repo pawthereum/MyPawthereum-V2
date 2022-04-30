@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { tokenList as defaultTokenList } from '../constants/tokenList'
-import { PAWSWAP_ROUTER, PANCAKESWAP_ROUTER, PAWSWAP } from '../constants'
+import { PAWSWAP_ROUTER, PANCAKESWAP_ROUTER, PAWSWAP, DEFAULT_SLIPPAGE } from '../constants'
 import { notification } from 'antd'
 import { networkConfigs } from 'helpers/networks'
 import { taxStructureAbi } from 'constants/abis/taxStructure'
@@ -29,7 +29,12 @@ const useSwapContext = () => {
   const [tokenList, setTokenList] = useState([])
   const [tokenTaxContract, setTokenTaxContract] = useState(null)
   const [tokenTaxContractFeeDecimal, setTokenTaxContractFeeDecimal] = useState(null)
-  const [taxes, setTaxes] = useState(null) 
+  const [taxes, setTaxes] = useState(null)
+  const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE)
+
+  const updateSlippage = (amt) => {
+    setSlippage(Number(amt) / 100)
+  }
 
   const updateEstimatedSide = (side) => {
     setEstimatedSide(side)
@@ -269,7 +274,7 @@ const useSwapContext = () => {
       amountOut = Number(amountOut) - Number(amountOut) * liqTax
     }
 
-    const slippage = 0.02 // TODO: make this a setting
+    console.log('slippage', slippage)
     const amountOutSlippage = Moralis.Units.Token(
       (amountOut * (1 - slippage)).toFixed(outputCurrency.decimals),
       outputCurrency.decimals
@@ -367,7 +372,7 @@ const useSwapContext = () => {
     })
     createTrade()
 
-  }, [inputAmount, outputAmount, inputCurrency, outputCurrency])
+  }, [inputAmount, outputAmount, inputCurrency, outputCurrency, slippage])
 
   return { 
     updateEstimatedSide, 
@@ -385,6 +390,8 @@ const useSwapContext = () => {
     executeSwap,
     taxes,
     tokenTaxContractFeeDecimal,
+    slippage,
+    updateSlippage
   }
 }
 
