@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { tokenList as defaultTokenList } from '../constants/tokenList'
-import { PAWSWAP_FACTORY, PANCAKESWAP_FACTORY } from '../constants'
+import { PAWSWAP_FACTORY, PANCAKESWAP_FACTORY, PANCAKESWAP_ROUTER, PAWSWAP } from '../constants'
 import { notification } from 'antd'
+import { networkConfigs } from 'helpers/networks'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -17,7 +18,7 @@ const openNotification = ({ message, description, link }) => {
 };
 
 const useSwapContext = () => {
-  const { Moralis, chainId, web3 } = useMoralis()
+  const { Moralis, chainId, web3, account } = useMoralis()
   const [estimatedSide, setEstimatedSide] = useState(null)
   const [inputCurrency, setInputCurrency] = useState(null)
   const [inputAmount, setInputAmount] = useState(null)
@@ -28,6 +29,12 @@ const useSwapContext = () => {
 
   const updateEstimatedSide = (side) => {
     setEstimatedSide(side)
+  }
+
+  const determineSide = (inputCurrency) => {
+    const nativeAddr = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+    if (inputCurrency.address.toLowerCase() === nativeAddr) return 'buy'
+    return inputCurrency.address.toLowerCase() === networkConfigs[chainId].wrapped?.toLowerCase() ? 'buy' : 'sell'
   }
 
   const updateInputCurrency = async (currency) => {
@@ -136,6 +143,44 @@ const useSwapContext = () => {
     })
   }
 
+  async function executeSwap (trade) {
+    const { tokenIn, tokenOut, amountIn, amountOut } = trade
+    const side = determineSide(tokenIn)
+    const web3Provider = Moralis.web3Library;
+    const pawswap = new web3Provider.Contract(
+      PAWSWAP[chainId]?.address,
+      PAWSWAP[chainId]?.abi,
+      web3.getSigner()
+    )
+    try {
+      if (side === 'buy') {
+        return await pawswap.buyOnPawSwap(
+          tokenOut.address,
+          '0',
+          account,
+          '0',
+          '0',
+          { value: Moralis.Units.Token(amountIn, 18) }
+        )
+      } else {
+        return await pawswap.sellOnPawSwap(
+          tokenIn.address,
+          Moralis.Units.Token(amountIn, tokenIn.decimals),
+          '0',
+          account,
+          '0',
+          '0',
+        )
+      }
+    } catch (e) {
+      console.log('error doing swap', e)
+      return openNotification({
+        message: "⚠️ Error swapping!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
   useEffect(() => {
     setTokenList(defaultTokenList.tokens)
   }, [defaultTokenList])
@@ -167,6 +212,7 @@ const useSwapContext = () => {
     inputAmount,
     tokenList,
     trade,
+    executeSwap,
   }
 }
 

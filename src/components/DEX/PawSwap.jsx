@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Row, Col, Space, Card } from 'antd'
+import { Button, Row, Col, Space, Card } from 'antd'
 import { SettingOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import CurrencyAmountInput from './components/CurrencyInputAmount.jsx'
 import AppContext from '../../AppContext'
@@ -30,8 +30,13 @@ function PawSwap() {
   const [outputColor, setOutputColor] = useState(defaultBg)
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
   const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
-  const { estimatedSide, inputCurrency, outputCurrency } = useContext(AppContext);
+  const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap } = useContext(AppContext);
 
+  const trySwap = async () => {
+    console.log('about to try')
+    const swap = await executeSwap(trade)
+    console.log('swap is ', swap)
+  }
 
   useEffect(() => {
     if (!inputCurrency) return setInputCurrencyBalance(null)
@@ -133,6 +138,23 @@ function PawSwap() {
                       <CurrencyAmountInput side="output" />
                     </Col>
                   </Row>
+                </Col>
+              </Row>
+              <Row>
+                <Col span={24}>
+                  <Button
+                    type="primary"
+                    size="large"
+                    style={{
+                      width: "100%",
+                      marginTop: "15px",
+                      borderRadius: "0.6rem",
+                      height: "50px",
+                    }}
+                    onClick={() => trySwap()}
+                  >
+                    Swap 🔁
+                  </Button>
                 </Col>
               </Row>
             </Space>

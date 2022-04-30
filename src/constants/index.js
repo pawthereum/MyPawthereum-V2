@@ -13,8 +13,8 @@ export const PAWTH_ADDRESS = {
   '0x38': '0x409e215738e31d8ab252016369c2dd9c2008fee0', // bsc mainnet
   'bsc': '0x409e215738e31d8ab252016369c2dd9c2008fee0',
   '0x4': '0x459BC05bF203cEd24E76c598B507aEAa9eD36C28', // rinkeby testnet
-  '0x61': '0x2F7D5B09a0Ad9d31dD1e6Ad8f3d0509aD3aeafFe', // bsc testnet
-  'bsctest': '0x2F7D5B09a0Ad9d31dD1e6Ad8f3d0509aD3aeafFe',
+  '0x61': '0x33ec6D5bdb757109C6929eB9c0B21c23f6a694a8', // bsc testnet
+  'bsctest': '0x33ec6D5bdb757109C6929eB9c0B21c23f6a694a8',
 }
 
 export const SHIBA_LP_ADDRESS = '0xc57dc778a0d2d150d04fc0fd09a0113ebe9d600c'
