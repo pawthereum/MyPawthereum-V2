@@ -13,13 +13,13 @@ export const tokenList = {
     {
       "name": "Pawthereum",
       "symbol": "PAWTH",
-      "address": "0x33ec6D5bdb757109C6929eB9c0B21c23f6a694a8",
+      "address": "0x3dda03ca78286ff415e8428ba9e75f6472351e7d",
       "chainId": 97,
       "decimals": 9,
       "logoURI": "https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png",
       "typicalBuyTax": 8,
       "typicalSellTax": 8,
-      "color": "#ff65b3"
+      "color": "#ff65b3",
     },
     {
       "name": "Wrapped BNB",

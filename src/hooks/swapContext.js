@@ -4,6 +4,7 @@ import { tokenList as defaultTokenList } from '../constants/tokenList'
 import { PAWSWAP_FACTORY, PANCAKESWAP_FACTORY, PANCAKESWAP_ROUTER, PAWSWAP } from '../constants'
 import { notification } from 'antd'
 import { networkConfigs } from 'helpers/networks'
+import { taxStructureAbi } from 'constants/abis/taxStructure'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -26,6 +27,8 @@ const useSwapContext = () => {
   const [outputAmount, setOutputAmount] = useState(null)
   const [trade, setTrade] = useState(null)
   const [tokenList, setTokenList] = useState([])
+  const [tokenTaxContract, setTokenTaxContract] = useState(null)
+  const [taxes, setTaxes] = useState(null) 
 
   const updateEstimatedSide = (side) => {
     setEstimatedSide(side)
@@ -74,7 +77,6 @@ const useSwapContext = () => {
       params.exchangeAbi,
       web3.getSigner()
     )
-    console.log('params.exchange', params)
 
     try {
       const pairAddress = await factoryContract.getPair(
@@ -89,9 +91,109 @@ const useSwapContext = () => {
       return await pairContract.getReserves()
 
     } catch (e) {
-      console.log('error getting reserves')
+      console.log('error getting reserves', e)
       return openNotification({
         message: "⚠️ Error getting reserves!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  const getAndSetTaxes = async (taxStructContract) => {
+    console.log('taxstruct', taxStructContract)
+    const taxList = await Promise.all([
+      taxStructContract.burnTaxBuyAmount(account),
+      taxStructContract.burnTaxSellAmount(account),
+      taxStructContract.liquidityTaxBuyAmount(account),
+      taxStructContract.liquidityTaxSellAmount(account),
+      taxStructContract.tax1Name(),
+      taxStructContract.tax1BuyAmount(account),
+      taxStructContract.tax1SellAmount(account),
+      taxStructContract.tax2Name(),
+      taxStructContract.tax2BuyAmount(account),
+      taxStructContract.tax2SellAmount(account),
+      taxStructContract.tax3Name(),
+      taxStructContract.tax3BuyAmount(account),
+      taxStructContract.tax3SellAmount(account),
+      taxStructContract.tax4Name(),
+      taxStructContract.tax4BuyAmount(account),
+      taxStructContract.tax4SellAmount(account),
+      taxStructContract.tokenTaxName(),
+      taxStructContract.tokenTaxBuyAmount(account),
+      taxStructContract.tokenTaxSellAmount(account),
+      taxStructContract.customTaxName(),
+    ])
+    console.log(taxList)
+    const taxes = [
+      {
+        name: 'Burn Tax',
+        buy: taxList[0],
+        sell: taxList[1]
+      },
+      {
+        name: 'Liquidity Tax',
+        buy: taxList[2],
+        sell: taxList[3]
+      },
+      {
+        name: taxList[4],
+        buy: taxList[5],
+        sell: taxList[6]
+      },
+      {
+        name: taxList[7],
+        buy: taxList[8],
+        sell: taxList[9]
+      },
+      {
+        name: taxList[10],
+        buy: taxList[11],
+        sell: taxList[12]
+      },
+      {
+        name: taxList[13],
+        buy: taxList[14],
+        sell: taxList[15]
+      },
+      {
+        name: taxList[16],
+        buy: taxList[17],
+        sell: taxList[18]
+      },
+      {
+        name: taxList[19],
+        buy: 0,
+        sell: 0
+      }
+    ]
+    setTaxes(taxes)
+  }
+
+  const fetchTaxStructure = async (tokenAddr) => {
+    const web3Provider = Moralis.web3Library;
+
+    const pawswap = new web3Provider.Contract(
+      PAWSWAP[chainId]?.address,
+      PAWSWAP[chainId]?.abi,
+      web3.getSigner()
+    )
+
+    try {
+      const taxStructAddr = await pawswap.tokenTaxContracts(tokenAddr)
+      if (taxStructAddr.toLowerCase() === tokenTaxContract?.address) return tokenTaxContract
+      const newStruct = new web3Provider.Contract(
+        taxStructAddr,
+        taxStructureAbi,
+        web3.getSigner()
+      )
+      setTokenTaxContract(newStruct)
+      const taxes = await getAndSetTaxes(newStruct)
+      console.log('taxes', taxes)
+      return { taxStructureContract: newStruct, taxes }
+    } catch (e) {
+      console.log('error getting token tax contract')
+      return openNotification({
+        message: "⚠️ Error getting tax structure for token!",
         description: `${e.message} ${e.data?.message}`
       });
     }
@@ -116,6 +218,13 @@ const useSwapContext = () => {
     const token0Reserves =  Number(Moralis.Units.FromWei(pairReserves[0], inputCurrency?.decimals))
     const token1Reserves = Number(Moralis.Units.FromWei(pairReserves[1], outputCurrency?.decimals))
     
+    const side = determineSide(inputCurrency)
+
+    const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency
+    const taxStructure = await fetchTaxStructure(tokenRequiringTaxStructure.address)
+    const { taxStructureContract, taxes } = taxStructure
+    console.log('taxstruct', taxStructure)
+
     const amount = estimatedSide === 'input' 
       ? Number(Moralis.Units.FromWei(outputAmount, outputCurrency?.decimals))
       : Number(Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals))
@@ -134,8 +243,6 @@ const useSwapContext = () => {
     const amountIn = estimatedSide === 'input'
       ? inputAmount
       : Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals)
-    
-    const side = determineSide(inputCurrency)
 
     setTrade({
       tokenIn: inputCurrency,
