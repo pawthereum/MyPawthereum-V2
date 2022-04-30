@@ -268,9 +268,10 @@ const useSwapContext = () => {
       PAWSWAP[chainId]?.abi,
       web3.getSigner()
     )
+    let swapReq
     try {
       if (side === 'buy') {
-        return await pawswap.buyOnPawSwap(
+        swapReq = await pawswap.buyOnPawSwap(
           tokenOut.address,
           '0',
           account,
@@ -279,7 +280,7 @@ const useSwapContext = () => {
           { value: Moralis.Units.Token(amountIn, 18) }
         )
       } else {
-        return await pawswap.sellOnPawSwap(
+        swapReq = await pawswap.sellOnPawSwap(
           tokenIn.address,
           Moralis.Units.Token(amountIn, tokenIn.decimals),
           '0',
@@ -292,6 +293,27 @@ const useSwapContext = () => {
       console.log('error doing swap', e)
       return openNotification({
         message: "⚠️ Error swapping!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+
+    openNotification({
+      message: "🔊 Swap Submitted!",
+      description: `${swapReq.hash}`,
+      link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + swapReq.hash
+    })
+
+    try {
+      const tx = await swapReq.wait()
+      openNotification({
+        message: "🎉 Swap Complete!",
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      })
+      return tx
+    } catch (e) {
+      openNotification({
+        message: "⚠️ Swap Error!",
         description: `${e.message} ${e.data?.message}`
       });
     }

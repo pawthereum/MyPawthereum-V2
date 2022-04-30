@@ -2,7 +2,6 @@ import { Row, Col, Card, Divider } from 'antd'
 import QueueAnim from 'rc-queue-anim'
 import AppContext from '../../../AppContext'
 import { useContext, useEffect, useState } from 'react'
-import Sider from 'antd/lib/layout/Sider'
 
 const styles = {
   card: {
@@ -85,7 +84,7 @@ function TradeCard () {
               </Row>
               {
                 formattedTaxes ? formattedTaxes.map(t =>
-                  <Row style={styles.tradeCardRow}>
+                  <Row style={styles.tradeCardRow} key={t.name}>
                     <Col>{t?.name}</Col>
                     <Col>{t.amount}</Col>
                   </Row>
