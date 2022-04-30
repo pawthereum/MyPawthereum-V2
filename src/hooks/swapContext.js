@@ -231,9 +231,15 @@ const useSwapContext = () => {
     const taxStructure = await fetchTaxStructure(tokenRequiringTaxStructure.address)
     const { taxStructureContract, taxes } = taxStructure
 
-    const amount = estimatedSide === 'input' 
+    const totalTax = taxes.reduce((p, t) => {
+      return p + Number(t[side])
+    }, 0)
+
+    const amountPreTax = estimatedSide === 'input' 
       ? Number(Moralis.Units.FromWei(outputAmount, outputCurrency?.decimals))
       : Number(Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals))
+
+    const amount = amountPreTax - amountPreTax * totalTax / 10000
 
     const k = token0Reserves * token1Reserves
     let amountOut
