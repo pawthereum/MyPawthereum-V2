@@ -28,6 +28,7 @@ const useSwapContext = () => {
   const [trade, setTrade] = useState(null)
   const [tokenList, setTokenList] = useState([])
   const [tokenTaxContract, setTokenTaxContract] = useState(null)
+  const [tokenTaxContractFeeDecimal, setTokenTaxContractFeeDecimal] = useState(null)
   const [taxes, setTaxes] = useState(null) 
 
   const updateEstimatedSide = (side) => {
@@ -239,7 +240,9 @@ const useSwapContext = () => {
       ? Number(Moralis.Units.FromWei(outputAmount, outputCurrency?.decimals))
       : Number(Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals))
 
-    const amount = amountPreTax - amountPreTax * totalTax / 10000
+    const feeDecimal = await taxStructureContract.feeDecimal()
+    setTokenTaxContractFeeDecimal(feeDecimal)
+    const amount = amountPreTax - amountPreTax * totalTax / 100**feeDecimal
 
     const k = token0Reserves * token1Reserves
     let amountOut
@@ -358,6 +361,7 @@ const useSwapContext = () => {
     trade,
     executeSwap,
     taxes,
+    tokenTaxContractFeeDecimal,
   }
 }
 

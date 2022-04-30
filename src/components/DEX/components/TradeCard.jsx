@@ -20,7 +20,7 @@ const styles = {
 
 function TradeCard () {
   const [showTradeCard, setShowTradeCard] = useState(false)
-  const { trade, taxes } = useContext(AppContext);
+  const { trade, taxes, tokenTaxContractFeeDecimal } = useContext(AppContext);
   const [totalTax, setTotalTax] = useState(0)
   const [formattedTaxes, setFormattedTaxes] = useState(null)
 
@@ -33,7 +33,7 @@ function TradeCard () {
   }
 
   const formatTax = (tax) => {
-    return tax / 100 + '%'
+    return tax / 10**tokenTaxContractFeeDecimal + '%'
   }
 
   useEffect(() => {
