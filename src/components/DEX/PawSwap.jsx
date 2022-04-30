@@ -5,6 +5,7 @@ import CurrencyAmountInput from './components/CurrencyInputAmount.jsx'
 import AppContext from '../../AppContext'
 import { useERC20Balance } from '../../hooks/useERC20Balance';
 import { useMoralis } from 'react-moralis'
+import TradeCard from './components/TradeCard.jsx';
 
 const defaultBg = '#dfdfdf';
 
@@ -66,10 +67,6 @@ function PawSwap() {
       setOutputColor(outputCurrency?.color)
     }
   }, [inputCurrency, outputCurrency])
-
-  useEffect(() => {
-    console.log('got a trade', trade)
-  }, [trade])
 
   return (
     <div>
@@ -169,6 +166,7 @@ function PawSwap() {
           </Card>
         </Col>
       </Row>
+      <TradeCard></TradeCard>
     </div>
   )
 }
