@@ -31,10 +31,13 @@ function PawSwap() {
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
   const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
   const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap } = useContext(AppContext);
+  const [swapButtonIsLoading, setSwapButtonIsLoading] = useState(false)
 
   const trySwap = async () => {
     console.log('about to try')
+    setSwapButtonIsLoading(true)
     const swap = await executeSwap(trade)
+    setSwapButtonIsLoading(false)
     console.log('swap is ', swap)
   }
 
@@ -152,6 +155,7 @@ function PawSwap() {
                       height: "50px",
                     }}
                     onClick={() => trySwap()}
+                    loading={swapButtonIsLoading}
                   >
                     Swap 🔁
                   </Button>
