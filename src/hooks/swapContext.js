@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { tokenList as defaultTokenList } from '../constants/tokenList'
-import { PAWSWAP_FACTORY, PANCAKESWAP_FACTORY, PANCAKESWAP_ROUTER, PAWSWAP } from '../constants'
+import { PAWSWAP_ROUTER, PANCAKESWAP_ROUTER, PAWSWAP } from '../constants'
 import { notification } from 'antd'
 import { networkConfigs } from 'helpers/networks'
 import { taxStructureAbi } from 'constants/abis/taxStructure'
@@ -70,33 +70,43 @@ const useSwapContext = () => {
     setOutputAmount(Moralis.Units.Token(amount, decimals))
   }
 
-  const fetchPairReserves = async (params) => {
-    const web3Provider = Moralis.web3Library;
+  const fetchQuote = async (params) => {
+    const web3Provider = Moralis.web3Library
 
-    const factoryContract = new web3Provider.Contract(
-      params.exchangeAddress,
-      params.exchangeAbi,
+    const routerContract = new web3Provider.Contract(
+      params.routerAddress,
+      params.routerAbi,
       web3.getSigner()
     )
-
-    try {
-      const pairAddress = await factoryContract.getPair(
-        params.token0,
-        params.token1
-      )
-      const pairContract = new web3Provider.Contract(
-        pairAddress,
-        [ "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)"],
-        web3.getSigner()
-      )
-      return await pairContract.getReserves()
-
-    } catch (e) {
-      console.log('error getting reserves', e)
-      return openNotification({
-        message: "⚠️ Error getting reserves!",
-        description: `${e.message} ${e.data?.message}`
-      });
+    
+    if (params.estimatedSide === 'output') {
+      try {
+        const amounts = await routerContract.getAmountsOut(
+          params.amount,
+          [params.inputCurrency.address, params.outputCurrency.address]
+        )
+        return Moralis.Units.FromWei(amounts[1], params.outputCurrency?.decimals)
+      } catch (e) {
+        console.log('error getting quote', e)
+        openNotification({
+          message: "⚠️ Error Fetching Quote!",
+          description: `${e.message} ${e.data?.message}`
+        });
+      }
+    } else {
+      try {
+        const amounts = await routerContract.getAmountsIn(
+          params.amount
+          [params.outputCurrency.address, params.inputCurrency.address]
+        )
+        return Moralis.Units.FromWei(amounts[0], params.inputCurrency?.decimals)
+      } catch (e) {
+        console.log('error getting quote')
+        openNotification({
+          message: "⚠️ Error Fetching Quote!",
+          description: `${e.message} ${e.data?.message}`
+        });
+      }
     }
   }
 
@@ -136,12 +146,14 @@ const useSwapContext = () => {
       {
         name: 'Burn Tax',
         buy: taxList[0],
-        sell: taxList[1]
+        sell: taxList[1],
+        isBurn: true,
       },
       {
         name: 'Liquidity Tax',
         buy: taxList[2],
-        sell: taxList[3]
+        sell: taxList[3],
+        isLiquidity: true,
       },
       {
         name: taxList[4],
@@ -208,24 +220,14 @@ const useSwapContext = () => {
   }
 
   async function createTrade () {
-    const exchangeAddress = inputCurrency.dex === 'pancakeswap' 
-      ? PANCAKESWAP_FACTORY[chainId]?.address
-      : PAWSWAP_FACTORY[chainId]?.address
+    const routerAddress = inputCurrency.dex === 'pancakeswap' 
+      ? PANCAKESWAP_ROUTER[chainId]?.address
+      : PAWSWAP_ROUTER[chainId]?.address
     
-    const exchangeAbi = inputCurrency === 'pancakeswap'
-      ? PANCAKESWAP_FACTORY[chainId]?.abi
-      : PAWSWAP_FACTORY[chainId]?.abi
+    const routerAbi = inputCurrency === 'pancakeswap'
+      ? PANCAKESWAP_ROUTER[chainId]?.abi
+      : PAWSWAP_ROUTER[chainId]?.abi
 
-    const pairReserves = await fetchPairReserves({
-      token0: inputCurrency.address,
-      token1: outputCurrency.address,
-      exchangeAddress: exchangeAddress,
-      exchangeAbi: exchangeAbi
-    })
-
-    const token0Reserves =  Number(Moralis.Units.FromWei(pairReserves[0], inputCurrency?.decimals))
-    const token1Reserves = Number(Moralis.Units.FromWei(pairReserves[1], outputCurrency?.decimals))
-    
     const side = determineSide(inputCurrency)
 
     const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency
@@ -243,16 +245,28 @@ const useSwapContext = () => {
     const feeDecimal = await taxStructureContract.feeDecimal()
     setTokenTaxContractFeeDecimal(feeDecimal)
     const amount = amountPreTax - amountPreTax * totalTax / 100**feeDecimal
+    
+    const MAX_DECIMALS = 18
+    const amountWei = estimatedSide === 'input' 
+      ? Moralis.Units.Token(amount.toFixed(MAX_DECIMALS), outputCurrency?.decimals)
+      : Moralis.Units.Token(amount.toFixed(MAX_DECIMALS), inputCurrency?.decimals)
 
-    const k = token0Reserves * token1Reserves
-    let amountOut
+    let amountOut = await fetchQuote({
+      routerAddress,
+      routerAbi,
+      inputCurrency,
+      outputCurrency,
+      amount: amountWei,
+      side,
+      estimatedSide
+    })
 
-    if (estimatedSide === 'output') {
-      const newToken1Reserve = k / (token0Reserves + amount)
-      amountOut = token1Reserves - newToken1Reserve
-    } else {
-      const newToken0Reserve = k / (token1Reserves + amount)
-      amountOut = token0Reserves - newToken0Reserve
+    // liquidity taxes aren't accounted for in quotes
+    const liqTaxSearch = taxes.find(t => t.isLiquidity)
+    const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side]) / 100**feeDecimal
+    
+    if (liqTax > 0) {
+      amountOut = Number(amountOut) - Number(amountOut) * liqTax
     }
 
     const amountIn = estimatedSide === 'input'
@@ -337,6 +351,8 @@ const useSwapContext = () => {
       inputAmount, outputAmount, inputCurrency, outputCurrency
     })
     if (!inputAmount && !outputAmount) return
+    if (inputAmount === "0" && !outputAmount) return
+    if (!inputAmount && outputAmount === "0") return
     if (!inputCurrency || !outputCurrency) return
 
     console.log('we have a trade!', {

@@ -1,4 +1,5 @@
 import { pawswapRouterAbi } from './abis/pawswapRouter'
+import { pancakeswapRouterAbi } from './abis/pancakeswapRouter'
 import { pawswapFactoryAbi } from './abis/pawswapFactory'
 import { pancakeswapFactoryAbi } from './abis/pancakeswapFactory'
 import { ERC20Abi } from './abis/erc20'
@@ -175,6 +176,33 @@ export const PANCAKESWAP_FACTORY = {
   'bsctest': {
     abi: pancakeswapFactoryAbi,
     address: '0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc',
+  },
+}
+
+export const PANCAKESWAP_ROUTER = {
+  '0x1': {
+    abi: pancakeswapRouterAbi,
+    address: '',
+  },
+  'eth': {
+    abi: pancakeswapRouterAbi,
+    address: '',
+  },
+  '0x38': {
+    abi: pancakeswapRouterAbi,
+    address: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+  },
+  'bsc': {
+    abi: pancakeswapRouterAbi,
+    address: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+  },
+  '0x61': {
+    abi: pancakeswapRouterAbi,
+    address: '0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3',
+  },
+  'bsctest': {
+    abi: pancakeswapRouterAbi,
+    address: '0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3',
   },
 }
 
