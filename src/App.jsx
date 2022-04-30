@@ -198,7 +198,7 @@ const App = ({ isServerInfo }) => {
               <Route path="/pawswap">
                 {/* <DexComingSoon /> */}
                 {
-                  chainId === '0x61' ?  <PawSwap /> : <DEX chain="eth"/>
+                  chainId === '0x61' ?  <PawSwap /> : <DexComingSoon/>
                 }
                 {/* <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
                   <Tabs.TabPane tab={<span>Ethereum</span>} key="1">
