@@ -269,6 +269,12 @@ const useSwapContext = () => {
       amountOut = Number(amountOut) - Number(amountOut) * liqTax
     }
 
+    const slippage = 0.02 // TODO: make this a setting
+    const amountOutSlippage = Moralis.Units.Token(
+      (amountOut * (1 - slippage)).toFixed(outputCurrency.decimals),
+      outputCurrency.decimals
+    )
+
     const amountIn = estimatedSide === 'input'
       ? inputAmount
       : Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals)
@@ -278,13 +284,14 @@ const useSwapContext = () => {
       tokenOut: outputCurrency,
       amountIn,
       amountOut,
+      amountOutSlippage,
       side,
       taxes
     })
   }
 
   async function executeSwap (trade) {
-    const { tokenIn, tokenOut, amountIn, amountOut, side } = trade
+    const { tokenIn, tokenOut, amountIn, amountOutSlippage, side } = trade
     const web3Provider = Moralis.web3Library;
     const pawswap = new web3Provider.Contract(
       PAWSWAP[chainId]?.address,
@@ -299,7 +306,7 @@ const useSwapContext = () => {
           '0',
           account,
           '0',
-          '0',
+          amountOutSlippage,
           { value: Moralis.Units.Token(amountIn, 18) }
         )
       } else {
@@ -309,7 +316,7 @@ const useSwapContext = () => {
           '0',
           account,
           '0',
-          '0',
+          amountOutSlippage,
         )
       }
     } catch (e) {

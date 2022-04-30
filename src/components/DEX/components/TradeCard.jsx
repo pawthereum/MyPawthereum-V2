@@ -1,3 +1,4 @@
+import { useMoralis } from 'react-moralis'
 import { Row, Col, Card, Divider } from 'antd'
 import QueueAnim from 'rc-queue-anim'
 import AppContext from '../../../AppContext'
@@ -19,14 +20,16 @@ const styles = {
 }
 
 function TradeCard () {
+  const { Moralis } = useMoralis()
   const [showTradeCard, setShowTradeCard] = useState(false)
   const { trade, taxes, tokenTaxContractFeeDecimal } = useContext(AppContext);
   const [totalTax, setTotalTax] = useState(0)
   const [formattedTaxes, setFormattedTaxes] = useState(null)
 
   const formatMinAmount = (amt) => {
-    const maxDigits = Number(amt) > 1 ? 0 : 6
-    return Math.floor(amt).toLocaleString([], {
+    const amtEth = Moralis.Units.FromWei(amt, trade.tokenOut.decimals)
+    const maxDigits = Number(amtEth) > 1 ? 0 : 6
+    return Math.floor(amtEth).toLocaleString([], {
       minimumFractionDigits: 0,
       maximumFractionDigits: maxDigits
     })
@@ -75,7 +78,7 @@ function TradeCard () {
             <Card style={styles.card} key='trade-card'>
               <Row style={styles.tradeCardRow}>
                 <Col>Minimum received</Col>
-                <Col>{`${formatMinAmount(trade.amountOut)} ${trade?.tokenOut?.symbol}`}</Col>
+                <Col>{`${formatMinAmount(trade.amountOutSlippage)} ${trade?.tokenOut?.symbol}`}</Col>
               </Row>
               <Divider></Divider>
               <Row style={styles.tradeCardRow}>
