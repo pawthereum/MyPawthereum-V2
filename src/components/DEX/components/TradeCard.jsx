@@ -35,6 +35,14 @@ function TradeCard () {
     })
   }
 
+  const formatPriceImpact = (amt) => {
+    const maxDigits = Number(amt) > 1 ? 0 : 4
+    return amt.toLocaleString([], { 
+      minimumFractionDigits: 0,
+      maximumFractionDigits: maxDigits
+    }) + '%'
+  }
+
   const formatTax = (tax) => {
     return tax / 10**tokenTaxContractFeeDecimal + '%'
   }
@@ -82,7 +90,7 @@ function TradeCard () {
               </Row>
               <Row style={styles.tradeCardRow}>
                 <Col>Price Impact</Col>
-                <Col>{`${trade.priceImpact.toLocaleString([], { maximumFractionDigits: 2 })}%`}</Col>
+                <Col>{formatPriceImpact(trade.priceImpact)}</Col>
               </Row>
               <Divider></Divider>
               <Row style={{ ...styles.tradeCardRow, fontSize: '1rem' }}>
