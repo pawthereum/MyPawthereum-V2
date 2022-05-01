@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { tokenList as defaultTokenList } from '../constants/tokenList'
-import { PAWSWAP_ROUTER, PANCAKESWAP_ROUTER, PAWSWAP, DEFAULT_SLIPPAGE } from '../constants'
+import { PAWSWAP_ROUTER, PANCAKESWAP_ROUTER, PAWSWAP, DEFAULT_SLIPPAGE, PAWSWAP_FACTORY, PANCAKESWAP_FACTORY } from '../constants'
 import { notification } from 'antd'
 import { networkConfigs } from 'helpers/networks'
 import { taxStructureAbi } from 'constants/abis/taxStructure'
@@ -227,6 +227,37 @@ const useSwapContext = () => {
     }
   }
 
+  const fetchPairReserves = async (params) => {
+    const web3Provider = Moralis.web3Library;
+
+    const factoryContract = new web3Provider.Contract(
+      params.factoryAddress,
+      params.factoryAbi,
+      web3.getSigner()
+    )
+
+    try {
+      const pairAddress = await factoryContract.getPair(
+        params.token0,
+        params.token1
+      )
+      console.log('pair address', pairAddress)
+      const pairContract = new web3Provider.Contract(
+        pairAddress,
+        [ "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)"],
+        web3.getSigner()
+      )
+      return await pairContract.getReserves()
+
+    } catch (e) {
+      console.log('error getting reserves', e)
+      return openNotification({
+        message: "⚠️ Error getting reserves!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
   async function createTrade (params) {
     console.log('params', params)
     setTradeIsLoading(true)
@@ -287,6 +318,33 @@ const useSwapContext = () => {
     const amountIn = estimatedSide === 'input'
       ? inputAmount
       : Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals)
+    
+    // get price impact
+    // https://dailydefi.org/articles/price-impact-and-how-to-calculate/
+    const factoryAddress = inputCurrency.dex === 'pancakeswap' 
+      ? PANCAKESWAP_FACTORY[chainId]?.address
+      : PAWSWAP_FACTORY[chainId]?.address
+    
+    const factoryAbi = inputCurrency === 'pancakeswap'
+      ? PANCAKESWAP_FACTORY[chainId]?.abi
+      : PAWSWAP_FACTORY[chainId]?.abi
+
+    const pairReserves = await fetchPairReserves({
+      token0: inputCurrency.address,
+      token1: outputCurrency.address,
+      factoryAddress,
+      factoryAbi
+    })
+
+    const token0Reserves =  Number(Moralis.Units.FromWei(pairReserves[0], inputCurrency?.decimals))
+    const token1Reserves = Number(Moralis.Units.FromWei(pairReserves[1], outputCurrency?.decimals))
+    const k = token0Reserves * token1Reserves
+
+    const token0ReservesAfterSwap = token0Reserves + Number(amountIn)
+    const token1ReservesAfterSwap = k / token0ReservesAfterSwap
+    const priceBefore = token0Reserves / token1Reserves
+    const priceAfter = token0ReservesAfterSwap / token1ReservesAfterSwap
+    const priceImpact = (priceAfter - priceBefore) / priceBefore * 100 
 
     setTradeIsLoading(false)
     if (tradeNonce - 1 !== params.nonce) return false
@@ -297,7 +355,8 @@ const useSwapContext = () => {
       amountOut,
       amountOutSlippage,
       side,
-      taxes
+      taxes,
+      priceImpact
     })
   }
 

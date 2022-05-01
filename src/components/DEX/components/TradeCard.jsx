@@ -22,7 +22,7 @@ const styles = {
 function TradeCard () {
   const { Moralis } = useMoralis()
   const [showTradeCard, setShowTradeCard] = useState(false)
-  const { trade, taxes, tokenTaxContractFeeDecimal } = useContext(AppContext);
+  const { trade, taxes, tokenTaxContractFeeDecimal, priceImpact } = useContext(AppContext);
   const [totalTax, setTotalTax] = useState(0)
   const [formattedTaxes, setFormattedTaxes] = useState(null)
 
@@ -79,6 +79,10 @@ function TradeCard () {
               <Row style={styles.tradeCardRow}>
                 <Col>Minimum received</Col>
                 <Col>{`${formatMinAmount(trade.amountOutSlippage)} ${trade?.tokenOut?.symbol}`}</Col>
+              </Row>
+              <Row style={styles.tradeCardRow}>
+                <Col>Price Impact</Col>
+                <Col>{`${trade.priceImpact.toLocaleString([], { maximumFractionDigits: 2 })}%`}</Col>
               </Row>
               <Divider></Divider>
               <Row style={styles.tradeCardRow}>
