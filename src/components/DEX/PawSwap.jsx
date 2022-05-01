@@ -33,7 +33,7 @@ function PawSwap() {
   const [outputColor, setOutputColor] = useState(defaultBg)
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
   const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
-  const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap, slippage, tradeIsLoading } = useContext(AppContext);
+  const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap, slippage, tradeIsLoading, updateInputCurrency, updateOutputCurrency } = useContext(AppContext);
   const [swapButtonIsLoading, setSwapButtonIsLoading] = useState(false)
   const [inputIsLoading, setInputIsLoading] = useState(false)
   const [outputIsLoading, setOutputIsLoading] = useState(false)
@@ -44,6 +44,13 @@ function PawSwap() {
     const swap = await executeSwap(trade)
     setSwapButtonIsLoading(false)
     console.log('swap is ', swap)
+  }
+
+  const swapInputs = () => {
+    const newInput = outputCurrency
+    const newOutput = inputCurrency
+    updateInputCurrency(newInput)
+    updateOutputCurrency(newOutput)
   }
 
   useEffect(() => {
@@ -130,7 +137,7 @@ function PawSwap() {
               </Row>
               <Row>
                 <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
-                  <ArrowDownOutlined />
+                  <ArrowDownOutlined style={{ cursor: 'pointer' }} onClick={swapInputs} />
                 </Col>
               </Row>
               <Row 

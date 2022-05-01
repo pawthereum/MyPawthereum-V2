@@ -73,9 +73,11 @@ function CurrencyPicker (props) {
 
   useEffect(() => {
     if (props.side === 'input' && inputCurrency) {
+      setPickedCurrency(inputCurrency)
       setOmittedSelectionAddresses([inputCurrency?.address.toLowerCase()])
     } 
     if (props.side === 'output' && outputCurrency) {
+      setPickedCurrency(outputCurrency)
       setOmittedSelectionAddresses([outputCurrency?.address.toLowerCase()])
     }
 
