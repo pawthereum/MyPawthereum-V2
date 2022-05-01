@@ -33,8 +33,10 @@ function PawSwap() {
   const [outputColor, setOutputColor] = useState(defaultBg)
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
   const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
-  const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap, slippage } = useContext(AppContext);
+  const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap, slippage, tradeIsLoading } = useContext(AppContext);
   const [swapButtonIsLoading, setSwapButtonIsLoading] = useState(false)
+  const [inputIsLoading, setInputIsLoading] = useState(false)
+  const [outputIsLoading, setOutputIsLoading] = useState(false)
 
   const trySwap = async () => {
     console.log('about to try')
@@ -43,6 +45,16 @@ function PawSwap() {
     setSwapButtonIsLoading(false)
     console.log('swap is ', swap)
   }
+
+  useEffect(() => {
+    if (!tradeIsLoading) {
+      setInputIsLoading(false)
+      setOutputIsLoading(false)
+      return
+    }
+    if (estimatedSide === 'input') return setInputIsLoading(true)
+    return setOutputIsLoading(true)
+  }, [tradeIsLoading, estimatedSide])
 
   useEffect(() => {
     if (!inputCurrency) return setInputCurrencyBalance(null)
@@ -85,10 +97,13 @@ function PawSwap() {
             </Row>
           }>            
             <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-              <Row style={{ 
-                ...styles.inset, 
-                background: `linear-gradient(to top, ${inputColor} -105%, ${defaultBg})` 
-              }}>
+              <Row 
+                style={{ 
+                  ...styles.inset, 
+                  background: `linear-gradient(to top, ${inputColor} -105%, ${defaultBg})` 
+                }}
+                className={inputIsLoading ? 'pulse' : ''}
+              >
                 <Col span={24}>
                   <Row style={{ marginBottom: '5px' }}>
                     <Col span={10}>
@@ -118,10 +133,13 @@ function PawSwap() {
                   <ArrowDownOutlined />
                 </Col>
               </Row>
-              <Row style={{ 
-                ...styles.inset, 
-                background: `linear-gradient(to top, ${outputColor} -105%, ${defaultBg})` 
-              }}>
+              <Row 
+                style={{ 
+                  ...styles.inset, 
+                  background: `linear-gradient(to top, ${outputColor} -105%, ${defaultBg})` 
+                }}
+                className={outputIsLoading ? 'pulse' : ''}
+              >
                 <Col span={24}>
                   <Row style={{ marginBottom: '5px' }}>
                     <Col span={10}>

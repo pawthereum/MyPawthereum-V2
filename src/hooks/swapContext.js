@@ -18,6 +18,8 @@ const openNotification = ({ message, description, link }) => {
   });
 };
 
+let tradeNonce = 0
+
 const useSwapContext = () => {
   const { Moralis, chainId, web3, account } = useMoralis()
   const [estimatedSide, setEstimatedSide] = useState(null)
@@ -31,6 +33,7 @@ const useSwapContext = () => {
   const [tokenTaxContractFeeDecimal, setTokenTaxContractFeeDecimal] = useState(null)
   const [taxes, setTaxes] = useState(null)
   const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE)
+  const [tradeIsLoading, setTradeIsLoading] = useState(false)
 
   const updateSlippage = (amt) => {
     setSlippage(Number(amt) / 100)
@@ -224,7 +227,9 @@ const useSwapContext = () => {
     }
   }
 
-  async function createTrade () {
+  async function createTrade (params) {
+    console.log('params', params)
+    setTradeIsLoading(true)
     const routerAddress = inputCurrency.dex === 'pancakeswap' 
       ? PANCAKESWAP_ROUTER[chainId]?.address
       : PAWSWAP_ROUTER[chainId]?.address
@@ -274,7 +279,6 @@ const useSwapContext = () => {
       amountOut = Number(amountOut) - Number(amountOut) * liqTax
     }
 
-    console.log('slippage', slippage)
     const amountOutSlippage = Moralis.Units.Token(
       (amountOut * (1 - slippage)).toFixed(outputCurrency.decimals),
       outputCurrency.decimals
@@ -284,6 +288,8 @@ const useSwapContext = () => {
       ? inputAmount
       : Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals)
 
+    setTradeIsLoading(false)
+    if (tradeNonce - 1 !== params.nonce) return false
     setTrade({
       tokenIn: inputCurrency,
       tokenOut: outputCurrency,
@@ -367,10 +373,40 @@ const useSwapContext = () => {
     if (!inputAmount && outputAmount === "0") return
     if (!inputCurrency || !outputCurrency) return
 
+    // store these values and give it time before checking if they are the same
+    // if they are, the user is done typing and we should get the trade
+    // if they are not the same, the user is still typing
+    // const pendingTrade = {
+    //   inputAmount,
+    //   outputAmount,
+    //   inputCurrency: inputCurrency?.address,
+    //   outputCurrency: outputCurrency?.address,
+    //   slippage,
+    // }
+    // setTimeout(() => {
+    //   if (
+    //     inputAmount !== pendingTrade.inputAmount ||
+    //     outputAmount !== pendingTrade.outputAmount ||
+    //     inputCurrency?.address !== pendingTrade.inputCurrency ||
+    //     outputCurrency?.address !== pendingTrade.outputCurrency ||
+    //     slippage !== pendingTrade.slippage
+    //   ) return;
+
+
+    // }, 500)
     console.log('we have a trade!', {
       inputAmount, outputAmount, inputCurrency, outputCurrency
     })
-    createTrade()
+    const nonce = tradeNonce
+    tradeNonce++
+    createTrade({
+      inputAmount,
+      outputAmount,
+      inputCurrency,
+      outputCurrency,
+      slippage,
+      nonce
+    })
 
   }, [inputAmount, outputAmount, inputCurrency, outputCurrency, slippage])
 
@@ -391,7 +427,8 @@ const useSwapContext = () => {
     taxes,
     tokenTaxContractFeeDecimal,
     slippage,
-    updateSlippage
+    updateSlippage,
+    tradeIsLoading
   }
 }
 
