@@ -85,7 +85,7 @@ function TradeCard () {
                 <Col>{`${trade.priceImpact.toLocaleString([], { maximumFractionDigits: 2 })}%`}</Col>
               </Row>
               <Divider></Divider>
-              <Row style={styles.tradeCardRow}>
+              <Row style={{ ...styles.tradeCardRow, fontSize: '1rem' }}>
                 <Col><strong>Total Tax</strong></Col>
                 <Col><strong>{formatTax(totalTax)}</strong></Col>
               </Row>
