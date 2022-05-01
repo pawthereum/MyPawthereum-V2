@@ -9,7 +9,7 @@ import TradeCard from './components/TradeCard';
 import Settings from './components/Settings'
 import { DEFAULT_SLIPPAGE } from '../../constants'
 
-const defaultBg = '#dfdfdf';
+const defaultBg = '#F0F2F5';
 
 const styles = {
   card: {
