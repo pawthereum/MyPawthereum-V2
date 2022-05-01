@@ -7,7 +7,9 @@ import { useERC20Balance } from '../../hooks/useERC20Balance';
 import { useMoralis } from 'react-moralis'
 import TradeCard from './components/TradeCard';
 import Settings from './components/Settings'
-import { DEFAULT_SLIPPAGE } from '../../constants'
+import { PAWSWAP, DEFAULT_SLIPPAGE } from '../../constants'
+import useAllowances from 'hooks/useAllowances.js';
+import { networkConfigs } from 'helpers/networks.js';
 
 const defaultBg = '#F0F2F5';
 
@@ -27,23 +29,53 @@ const styles = {
   }
 }
 function PawSwap() {
-  const { Moralis } = useMoralis()
+  const { Moralis, chainId } = useMoralis()
   const { assets } = useERC20Balance()
+  const { 
+    estimatedSide, 
+    inputCurrency, 
+    outputCurrency, 
+    trade, 
+    executeSwap, 
+    slippage, 
+    tradeIsLoading, 
+    updateInputCurrency, 
+    updateOutputCurrency,
+    inputAmount
+  } = useContext(AppContext);
+  const { hasAllowance, updateAllowance } = useAllowances()
   const [inputColor, setInputColor] = useState(defaultBg)
   const [outputColor, setOutputColor] = useState(defaultBg)
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
   const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
-  const { estimatedSide, inputCurrency, outputCurrency, trade, executeSwap, slippage, tradeIsLoading, updateInputCurrency, updateOutputCurrency } = useContext(AppContext);
   const [swapButtonIsLoading, setSwapButtonIsLoading] = useState(false)
   const [inputIsLoading, setInputIsLoading] = useState(false)
   const [outputIsLoading, setOutputIsLoading] = useState(false)
+  const [showApproveBtn, setShowApproveBtn] = useState(false)
+  const [approvalIsLoading, setApprovalIsLoading] = useState(false)
+  const [approvalText, setApprovalText] = useState('Approve')
+
+  const approveInputAmount = async () => {
+    setApprovalIsLoading(true)
+    setApprovalText('Approving')
+
+    await updateAllowance({
+      amount: inputAmount,
+      spender: PAWSWAP[chainId]?.address,
+      token: inputCurrency
+    })
+
+    setApprovalIsLoading(false)
+    setShowApproveBtn(false)
+    setApprovalText('Approve')
+
+    return true
+  }
 
   const trySwap = async () => {
-    console.log('about to try')
     setSwapButtonIsLoading(true)
     const swap = await executeSwap(trade)
     setSwapButtonIsLoading(false)
-    console.log('swap is ', swap)
   }
 
   const swapInputs = () => {
@@ -83,11 +115,29 @@ function PawSwap() {
   useEffect(() => {
     if (inputCurrency) {
       setInputColor(inputCurrency?.color)
+
+      if (
+        inputCurrency.address !== networkConfigs[chainId]?.wrapped &&
+        inputAmount && 
+        Number(inputAmount) > 0
+      ) {
+        checkAllowance()
+      }
     }
     if (outputCurrency) {
       setOutputColor(outputCurrency?.color)
     }
-  }, [inputCurrency, outputCurrency])
+
+    async function checkAllowance () {
+      const sufficientAllowance = await hasAllowance({
+        amount: inputAmount,
+        token: inputCurrency,
+        spender: PAWSWAP[chainId]?.address
+      })
+      // show approve btn if there isnt a sufficient allowance
+      setShowApproveBtn(!sufficientAllowance)
+    }
+  }, [inputCurrency, inputAmount, outputCurrency])
 
   return (
     <div>
@@ -178,8 +228,27 @@ function PawSwap() {
                   <Col>{slippage * 100}%</Col>
                 </Row>
               }
-              <Row>
-                <Col span={24}>
+              <Row gutter={6}>
+                {
+                  !showApproveBtn ? '' :
+                  <Col span={12}>
+                    <Button
+                      type="primary"
+                      size="large"
+                      style={{
+                        width: "100%",
+                        marginTop: "15px",
+                        borderRadius: "0.6rem",
+                        height: "50px",
+                      }}
+                      onClick={() => approveInputAmount()}
+                      loading={approvalIsLoading}
+                    >
+                      {approvalText}
+                    </Button>
+                  </Col>
+                }
+                <Col span={showApproveBtn ? 12 : 24}>
                   <Button
                     type="primary"
                     size="large"
@@ -190,6 +259,7 @@ function PawSwap() {
                       height: "50px",
                     }}
                     onClick={() => trySwap()}
+                    disabled={showApproveBtn}
                     loading={swapButtonIsLoading}
                   >
                     Swap 🔁
