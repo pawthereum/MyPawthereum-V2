@@ -110,8 +110,8 @@ const useSwapContext = () => {
       try {
         console.log('params for estimated in', params)
         const amounts = await routerContract.getAmountsIn(
-          params.amount
-          [params.outputCurrency.address, params.inputCurrency.address]
+          params.amount,
+          [params.inputCurrency.address, params.outputCurrency.address]
         )
         console.log('amounts but in', amounts)
         return Moralis.Units.FromWei(amounts[0], params.inputCurrency?.decimals)
