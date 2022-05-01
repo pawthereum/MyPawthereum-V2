@@ -96,6 +96,7 @@ const useSwapContext = () => {
         return Moralis.Units.FromWei(amounts[1], params.outputCurrency?.decimals)
       } catch (e) {
         console.log('error getting quote', e)
+        setTradeIsLoading(false)
         openNotification({
           message: "⚠️ Error Fetching Quote!",
           description: `${e.message} ${e.data?.message}`
@@ -110,6 +111,7 @@ const useSwapContext = () => {
         return Moralis.Units.FromWei(amounts[0], params.inputCurrency?.decimals)
       } catch (e) {
         console.log('error getting quote')
+        setTradeIsLoading(false)
         openNotification({
           message: "⚠️ Error Fetching Quote!",
           description: `${e.message} ${e.data?.message}`
@@ -145,6 +147,7 @@ const useSwapContext = () => {
       ])
     } catch (e) {
       console.log('error getting tax list', e)
+      setTradeIsLoading(false)
       return openNotification({
         message: "⚠️ Error getting taxes for token!",
         description: `${e.message} ${e.data?.message}`
@@ -220,6 +223,7 @@ const useSwapContext = () => {
       return { taxStructureContract: newStruct, taxes }
     } catch (e) {
       console.log('error getting token tax contract')
+      setTradeIsLoading(false)
       return openNotification({
         message: "⚠️ Error getting tax structure for token!",
         description: `${e.message} ${e.data?.message}`
@@ -251,6 +255,7 @@ const useSwapContext = () => {
 
     } catch (e) {
       console.log('error getting reserves', e)
+      setTradeIsLoading(false)
       return openNotification({
         message: "⚠️ Error getting reserves!",
         description: `${e.message} ${e.data?.message}`
@@ -391,6 +396,7 @@ const useSwapContext = () => {
       }
     } catch (e) {
       console.log('error doing swap', e)
+      setTradeIsLoading(false)
       return openNotification({
         message: "⚠️ Error swapping!",
         description: `${e.message} ${e.data?.message}`
@@ -412,6 +418,7 @@ const useSwapContext = () => {
       })
       return tx
     } catch (e) {
+      setTradeIsLoading(false)
       openNotification({
         message: "⚠️ Swap Error!",
         description: `${e.message} ${e.data?.message}`
