@@ -86,13 +86,17 @@ const useSwapContext = () => {
       params.routerAbi,
       web3.getSigner()
     )
+
+    console.log('fetching quotes...', params)
     
     if (params.estimatedSide === 'output') {
       try {
+        console.log('params', params)
         const amounts = await routerContract.getAmountsOut(
           params.amount,
           [params.inputCurrency.address, params.outputCurrency.address]
         )
+        console.log('amounts', amounts)
         return Moralis.Units.FromWei(amounts[1], params.outputCurrency?.decimals)
       } catch (e) {
         console.log('error getting quote', e)
@@ -104,10 +108,12 @@ const useSwapContext = () => {
       }
     } else {
       try {
+        console.log('params for estimated in', params)
         const amounts = await routerContract.getAmountsIn(
           params.amount
           [params.outputCurrency.address, params.inputCurrency.address]
         )
+        console.log('amounts but in', amounts)
         return Moralis.Units.FromWei(amounts[0], params.inputCurrency?.decimals)
       } catch (e) {
         console.log('error getting quote')
@@ -295,14 +301,20 @@ const useSwapContext = () => {
       ? Number(Moralis.Units.FromWei(outputAmount, outputCurrency?.decimals))
       : Number(Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals))
 
+    console.log('amountpre tax', amountPreTax)
+
     const feeDecimal = await taxStructureContract.feeDecimal()
     setTokenTaxContractFeeDecimal(feeDecimal)
+
     const amount = amountPreTax - amountPreTax * totalTax / 100**feeDecimal
     
-    const MAX_DECIMALS = 18
+    console.log('amount ,', amount)
+
     const amountWei = estimatedSide === 'input' 
-      ? Moralis.Units.Token(amount.toFixed(MAX_DECIMALS), outputCurrency?.decimals)
-      : Moralis.Units.Token(amount.toFixed(MAX_DECIMALS), inputCurrency?.decimals)
+      ? Moralis.Units.Token(amount, outputCurrency?.decimals)
+      : Moralis.Units.Token(amount, inputCurrency?.decimals)
+
+    console.log('amount wei', amountWei)
 
     let amountOut = await fetchQuote({
       routerAddress,
@@ -313,6 +325,8 @@ const useSwapContext = () => {
       side,
       estimatedSide
     })
+
+    console.log('amount out', amountOut)
 
     // liquidity taxes aren't accounted for in quotes
     const liqTaxSearch = taxes.find(t => t.isLiquidity)
