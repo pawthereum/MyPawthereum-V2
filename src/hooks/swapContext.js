@@ -271,7 +271,9 @@ const useSwapContext = () => {
   }
 
   async function createTrade (params) {
-    console.log('params', params)
+    const web3Provider = Moralis.web3Library;
+    const BigNumber = web3Provider.BigNumber
+
     setTradeIsLoading(true)
     const dex = () => {
       if (!inputCurrency.dex && !outputCurrency.dex) return 'pawswap'
@@ -298,35 +300,27 @@ const useSwapContext = () => {
     }, 0)
 
     const amountPreTax = estimatedSide === 'input' 
-      ? Number(Moralis.Units.FromWei(outputAmount, outputCurrency?.decimals))
-      : Number(Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals))
+      ? BigNumber.from(outputAmount)
+      : BigNumber.from(inputAmount)
 
     console.log('amountpre tax', amountPreTax)
 
     const feeDecimal = await taxStructureContract.feeDecimal()
     setTokenTaxContractFeeDecimal(feeDecimal)
 
-    const amount = amountPreTax - amountPreTax * totalTax / 100**feeDecimal
-    
-    console.log('amount ,', amount)
-
-    const amountWei = estimatedSide === 'input' 
-      ? Moralis.Units.Token(amount, outputCurrency?.decimals)
-      : Moralis.Units.Token(amount, inputCurrency?.decimals)
-
-    console.log('amount wei', amountWei)
+    const multiplier = 10**(Number(feeDecimal) + 2)
+    const taxMultiplied = multiplier - totalTax
+    const amount = amountPreTax.mul(taxMultiplied).div(multiplier)
 
     let amountOut = await fetchQuote({
       routerAddress,
       routerAbi,
       inputCurrency,
       outputCurrency,
-      amount: amountWei,
+      amount,
       side,
       estimatedSide
     })
-
-    console.log('amount out', amountOut)
 
     // liquidity taxes aren't accounted for in quotes
     const liqTaxSearch = taxes.find(t => t.isLiquidity)
@@ -373,6 +367,7 @@ const useSwapContext = () => {
     const priceImpact = (priceAfter - priceBefore) / priceBefore * 100 
 
     setTradeIsLoading(false)
+    // the latest trade in is the latest trade printed on screen
     if (tradeNonce - 1 !== params.nonce) return false
     setTrade({
       tokenIn: inputCurrency,

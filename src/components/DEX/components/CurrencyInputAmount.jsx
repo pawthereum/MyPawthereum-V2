@@ -11,11 +11,9 @@ function CurrencyAmountInput (props) {
     updateOutputAmount, 
     inputCurrency, 
     outputCurrency, 
-    tradeIsLoading 
   } = useContext(AppContext);
 
   const [value, setValue] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (!trade) return
@@ -25,12 +23,6 @@ function CurrencyAmountInput (props) {
       setValue(trade?.amountIn)
     }
   }, [trade])
-
-  useEffect(() => {
-    if (!tradeIsLoading) return setIsLoading(false)
-    if (estimatedSide !== props.side) return setIsLoading(false)
-    setIsLoading(true)
-  }, [tradeIsLoading, estimatedSide, props.side])
 
   function onInputChange(amount) {
     if (!props.side) return
