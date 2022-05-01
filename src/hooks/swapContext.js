@@ -365,35 +365,11 @@ const useSwapContext = () => {
   }, [defaultTokenList])
 
   useEffect(() => {
-    console.log('nothing yet...', {
-      inputAmount, outputAmount, inputCurrency, outputCurrency
-    })
     if (!inputAmount && !outputAmount) return
     if (inputAmount === "0" && !outputAmount) return
     if (!inputAmount && outputAmount === "0") return
     if (!inputCurrency || !outputCurrency) return
 
-    // store these values and give it time before checking if they are the same
-    // if they are, the user is done typing and we should get the trade
-    // if they are not the same, the user is still typing
-    // const pendingTrade = {
-    //   inputAmount,
-    //   outputAmount,
-    //   inputCurrency: inputCurrency?.address,
-    //   outputCurrency: outputCurrency?.address,
-    //   slippage,
-    // }
-    // setTimeout(() => {
-    //   if (
-    //     inputAmount !== pendingTrade.inputAmount ||
-    //     outputAmount !== pendingTrade.outputAmount ||
-    //     inputCurrency?.address !== pendingTrade.inputCurrency ||
-    //     outputCurrency?.address !== pendingTrade.outputCurrency ||
-    //     slippage !== pendingTrade.slippage
-    //   ) return;
-
-
-    // }, 500)
     console.log('we have a trade!', {
       inputAmount, outputAmount, inputCurrency, outputCurrency
     })
