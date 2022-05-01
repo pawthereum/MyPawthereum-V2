@@ -241,6 +241,7 @@ const useSwapContext = () => {
     )
 
     try {
+      console.log('factory Contract', factoryContract)
       const pairAddress = await factoryContract.getPair(
         params.token0,
         params.token1
@@ -266,11 +267,17 @@ const useSwapContext = () => {
   async function createTrade (params) {
     console.log('params', params)
     setTradeIsLoading(true)
-    const routerAddress = inputCurrency.dex === 'pancakeswap' 
+    const dex = () => {
+      if (!inputCurrency.dex && !outputCurrency.dex) return 'pawswap'
+      if (outputCurrency.dex) return outputCurrency.dex
+      return inputCurrency.dex 
+    }
+
+    const routerAddress = dex() === 'pancakeswap' 
       ? PANCAKESWAP_ROUTER[chainId]?.address
       : PAWSWAP_ROUTER[chainId]?.address
     
-    const routerAbi = inputCurrency === 'pancakeswap'
+    const routerAbi = dex() === 'pancakeswap' 
       ? PANCAKESWAP_ROUTER[chainId]?.abi
       : PAWSWAP_ROUTER[chainId]?.abi
 
@@ -326,11 +333,11 @@ const useSwapContext = () => {
     
     // get price impact
     // https://dailydefi.org/articles/price-impact-and-how-to-calculate/
-    const factoryAddress = inputCurrency.dex === 'pancakeswap' 
+    const factoryAddress = dex() === 'pancakeswap' 
       ? PANCAKESWAP_FACTORY[chainId]?.address
       : PAWSWAP_FACTORY[chainId]?.address
     
-    const factoryAbi = inputCurrency === 'pancakeswap'
+    const factoryAbi = dex() === 'pancakeswap'
       ? PANCAKESWAP_FACTORY[chainId]?.abi
       : PAWSWAP_FACTORY[chainId]?.abi
 
