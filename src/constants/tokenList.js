@@ -22,15 +22,26 @@ export const tokenList = {
       "color": "#ff65b3",
     },
     {
-      "name": "Wrapped BNB",
-      "symbol": "WBNB",
-      "address": "0xae13d989dac2f0debff460ac112a837c89baa7cd",
+      "name": "BNB",
+      "symbol": "BNB",
+      "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
       "chainId": 97,
       "decimals": 18,
       "logoURI": "https://pancake.kiemtienonline360.com/images/coins/0xae13d989dac2f0debff460ac112a837c89baa7cd.png",
       "typicalBuyTax": 0,
       "typicalSellTax": 0,
       "color": "#F0BA03"
+    },
+    {
+      "name": "Wrapped BNB",
+      "symbol": "WBNB",
+      "address": "0xae13d989dac2f0debff460ac112a837c89baa7cd",
+      "chainId": 97,
+      "decimals": 18,
+      "logoURI": "https://cdn.icon-icons.com/icons2/3006/PNG/512/bnb_cryptocurrencies_icon_188408.png",
+      "typicalBuyTax": 0,
+      "typicalSellTax": 0,
+      "color": "#F4BB0B"
     },
     {
       "name": "Kodi Coin",

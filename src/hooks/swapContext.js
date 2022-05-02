@@ -5,6 +5,7 @@ import { PAWSWAP_ROUTER, PANCAKESWAP_ROUTER, PAWSWAP, DEFAULT_SLIPPAGE, PAWSWAP_
 import { notification } from 'antd'
 import { networkConfigs } from 'helpers/networks'
 import { taxStructureAbi } from 'constants/abis/taxStructure'
+import useNative from './useNative'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -22,6 +23,7 @@ let tradeNonce = 0
 
 const useSwapContext = () => {
   const { Moralis, chainId, web3, account } = useMoralis()
+  const { isNative } = useNative()
   const [estimatedSide, setEstimatedSide] = useState(null)
   const [inputCurrency, setInputCurrency] = useState(null)
   const [inputAmount, setInputAmount] = useState(null)
@@ -44,8 +46,7 @@ const useSwapContext = () => {
   }
 
   const determineSide = (inputCurrency) => {
-    const nativeAddr = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
-    if (inputCurrency.address.toLowerCase() === nativeAddr) return 'buy'
+    if (isNative(inputCurrency.address)) return 'buy'
     return inputCurrency.address.toLowerCase() === networkConfigs[chainId].wrapped?.toLowerCase() ? 'buy' : 'sell'
   }
 

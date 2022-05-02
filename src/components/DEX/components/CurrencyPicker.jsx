@@ -4,6 +4,8 @@ import { useERC20Balance } from '../../../hooks/useERC20Balance'
 import { AutoComplete, Avatar, Input, List, Modal } from 'antd'
 import { CaretDownOutlined } from "@ant-design/icons";
 import AppContext from '../../../AppContext'
+import useNative from 'hooks/useNative';
+import { networkConfigs } from 'helpers/networks';
 
 function CurrencyPicker (props) {
   const { 
@@ -15,22 +17,36 @@ function CurrencyPicker (props) {
     estimatedSide
   } = useContext(AppContext)
   const { assets } = useERC20Balance()
-  const { Moralis } = useMoralis()
+  const { Moralis, chainId } = useMoralis()
+  const { isNative, getNativeBalance } = useNative()
   const [tokenListWithBalances, setTokenListWithBalances] = useState([])
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [pickedCurrency, setPickedCurrency] = useState(null);
   const [omittedSelectionAddresses, setOmittedSelectionAddresses] = useState([])
   const [options, setOptions] = useState([])
 
-  useEffect(() => {
-    if (!tokenList) return
-    if (!assets) return setTokenListWithBalances(tokenList)
-    setTokenListWithBalances(tokenList.map(t => {
-      const asset = assets.find(a => a.token_address === t.address.toLowerCase())
-      const balance = Moralis.Units.FromWei(asset?.balance || '0', asset?.decimals || '18')
+  const setTokenBalances = async () => {
+    const tList = await Promise.all(tokenList.map(async(t) => {
+      let balance
+      if (isNative(t.address)) {
+        balance = await getNativeBalance()
+        balance = Moralis.Units.FromWei(balance, 18)
+      } else {
+        const asset = assets.find(a => a.token_address === t.address.toLowerCase())
+        balance = Moralis.Units.FromWei(asset?.balance || '0', asset?.decimals || '18')
+      }
       t.userBalance = balance || '0'
       return t
     }))
+    console.log(tList)
+    setTokenListWithBalances(tList)
+  }
+
+  useEffect(() => {
+    if (!tokenList) return
+    if (!assets) return setTokenListWithBalances(tokenList)
+    console.log('hello')
+    setTokenBalances()
   }, [tokenList, assets])
 
   const showModal = () => {
@@ -91,7 +107,7 @@ function CurrencyPicker (props) {
     setOptions([
       {
         options: tokenListWithBalances
-          .filter(t => !omittedSelectionAddresses.includes(t.address.toLowerCase()))
+          .filter(t => !omittedSelectionAddresses.includes(t?.address?.toLowerCase()))
           .map(t => renderItem(t)),
       }
     ])
@@ -100,6 +116,10 @@ function CurrencyPicker (props) {
 
   const pickCurrency = (currency) => {
     const selection = tokenList.find(t => t.address === currency)
+    if (isNative(selection.address)) {
+      selection.address = networkConfigs[chainId]?.wrapped
+    }
+    console.log('selection', selection)
     setPickedCurrency(selection)
     props.side === "input" ? updateInputCurrency(selection) : updateOutputCurrency(selection)
     handleOk()
@@ -132,7 +152,7 @@ function CurrencyPicker (props) {
         <List
           itemLayout="horizontal"
           header={<div>Featured Tokens</div>}
-          dataSource={tokenListWithBalances.filter(t => !omittedSelectionAddresses.includes(t.address.toLowerCase()))}
+          dataSource={tokenListWithBalances.filter(t => !omittedSelectionAddresses.includes(t?.address?.toLowerCase()))}
           renderItem={token => (
             <List.Item
               style={{ cursor: 'pointer' }}

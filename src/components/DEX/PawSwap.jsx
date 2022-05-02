@@ -10,6 +10,7 @@ import Settings from './components/Settings'
 import { PAWSWAP, DEFAULT_SLIPPAGE } from '../../constants'
 import useAllowances from 'hooks/useAllowances.js';
 import { networkConfigs } from 'helpers/networks.js';
+import useNative from 'hooks/useNative';
 
 const defaultBg = '#F0F2F5';
 
@@ -29,7 +30,7 @@ const styles = {
   }
 }
 function PawSwap() {
-  const { Moralis, chainId } = useMoralis()
+  const { Moralis, chainId, account } = useMoralis()
   const { assets } = useERC20Balance()
   const { 
     estimatedSide, 
@@ -44,6 +45,7 @@ function PawSwap() {
     inputAmount
   } = useContext(AppContext);
   const { hasAllowance, updateAllowance } = useAllowances()
+  const { isNative, getNativeBalance } = useNative()
   const [inputColor, setInputColor] = useState(defaultBg)
   const [outputColor, setOutputColor] = useState(defaultBg)
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
@@ -85,6 +87,14 @@ function PawSwap() {
     updateOutputCurrency(newOutput)
   }
 
+  const setNativeBalance = async (side) => {
+    const balance = await getNativeBalance()
+    if (side === 'input') {
+      return setInputCurrencyBalance(Moralis.Units.FromWei(balance, 18))
+    }
+    return setOutputCurrencyBalance(Moralis.Units.FromWei(balance, 18))
+  }
+
   useEffect(() => {
     if (!tradeIsLoading) {
       setInputIsLoading(false)
@@ -99,6 +109,9 @@ function PawSwap() {
     if (!inputCurrency) return setInputCurrencyBalance(null)
     if (!assets) return setInputCurrencyBalance(0)
     console.log('assets', assets)
+    if (isNative(inputCurrency?.address)) {
+      return setNativeBalance('input')
+    }
     const asset = assets.find(a => a.token_address === inputCurrency.address.toLowerCase())
     if (!asset) return setInputCurrencyBalance(0)
     setInputCurrencyBalance(Moralis.Units.FromWei(asset.balance, asset.decimals))
@@ -107,6 +120,9 @@ function PawSwap() {
   useEffect(() => {
     if (!outputCurrency) return setOutputCurrencyBalance(null)
     if (!assets) return setOutputCurrencyBalance(0)
+    if (isNative(outputCurrency?.address)) {
+      return setNativeBalance('output')
+    }
     const asset = assets.find(a => a.token_address === outputCurrency.address.toLowerCase())
     if (!asset) return setOutputCurrencyBalance(0)
     setOutputCurrencyBalance(Moralis.Units.FromWei(asset.balance, asset.decimals))
