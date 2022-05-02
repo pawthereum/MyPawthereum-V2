@@ -45,7 +45,6 @@ function SwapSettings () {
           max={50}
           value={slippage * 100}
           onChange={onInputChange}
-          controls={false}
           keyboard={true}
         />
       </Modal>
