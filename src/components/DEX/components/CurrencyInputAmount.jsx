@@ -59,6 +59,7 @@ function CurrencyAmountInput (props) {
         controls={false}
         keyboard={false}
         stringMode
+        type="number"
       />
       <CurrencyPicker side={props.side} />
     </div>
