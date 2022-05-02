@@ -32,17 +32,17 @@ export const tokenList = {
       "typicalSellTax": 0,
       "color": "#F0BA03"
     },
-    {
-      "name": "Wrapped BNB",
-      "symbol": "WBNB",
-      "address": "0xae13d989dac2f0debff460ac112a837c89baa7cd",
-      "chainId": 97,
-      "decimals": 18,
-      "logoURI": "https://cdn.icon-icons.com/icons2/3006/PNG/512/bnb_cryptocurrencies_icon_188408.png",
-      "typicalBuyTax": 0,
-      "typicalSellTax": 0,
-      "color": "#F4BB0B"
-    },
+    //{
+    //   "name": "Wrapped BNB",
+    //   "symbol": "WBNB",
+    //   "address": "0xae13d989dac2f0debff460ac112a837c89baa7cd",
+    //   "chainId": 97,
+    //   "decimals": 18,
+    //   "logoURI": "https://cdn.icon-icons.com/icons2/3006/PNG/512/bnb_cryptocurrencies_icon_188408.png",
+    //   "typicalBuyTax": 0,
+    //   "typicalSellTax": 0,
+    //   "color": "#F4BB0B"
+    // },
     {
       "name": "Kodi Coin",
       "symbol": "KODI",
