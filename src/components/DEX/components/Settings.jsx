@@ -46,7 +46,6 @@ function SwapSettings () {
           value={slippage * 100}
           onChange={onInputChange}
           keyboard={true}
-          type="number"
         />
       </Modal>
     </>
