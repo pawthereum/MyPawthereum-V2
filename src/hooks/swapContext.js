@@ -9,6 +9,7 @@ import useNative from './useNative'
 import useDexs from './useDexs'
 import { pack, keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
+import { Token, TokenAmount, Pair, TradeType, Trade, Route } from '@uniswap'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -44,10 +45,14 @@ const useSwapContext = () => {
   const [pairReserves, setPairReserves] = useState(null)
   const [dex, setDex] = useState(null)
 
+  const sortTokens = async (tokenList) => {
+    return await tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
+  }
+
   const updateSlippage = (amt) => {
     setSlippage(Number(amt) / 100)
   }
-
+  
   const updateEstimatedSide = (side) => {
     setEstimatedSide(side)
   }
@@ -333,19 +338,6 @@ const useSwapContext = () => {
     const BigNumber = web3Provider.BigNumber
 
     setTradeIsLoading(true)
-    const dex = () => {
-      if (!inputCurrency.dex && !outputCurrency.dex) return 'pawswap'
-      if (outputCurrency.dex) return outputCurrency.dex
-      return inputCurrency.dex 
-    }
-
-    const routerAddress = dex() === 'pancakeswap' 
-      ? PANCAKESWAP_ROUTER[chainId]?.address
-      : PAWSWAP_ROUTER[chainId]?.address
-    
-    const routerAbi = dex() === 'pancakeswap' 
-      ? PANCAKESWAP_ROUTER[chainId]?.abi
-      : PAWSWAP_ROUTER[chainId]?.abi
 
     const side = determineSide(inputCurrency)
 
@@ -369,16 +361,55 @@ const useSwapContext = () => {
     const multiplier = 10**(Number(feeDecimal) + 2)
     const taxMultiplied = multiplier - totalTax
     const amount = amountPreTax.mul(taxMultiplied).div(multiplier)
+    const tokenIn = new Token(
+      chainId, 
+      web3Provider.utils.getAddress(inputCurrency?.address), 
+      inputCurrency?.decimals
+    )
+    const tokenOut = new Token(
+      chainId, 
+      web3Provider.utils.getAddress(outputCurrency?.address), 
+      outputCurrency?.decimals
+    )
+    console.log({ tokenIn, tokenOut })
+    const sortedTokens = await sortTokens([tokenIn, tokenOut])
+    console.log('pair', pair)
+    console.log('pair reserves', pairReserves)
+    // constructing this ourselves since uniswap can't handle bsc chains
+    const tokenPair = {
+      liquidityToken: new Token(
+        chainId,
+        web3Provider.utils.getAddress(pair),
+        18
+      ),
+      tokenAmounts: [
+        new TokenAmount(sortedTokens[0], pairReserves[0]),
+        new TokenAmount(sortedTokens[1], pairReserves[1])
+      ]
+    }
+    console.log('token pair', tokenPair)
+    const route = new Route([tokenPair], tokenOut)
 
-    let amountOut = await fetchQuote({
-      routerAddress,
-      routerAbi,
-      inputCurrency,
-      outputCurrency,
-      amount,
-      side,
-      estimatedSide
-    })
+    console.log({ tokenIn, tokenOut, sortedTokens, tokenPair, route })
+    console.log('trying,', new TokenAmount(tokenIn, amount))
+
+    const trade = estimatedSide === 'output'
+      ? new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_INPUT)
+      : new Trade(route, new TokenAmount(tokenOut, amount), TradeType.EXACT_OUTPUT)
+    
+    console.log('trade is', trade)
+
+    let amountOut
+
+    // let amountOut = await fetchQuote({
+    //   routerAddress,
+    //   routerAbi,
+    //   inputCurrency,
+    //   outputCurrency,
+    //   amount,
+    //   side,
+    //   estimatedSide
+    // })
 
     // liquidity taxes aren't accounted for in quotes
     const liqTaxSearch = taxes.find(t => t.isLiquidity)
@@ -399,30 +430,30 @@ const useSwapContext = () => {
     
     // get price impact
     // https://dailydefi.org/articles/price-impact-and-how-to-calculate/
-    const factoryAddress = dex() === 'pancakeswap' 
-      ? PANCAKESWAP_FACTORY[chainId]?.address
-      : PAWSWAP_FACTORY[chainId]?.address
+    // const factoryAddress = dex() === 'pancakeswap' 
+    //   ? PANCAKESWAP_FACTORY[chainId]?.address
+    //   : PAWSWAP_FACTORY[chainId]?.address
     
-    const factoryAbi = dex() === 'pancakeswap'
-      ? PANCAKESWAP_FACTORY[chainId]?.abi
-      : PAWSWAP_FACTORY[chainId]?.abi
+    // const factoryAbi = dex() === 'pancakeswap'
+    //   ? PANCAKESWAP_FACTORY[chainId]?.abi
+    //   : PAWSWAP_FACTORY[chainId]?.abi
 
-    const pairReserves = await fetchPairReserves({
-      token0: inputCurrency.address,
-      token1: outputCurrency.address,
-      factoryAddress,
-      factoryAbi
-    })
+    // const pairReserves = await fetchPairReserves({
+    //   token0: inputCurrency.address,
+    //   token1: outputCurrency.address,
+    //   factoryAddress,
+    //   factoryAbi
+    // })
 
-    const token0Reserves =  Number(Moralis.Units.FromWei(pairReserves[0], inputCurrency?.decimals))
-    const token1Reserves = Number(Moralis.Units.FromWei(pairReserves[1], outputCurrency?.decimals))
-    const k = token0Reserves * token1Reserves
+    // const token0Reserves =  Number(Moralis.Units.FromWei(pairReserves[0], inputCurrency?.decimals))
+    // const token1Reserves = Number(Moralis.Units.FromWei(pairReserves[1], outputCurrency?.decimals))
+    // const k = token0Reserves * token1Reserves
 
-    const token0ReservesAfterSwap = token0Reserves + Number(amountIn)
-    const token1ReservesAfterSwap = k / token0ReservesAfterSwap
-    const priceBefore = token0Reserves / token1Reserves
-    const priceAfter = token0ReservesAfterSwap / token1ReservesAfterSwap
-    const priceImpact = (priceAfter - priceBefore) / priceBefore * 100 
+    // const token0ReservesAfterSwap = token0Reserves + Number(amountIn)
+    // const token1ReservesAfterSwap = k / token0ReservesAfterSwap
+    // const priceBefore = token0Reserves / token1Reserves
+    // const priceAfter = token0ReservesAfterSwap / token1ReservesAfterSwap
+    // const priceImpact = (priceAfter - priceBefore) / priceBefore * 100 
 
     setTradeIsLoading(false)
     // the latest trade in is the latest trade printed on screen
@@ -435,7 +466,7 @@ const useSwapContext = () => {
       amountOutSlippage,
       side,
       taxes,
-      priceImpact
+      priceImpact: 0
     })
   }
 
@@ -500,10 +531,6 @@ const useSwapContext = () => {
     }
   }
 
-  const sortTokens = (tokenList) => {
-    return tokenList.sort((a, b) => a > b ? 1 : -1)
-  }
-
   useEffect(() => {
     setTokenList(defaultTokenList.tokens)
   }, [defaultTokenList])
@@ -514,9 +541,16 @@ const useSwapContext = () => {
     setUpForTrades()
 
     async function setUpForTrades() {
+      console.log('getting my dex...')
       const dex = await updateDex(inputCurrency, outputCurrency)
-      const sortedTokenPair = sortTokens([inputCurrency.address, outputCurrency.address])
-      const pairAddress = await updatePair(sortedTokenPair, dex.factory)
+      console.log('i am sorting... got my dex', dex)
+      const sortedTokenPair = await sortTokens([inputCurrency, outputCurrency])
+      console.log('sorted my token pair', sortedTokenPair)
+      const pairAddress = await updatePair(
+        sortedTokenPair.map(t => t.address), 
+        dex.factory
+      )
+      console.log('got my pair address')
       updatePairReserves(pairAddress)
     }
   }, [inputCurrency, outputCurrency])
@@ -525,7 +559,7 @@ const useSwapContext = () => {
     if (!inputAmount && !outputAmount) return
     if (inputAmount === "0" && !outputAmount) return
     if (!inputAmount && outputAmount === "0") return
-    if (!inputCurrency || !outputCurrency) return
+    if (!inputCurrency || !outputCurrency || !pairReserves) return
 
     console.log('we have a trade!', {
       inputAmount, outputAmount, inputCurrency, outputCurrency
@@ -541,7 +575,7 @@ const useSwapContext = () => {
       nonce
     })
 
-  }, [inputAmount, outputAmount, inputCurrency, outputCurrency, slippage])
+  }, [inputAmount, outputAmount, inputCurrency, outputCurrency, slippage, pairReserves])
 
   return { 
     updateEstimatedSide, 
