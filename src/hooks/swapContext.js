@@ -37,8 +37,9 @@ const useSwapContext = () => {
   const [trade, setTrade] = useState(null)
   const [tokenList, setTokenList] = useState([])
   const [tokenTaxContract, setTokenTaxContract] = useState(null)
+  const [tokenTaxStructureTaxes, setTokenTaxStructureTaxes] = useState(null)
+  const [latestTaxLookup, setLatestTaxLookup] = useState(null)
   const [tokenTaxContractFeeDecimal, setTokenTaxContractFeeDecimal] = useState(null)
-  const [taxes, setTaxes] = useState(null)
   const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE)
   const [tradeIsLoading, setTradeIsLoading] = useState(false)
   const [pair, setPair] = useState(null)
@@ -287,8 +288,9 @@ const useSwapContext = () => {
         web3.getSigner()
       )
       setTokenTaxContract(newStruct)
+      setLatestTaxLookup(tokenAddr)
       const taxes = await getTaxes(newStruct)
-      setTaxes(taxes)
+      setTokenTaxStructureTaxes(taxes)
       return { taxStructureContract: newStruct, taxes }
     } catch (e) {
       console.log('error getting token tax contract')
@@ -310,12 +312,10 @@ const useSwapContext = () => {
     )
 
     try {
-      console.log('factory Contract', factoryContract)
       const pairAddress = await factoryContract.getPair(
         params.token0,
         params.token1
       )
-      console.log('pair address', pairAddress)
       const pairContract = new web3Provider.Contract(
         pairAddress,
         [ "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)"],
@@ -341,9 +341,17 @@ const useSwapContext = () => {
 
     const side = determineSide(inputCurrency)
 
+    // only fetch a fresh tax structure if we have to
     const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency
-    const taxStructure = await fetchTaxStructure(tokenRequiringTaxStructure.address)
-    const { taxStructureContract, taxes } = taxStructure
+    let taxStructureContract, taxes
+    if (latestTaxLookup === tokenRequiringTaxStructure.address) {
+      taxStructureContract = tokenTaxContract
+      taxes = tokenTaxStructureTaxes
+    } else {
+      const freshTaxStruct = await fetchTaxStructure(tokenRequiringTaxStructure.address)
+      taxStructureContract = freshTaxStruct.taxStructureContract
+      taxes = freshTaxStruct.taxes
+    }
 
     const totalTax = taxes.reduce((p, t) => {
       return p + Number(t[side])
@@ -352,8 +360,6 @@ const useSwapContext = () => {
     const amountPreTax = estimatedSide === 'input' 
       ? BigNumber.from(outputAmount)
       : BigNumber.from(inputAmount)
-
-    console.log('amountpre tax', amountPreTax)
 
     const feeDecimal = await taxStructureContract.feeDecimal()
     setTokenTaxContractFeeDecimal(feeDecimal)
@@ -371,23 +377,7 @@ const useSwapContext = () => {
       web3Provider.utils.getAddress(outputCurrency?.address), 
       outputCurrency?.decimals
     )
-    console.log({ tokenIn, tokenOut })
     const sortedTokens = await sortTokens([tokenIn, tokenOut])
-    console.log('pair', pair)
-    console.log('pair reserves', pairReserves)
-    console.log('pairstr', pairReserves[0].toString())
-    // constructing this ourselves since uniswap can't handle bsc chains
-    // const tokenPair = {
-    //   liquidityToken: new Token(
-    //     chainId,
-    //     web3Provider.utils.getAddress(pair),
-    //     18
-    //   ),
-    //   tokenAmounts: [
-    //     new TokenAmount(sortedTokens[0], pairReserves[0]),
-    //     new TokenAmount(sortedTokens[1], pairReserves[1])
-    //   ]
-    // }
     const tokenPair = new Pair(new TokenAmount(sortedTokens[1], pairReserves[1]), new TokenAmount(sortedTokens[0], pairReserves[0]))
 
     let route, trade
@@ -398,24 +388,6 @@ const useSwapContext = () => {
       route = new Route([tokenPair], tokenOut)
       trade = new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_OUTPUT)
     }
-
-    // const trade = estimatedSide === 'output'
-    //   ? new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_INPUT)
-    //   : new Trade(route, new TokenAmount(tokenOut, amount), TradeType.EXACT_OUTPUT)
-    
-    console.log('trade is', trade)
-
-    let amountOut
-
-    // let amountOut = await fetchQuote({
-    //   routerAddress,
-    //   routerAbi,
-    //   inputCurrency,
-    //   outputCurrency,
-    //   amount,
-    //   side,
-    //   estimatedSide
-    // })
 
     // liquidity taxes aren't accounted for in quotes
     const liqTaxSearch = taxes.find(t => t.isLiquidity)
@@ -429,48 +401,15 @@ const useSwapContext = () => {
 
     console.log('amount out after tax', trade.outputAmount.toFixed(8))
 
+    let amountOutSlippage = trade.outputAmount.toFixed(outputCurrency.decimals)
     if (slippage > 0) {
       const slippageMultiplied = multiplier - (slippage * multiplier)
-      trade.outputAmount = trade.outputAmount.multiply(slippageMultiplied).divide(multiplier)
+      amountOutSlippage = trade.outputAmount.multiply(slippageMultiplied).divide(multiplier).toFixed(outputCurrency.decimals)
     }
-
-    console.log('amount out after slippage', trade.outputAmount.toFixed(8))
-
-    const amountOutSlippage = Moralis.Units.Token(
-      (amountOut * (1 - slippage)).toFixed(outputCurrency.decimals),
-      outputCurrency.decimals
-    )
 
     const amountIn = estimatedSide === 'input'
       ? inputAmount
       : Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals)
-    
-    // get price impact
-    // https://dailydefi.org/articles/price-impact-and-how-to-calculate/
-    // const factoryAddress = dex() === 'pancakeswap' 
-    //   ? PANCAKESWAP_FACTORY[chainId]?.address
-    //   : PAWSWAP_FACTORY[chainId]?.address
-    
-    // const factoryAbi = dex() === 'pancakeswap'
-    //   ? PANCAKESWAP_FACTORY[chainId]?.abi
-    //   : PAWSWAP_FACTORY[chainId]?.abi
-
-    // const pairReserves = await fetchPairReserves({
-    //   token0: inputCurrency.address,
-    //   token1: outputCurrency.address,
-    //   factoryAddress,
-    //   factoryAbi
-    // })
-
-    // const token0Reserves =  Number(Moralis.Units.FromWei(pairReserves[0], inputCurrency?.decimals))
-    // const token1Reserves = Number(Moralis.Units.FromWei(pairReserves[1], outputCurrency?.decimals))
-    // const k = token0Reserves * token1Reserves
-
-    // const token0ReservesAfterSwap = token0Reserves + Number(amountIn)
-    // const token1ReservesAfterSwap = k / token0ReservesAfterSwap
-    // const priceBefore = token0Reserves / token1Reserves
-    // const priceAfter = token0ReservesAfterSwap / token1ReservesAfterSwap
-    // const priceImpact = (priceAfter - priceBefore) / priceBefore * 100 
 
     setTradeIsLoading(false)
     // the latest trade in is the latest trade printed on screen
@@ -478,12 +417,13 @@ const useSwapContext = () => {
     setTrade({
       tokenIn: inputCurrency,
       tokenOut: outputCurrency,
-      amountIn,
-      amountOut,
+      amountIn: amountIn,
+      amountOut: trade.outputAmount.toFixed(outputCurrency.decimals),
       amountOutSlippage,
       side,
       taxes,
-      priceImpact: 0
+      priceImpact: 0,
+      swap: trade,
     })
   }
 
@@ -608,7 +548,7 @@ const useSwapContext = () => {
     tokenList,
     trade,
     executeSwap,
-    taxes,
+    taxes: tokenTaxStructureTaxes,
     tokenTaxContractFeeDecimal,
     slippage,
     updateSlippage,

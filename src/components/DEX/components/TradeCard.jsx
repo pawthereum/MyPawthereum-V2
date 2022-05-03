@@ -27,20 +27,16 @@ function TradeCard () {
   const [formattedTaxes, setFormattedTaxes] = useState(null)
 
   const formatMinAmount = (amt) => {
-    const amtEth = Moralis.Units.FromWei(amt, trade.tokenOut.decimals)
-    const maxDigits = Number(amtEth) > 1 ? 0 : 6
-    return Math.floor(amtEth).toLocaleString([], {
+    const maxDigits = Number(amt) > 1 ? 0 : 6
+    return Math.floor(amt).toLocaleString([], {
       minimumFractionDigits: 0,
       maximumFractionDigits: maxDigits
     })
   }
 
   const formatPriceImpact = (amt) => {
-    const maxDigits = Number(amt) > 1 ? 0 : 4
-    return amt.toLocaleString([], { 
-      minimumFractionDigits: 0,
-      maximumFractionDigits: maxDigits
-    }) + '%'
+    const impact = amt.toSignificant(4)
+    return impact + '%'
   }
 
   const formatTax = (tax) => {
@@ -90,7 +86,7 @@ function TradeCard () {
               </Row>
               <Row style={styles.tradeCardRow}>
                 <Col>Price Impact</Col>
-                <Col>{formatPriceImpact(trade.priceImpact)}</Col>
+                <Col>{formatPriceImpact(trade.swap.priceImpact)}</Col>
               </Row>
               <Divider></Divider>
               <Row style={{ ...styles.tradeCardRow, fontSize: '1rem' }}>
