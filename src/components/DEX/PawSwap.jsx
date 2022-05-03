@@ -286,7 +286,10 @@ function PawSwap() {
           </Card>
         </Col>
       </Row>
-      <TradeCard></TradeCard>
+      { 
+        !trade ? '' :
+        <TradeCard />
+      }
     </div>
   )
 }

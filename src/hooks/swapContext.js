@@ -45,10 +45,20 @@ const useSwapContext = () => {
   const [pair, setPair] = useState(null)
   const [pairReserves, setPairReserves] = useState(null)
   const [dex, setDex] = useState(null)
+  const [currentBlock, setCurrentBlock] = useState(null)
 
   const sortTokens = async (tokenList) => {
     return await tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
   }
+
+  useEffect(() => {
+    if (!account || !chainId) return 
+    const web3Provider = Moralis.web3Library.getDefaultProvider()
+    web3Provider.on('block', async blockNumber => {
+      if (!chainId || !account) return
+      setCurrentBlock(blockNumber)
+    })
+  }, [account, chainId])
 
   const updateSlippage = (amt) => {
     setSlippage(Number(amt) / 100)
@@ -214,6 +224,7 @@ const useSwapContext = () => {
         taxStructContract.tokenTaxBuyAmount(account),
         taxStructContract.tokenTaxSellAmount(account),
         taxStructContract.customTaxName(),
+        taxStructContract.feeDecimal(),
       ])
     } catch (e) {
       console.log('error getting tax list', e)
@@ -267,6 +278,7 @@ const useSwapContext = () => {
         sell: 0
       }
     ]
+    setTokenTaxContractFeeDecimal(taxList[20])
     return taxes
   }
 
@@ -341,19 +353,7 @@ const useSwapContext = () => {
 
     const side = determineSide(inputCurrency)
 
-    // only fetch a fresh tax structure if we have to
-    const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency
-    let taxStructureContract, taxes
-    if (latestTaxLookup === tokenRequiringTaxStructure.address) {
-      taxStructureContract = tokenTaxContract
-      taxes = tokenTaxStructureTaxes
-    } else {
-      const freshTaxStruct = await fetchTaxStructure(tokenRequiringTaxStructure.address)
-      taxStructureContract = freshTaxStruct.taxStructureContract
-      taxes = freshTaxStruct.taxes
-    }
-
-    const totalTax = taxes.reduce((p, t) => {
+    const totalTax = tokenTaxStructureTaxes.reduce((p, t) => {
       return p + Number(t[side])
     }, 0)
 
@@ -361,8 +361,7 @@ const useSwapContext = () => {
       ? BigNumber.from(outputAmount)
       : BigNumber.from(inputAmount)
 
-    const feeDecimal = await taxStructureContract.feeDecimal()
-    setTokenTaxContractFeeDecimal(feeDecimal)
+    const feeDecimal = tokenTaxContractFeeDecimal
 
     const multiplier = 10**(Number(feeDecimal) + 2)
     const taxMultiplied = multiplier - totalTax
@@ -390,7 +389,7 @@ const useSwapContext = () => {
     }
 
     // liquidity taxes aren't accounted for in quotes
-    const liqTaxSearch = taxes.find(t => t.isLiquidity)
+    const liqTaxSearch = tokenTaxStructureTaxes.find(t => t.isLiquidity)
     // const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side]) / 100**feeDecimal
     const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side])
     
@@ -421,7 +420,7 @@ const useSwapContext = () => {
       amountOut: trade.outputAmount.toFixed(outputCurrency.decimals),
       amountOutSlippage,
       side,
-      taxes,
+      taxes: tokenTaxStructureTaxes,
       priceImpact: 0,
       swap: trade,
     })
@@ -494,20 +493,23 @@ const useSwapContext = () => {
 
   useEffect(() => {
     if (!inputCurrency || !outputCurrency) return
-    console.log('using my effects')
     setUpForTrades()
 
     async function setUpForTrades() {
-      console.log('getting my dex...')
+      setTrade(null)
+      // only fetch a fresh tax structure if we have to
+      const side = determineSide(inputCurrency)
+      const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency
+      if (latestTaxLookup !== tokenRequiringTaxStructure.address) {
+        await fetchTaxStructure(tokenRequiringTaxStructure.address)
+      }
+      // fetch details about the pair to estimate trades
       const dex = await updateDex(inputCurrency, outputCurrency)
-      console.log('i am sorting... got my dex', dex)
       const sortedTokenPair = await sortTokens([inputCurrency, outputCurrency])
-      console.log('sorted my token pair', sortedTokenPair)
       const pairAddress = await updatePair(
         sortedTokenPair.map(t => t.address), 
         dex.factory
       )
-      console.log('got my pair address')
       updatePairReserves(pairAddress)
     }
   }, [inputCurrency, outputCurrency])
@@ -517,6 +519,10 @@ const useSwapContext = () => {
     if (inputAmount === "0" && !outputAmount) return
     if (!inputAmount && outputAmount === "0") return
     if (!inputCurrency || !outputCurrency || !pairReserves) return
+    if (!tokenTaxContract || !tokenTaxStructureTaxes || !tokenTaxContractFeeDecimal) return
+    const side = determineSide(inputCurrency)
+    const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency
+    if (tokenRequiringTaxStructure.address !== latestTaxLookup) return setTradeIsLoading(true)
 
     console.log('we have a trade!', {
       inputAmount, outputAmount, inputCurrency, outputCurrency
@@ -532,7 +538,7 @@ const useSwapContext = () => {
       nonce
     })
 
-  }, [inputAmount, outputAmount, inputCurrency, outputCurrency, slippage, pairReserves])
+  }, [inputAmount, outputAmount, inputCurrency, outputCurrency, slippage, pairReserves, tokenTaxStructureTaxes, tokenTaxContract, tokenTaxContractFeeDecimal])
 
   return { 
     updateEstimatedSide, 
