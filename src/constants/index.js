@@ -131,26 +131,32 @@ export const PAWSWAP_FACTORY = {
   '0x1': {
     abi: pawswapFactoryAbi,
     address: '',
+    initCodeHash: '',
   },
   'eth': {
     abi: pawswapFactoryAbi,
     address: '',
+    initCodeHash: '',
   },
   '0x38': {
     abi: pawswapFactoryAbi,
     address: '',
+    initCodeHash: '',
   },
   'bsc': {
     abi: pawswapFactoryAbi,
     address: '',
+    initCodeHash: '',
   },
   '0x61': {
     abi: pawswapFactoryAbi,
     address: '0x80ae086385f76d68efcdd5ecb7937ae32404ac41',
+    initCodeHash: '0x496c5e6d63efe6a77455ad3cf0c1649757cd659e0669628f88886aa7d6829838',
   },
   'bsctest': {
     abi: pawswapFactoryAbi,
     address: '0x80ae086385f76d68efcdd5ecb7937ae32404ac41',
+    initCodeHash: '0x496c5e6d63efe6a77455ad3cf0c1649757cd659e0669628f88886aa7d6829838',
   },
 }
 
@@ -158,26 +164,32 @@ export const PANCAKESWAP_FACTORY = {
   '0x1': {
     abi: pancakeswapFactoryAbi,
     address: '',
+    initCodeHash: '',
   },
   'eth': {
     abi: pancakeswapFactoryAbi,
     address: '',
+    initCodeHash: '',
   },
   '0x38': {
     abi: pancakeswapFactoryAbi,
     address: '',
+    initCodeHash: '',
   },
   'bsc': {
     abi: pancakeswapFactoryAbi,
     address: '',
+    initCodeHash: '',
   },
   '0x61': {
     abi: pancakeswapFactoryAbi,
     address: '0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc',
+    initCodeHash: '0xecba335299a6693cb2ebc4782e74669b84290b6378ea3a3873c7231a8d7d1074',
   },
   'bsctest': {
     abi: pancakeswapFactoryAbi,
     address: '0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc',
+    initCodeHash: '0xecba335299a6693cb2ebc4782e74669b84290b6378ea3a3873c7231a8d7d1074',
   },
 }
 

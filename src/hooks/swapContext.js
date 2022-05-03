@@ -6,6 +6,9 @@ import { notification } from 'antd'
 import { networkConfigs } from 'helpers/networks'
 import { taxStructureAbi } from 'constants/abis/taxStructure'
 import useNative from './useNative'
+import useDexs from './useDexs'
+import { pack, keccak256 } from '@ethersproject/solidity'
+import { getCreate2Address } from '@ethersproject/address'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -24,6 +27,7 @@ let tradeNonce = 0
 const useSwapContext = () => {
   const { Moralis, chainId, web3, account } = useMoralis()
   const { isNative } = useNative()
+  const { dexs } = useDexs()
   const [estimatedSide, setEstimatedSide] = useState(null)
   const [inputCurrency, setInputCurrency] = useState(null)
   const [inputAmount, setInputAmount] = useState(null)
@@ -36,6 +40,9 @@ const useSwapContext = () => {
   const [taxes, setTaxes] = useState(null)
   const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE)
   const [tradeIsLoading, setTradeIsLoading] = useState(false)
+  const [pair, setPair] = useState(null)
+  const [pairReserves, setPairReserves] = useState(null)
+  const [dex, setDex] = useState(null)
 
   const updateSlippage = (amt) => {
     setSlippage(Number(amt) / 100)
@@ -48,6 +55,56 @@ const useSwapContext = () => {
   const determineSide = (inputCurrency) => {
     if (isNative(inputCurrency.address)) return 'buy'
     return inputCurrency.address.toLowerCase() === networkConfigs[chainId].wrapped?.toLowerCase() ? 'buy' : 'sell'
+  }
+
+  const updateDex = async (inputCurrency, outputCurrency) => {
+    if (!inputCurrency.dex && !outputCurrency.dex) {
+      setDex(dexs['pawswap'])
+      return dexs['pawswap']
+    }
+    if (outputCurrency.dex) {
+      setDex(dexs[outputCurrency.dex])
+      return dexs[outputCurrency.dex]
+    } 
+    setDex(dexs[inputCurrency.dex])
+    return dexs[inputCurrency.dex]
+  }
+
+  const updatePair = async (sortedPair, factory) => {
+    const web3Provider = Moralis.web3Library;
+    const pairAddress = getCreate2Address(
+      web3Provider.utils.getAddress(factory.address),
+      keccak256(['bytes'], [pack(['address', 'address'], [
+        web3Provider.utils.getAddress(sortedPair[0]), 
+        web3Provider.utils.getAddress(sortedPair[1])
+      ])]),
+      factory.initCodeHash
+    )
+    setPair(pairAddress)
+    return pairAddress
+  }
+
+  const updatePairReserves = async (pairAddr) => {
+    const web3Provider = Moralis.web3Library;
+
+    const pairContract = new web3Provider.Contract(
+      pairAddr,
+      ["function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)"],
+      web3.getSigner()
+    )
+
+    try {
+      const pairReserves = await pairContract.getReserves()
+      setPairReserves(pairReserves)
+      return pairReserves
+    } catch (e) {
+      console.log('error getting reserves', e)
+      setTradeIsLoading(false)
+      return openNotification({
+        message: "⚠️ Error getting reserves!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
   }
 
   const updateInputCurrency = async (currency) => {
@@ -443,9 +500,26 @@ const useSwapContext = () => {
     }
   }
 
+  const sortTokens = (tokenList) => {
+    return tokenList.sort((a, b) => a > b ? 1 : -1)
+  }
+
   useEffect(() => {
     setTokenList(defaultTokenList.tokens)
   }, [defaultTokenList])
+
+  useEffect(() => {
+    if (!inputCurrency || !outputCurrency) return
+    console.log('using my effects')
+    setUpForTrades()
+
+    async function setUpForTrades() {
+      const dex = await updateDex(inputCurrency, outputCurrency)
+      const sortedTokenPair = sortTokens([inputCurrency.address, outputCurrency.address])
+      const pairAddress = await updatePair(sortedTokenPair, dex.factory)
+      updatePairReserves(pairAddress)
+    }
+  }, [inputCurrency, outputCurrency])
 
   useEffect(() => {
     if (!inputAmount && !outputAmount) return
