@@ -9,7 +9,7 @@ import useNative from './useNative'
 import useDexs from './useDexs'
 import { pack, keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
-import { Token, TokenAmount, Pair, TradeType, Trade, Route } from '@uniswap'
+import { Token, TokenAmount, Pair, TradeType, Trade, Route } from '@uniswap/sdk'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -375,27 +375,33 @@ const useSwapContext = () => {
     const sortedTokens = await sortTokens([tokenIn, tokenOut])
     console.log('pair', pair)
     console.log('pair reserves', pairReserves)
+    console.log('pairstr', pairReserves[0].toString())
     // constructing this ourselves since uniswap can't handle bsc chains
-    const tokenPair = {
-      liquidityToken: new Token(
-        chainId,
-        web3Provider.utils.getAddress(pair),
-        18
-      ),
-      tokenAmounts: [
-        new TokenAmount(sortedTokens[0], pairReserves[0]),
-        new TokenAmount(sortedTokens[1], pairReserves[1])
-      ]
+    // const tokenPair = {
+    //   liquidityToken: new Token(
+    //     chainId,
+    //     web3Provider.utils.getAddress(pair),
+    //     18
+    //   ),
+    //   tokenAmounts: [
+    //     new TokenAmount(sortedTokens[0], pairReserves[0]),
+    //     new TokenAmount(sortedTokens[1], pairReserves[1])
+    //   ]
+    // }
+    const tokenPair = new Pair(new TokenAmount(sortedTokens[1], pairReserves[1]), new TokenAmount(sortedTokens[0], pairReserves[0]))
+
+    let route, trade
+    if (estimatedSide === 'output') {
+      route = new Route([tokenPair], tokenIn)
+      trade = new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_INPUT)
+    } else {
+      route = new Route([tokenPair], tokenOut)
+      trade = new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_OUTPUT)
     }
-    console.log('token pair', tokenPair)
-    const route = new Route([tokenPair], tokenOut)
 
-    console.log({ tokenIn, tokenOut, sortedTokens, tokenPair, route })
-    console.log('trying,', new TokenAmount(tokenIn, amount))
-
-    const trade = estimatedSide === 'output'
-      ? new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_INPUT)
-      : new Trade(route, new TokenAmount(tokenOut, amount), TradeType.EXACT_OUTPUT)
+    // const trade = estimatedSide === 'output'
+    //   ? new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_INPUT)
+    //   : new Trade(route, new TokenAmount(tokenOut, amount), TradeType.EXACT_OUTPUT)
     
     console.log('trade is', trade)
 
@@ -413,11 +419,22 @@ const useSwapContext = () => {
 
     // liquidity taxes aren't accounted for in quotes
     const liqTaxSearch = taxes.find(t => t.isLiquidity)
-    const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side]) / 100**feeDecimal
+    // const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side]) / 100**feeDecimal
+    const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side])
     
     if (liqTax > 0) {
-      amountOut = Number(amountOut) - Number(amountOut) * liqTax
+      const liqTaxMultiplied = multiplier - liqTax
+      trade.outputAmount = trade.outputAmount.multiply(liqTaxMultiplied).divide(multiplier)
     }
+
+    console.log('amount out after tax', trade.outputAmount.toFixed(8))
+
+    if (slippage > 0) {
+      const slippageMultiplied = multiplier - (slippage * multiplier)
+      trade.outputAmount = trade.outputAmount.multiply(slippageMultiplied).divide(multiplier)
+    }
+
+    console.log('amount out after slippage', trade.outputAmount.toFixed(8))
 
     const amountOutSlippage = Moralis.Units.Token(
       (amountOut * (1 - slippage)).toFixed(outputCurrency.decimals),
