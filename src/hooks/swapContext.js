@@ -443,7 +443,7 @@ const useSwapContext = () => {
           '0',
           account,
           '0',
-          amountOutSlippage,
+          Moralis.Units.Token(amountOutSlippage, tokenOut.decimals),
           { value: Moralis.Units.Token(amountIn, 18) }
         )
       } else {
@@ -453,7 +453,7 @@ const useSwapContext = () => {
           '0',
           account,
           '0',
-          amountOutSlippage,
+          Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
         )
       }
     } catch (e) {
