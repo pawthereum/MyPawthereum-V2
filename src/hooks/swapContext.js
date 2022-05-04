@@ -497,6 +497,7 @@ const useSwapContext = () => {
 
     async function setUpForTrades() {
       setTrade(null)
+      if (inputCurrency?.address.toLowerCase() === outputCurrency?.address.toLowerCase()) return
       // only fetch a fresh tax structure if we have to
       const side = determineSide(inputCurrency)
       const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency

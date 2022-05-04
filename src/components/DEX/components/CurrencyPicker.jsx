@@ -22,6 +22,7 @@ function CurrencyPicker (props) {
   const [tokenListWithBalances, setTokenListWithBalances] = useState([])
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [pickedCurrency, setPickedCurrency] = useState(null);
+  const [nativeCurrency, setNativeCurrency] = useState(null);
   const [omittedSelectionAddresses, setOmittedSelectionAddresses] = useState([])
   const [options, setOptions] = useState([])
 
@@ -90,19 +91,35 @@ function CurrencyPicker (props) {
 
   useEffect(() => {
     if (props.side === 'input' && inputCurrency) {
+      if (inputCurrency?.address.toLowerCase() === outputCurrency?.address.toLowerCase()) {
+        updateOutputCurrency(null)
+      }
+      if (!isNative(inputCurrency.address) && nativeCurrency) {
+        updateOutputCurrency(nativeCurrency)
+      }
       setPickedCurrency(inputCurrency)
-    } 
-    if (props.side === 'output' && outputCurrency) {
-      setPickedCurrency(outputCurrency)
     }
-    setOmittedSelectionAddresses([
-      outputCurrency?.address.toLowerCase(), 
-      inputCurrency?.address.toLowerCase()
-    ])
+    if (props.side === 'output' && outputCurrency) {
+      // clear the other input if same token selected
+      if (inputCurrency?.address.toLowerCase() === outputCurrency?.address.toLowerCase()) {
+        updateInputCurrency(null)
+      }
+      setPickedCurrency(outputCurrency)
+      if (!isNative(outputCurrency.address) && nativeCurrency) {
+        updateInputCurrency(nativeCurrency)
+      }
+    }
 
   }, [props.side, estimatedSide, inputCurrency, outputCurrency])
 
   useEffect(() => {
+    if (tokenListWithBalances) {
+      const nativeCurrency = tokenListWithBalances.find(t => t.isNative)
+      if (nativeCurrency) {
+        nativeCurrency.address = networkConfigs[chainId]?.wrapped
+        setNativeCurrency(nativeCurrency)
+      }
+    }
     console.log('omitted', omittedSelectionAddresses)
     setOptions([
       {

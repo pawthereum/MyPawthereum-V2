@@ -30,7 +30,8 @@ export const tokenList = {
       "logoURI": "https://pancake.kiemtienonline360.com/images/coins/0xae13d989dac2f0debff460ac112a837c89baa7cd.png",
       "typicalBuyTax": 0,
       "typicalSellTax": 0,
-      "color": "#F0BA03"
+      "color": "#F0BA03",
+      "isNative": true
     },
     //{
     //   "name": "Wrapped BNB",
