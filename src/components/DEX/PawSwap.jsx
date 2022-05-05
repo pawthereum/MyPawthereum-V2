@@ -12,8 +12,6 @@ import useAllowances from 'hooks/useAllowances.js';
 import { networkConfigs } from 'helpers/networks.js';
 import useNative from 'hooks/useNative';
 
-const defaultBg = '#F0F2F5';
-
 const styles = {
   card: {
     boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
@@ -24,9 +22,13 @@ const styles = {
     fontWeight: "500",
   },
   inset: {
-    backgroundColor: defaultBg,
+    backgroundColor: COLORS.defaultBg,
     padding: '14px',
-    borderRadius: '1rem'
+    borderRadius: '1rem',
+    boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px inset',
+  },
+  outset: {
+    boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px',
   }
 }
 function PawSwap() {
@@ -47,8 +49,8 @@ function PawSwap() {
   } = useContext(AppContext);
   const { hasAllowance, updateAllowance } = useAllowances()
   const { isNative, getNativeBalance } = useNative()
-  const [inputColor, setInputColor] = useState(defaultBg)
-  const [outputColor, setOutputColor] = useState(defaultBg)
+  const [inputColor, setInputColor] = useState(COLORS.defaultBg)
+  const [outputColor, setOutputColor] = useState(COLORS.defaultBg)
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
   const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
   const [swapButtonIsLoading, setSwapButtonIsLoading] = useState(false)
@@ -195,7 +197,7 @@ function PawSwap() {
               <Row 
                 style={{ 
                   ...styles.inset, 
-                  background: `linear-gradient(to top, ${inputColor} -105%, ${defaultBg})` 
+                  background: `linear-gradient(to top, ${inputColor} -105%, ${COLORS.defaultBg})` 
                 }}
                 className={inputIsLoading ? 'pulse' : ''}
               >
@@ -231,7 +233,7 @@ function PawSwap() {
               <Row 
                 style={{ 
                   ...styles.inset, 
-                  background: `linear-gradient(to top, ${outputColor} -105%, ${defaultBg})` 
+                  background: `linear-gradient(to top, ${outputColor} -105%, ${COLORS.defaultBg})` 
                 }}
                 className={outputIsLoading ? 'pulse' : ''}
               >
@@ -278,6 +280,7 @@ function PawSwap() {
                         marginTop: "15px",
                         borderRadius: "0.6rem",
                         height: "50px",
+                        ...styles.outset,
                       }}
                       onClick={() => approveInputAmount()}
                       loading={approvalIsLoading}
@@ -295,7 +298,8 @@ function PawSwap() {
                       marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,
                       borderRadius: "0.6rem",
                       height: "50px",
-                      backgroundColor: highPriceImpact && !swapButtonIsDisabled() ? COLORS.error : ''
+                      backgroundColor: highPriceImpact && !swapButtonIsDisabled() ? COLORS.error : '',
+                      ...styles.outset,
                     }}
                     onClick={() => trySwap()}
                     disabled={swapButtonIsDisabled()}

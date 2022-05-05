@@ -42,7 +42,11 @@ function CurrencyAmountInput (props) {
   }, [inputCurrency, outputCurrency])
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'space-between',
+    }}>
       <InputNumber
         style={{
           width: '100%',

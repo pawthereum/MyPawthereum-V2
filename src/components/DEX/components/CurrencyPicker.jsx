@@ -145,8 +145,9 @@ function CurrencyPicker (props) {
   return (
     <div style={{ 
       cursor: 'pointer',
-      minWidth: '150px', 
+      minWidth: !pickedCurrency ? '150px' : '120px', 
       background: 'linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2))',
+      boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px',
       borderRadius: '24px',
       padding: '5px'
     }}>
