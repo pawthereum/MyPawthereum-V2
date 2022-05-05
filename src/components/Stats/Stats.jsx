@@ -18,23 +18,28 @@ function Stats() {
   const [charityWallet, setCharityWallet] = useState(null)
 
   useEffect(() => {
-    if (!chainId) return
+    if (!chainId || !web3 || !Moralis) return
 
     getCharityWallet()
 
     async function getCharityWallet() {
       const web3Provider = Moralis.web3Library
+      console.log({ web3Provider })
       const pawthAddress = PAWTH_ADDRESS[chainId]
+      console.log({ pawthAddress })
+      if (!pawthAddress) return
       const pawthContract = new web3Provider.Contract(
         pawthAddress,
         JSON.parse(PAWTH_ABI[chainId]),
         web3.getSigner()
       )
+      console.log('pawthContract', pawthContract)
       const pawthCharityWallet = await pawthContract.charityWallet()
+      console.log('charity wallet', pawthCharityWallet)
       setCharityWallet(pawthCharityWallet)
     }
 
-  }, [chainId])
+  }, [chainId, web3, Moralis])
 
   const styles = {
     title: {
