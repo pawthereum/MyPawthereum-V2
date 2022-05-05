@@ -25,7 +25,7 @@ import Vote from 'components/Vote';
 import Flooz from 'components/Flooz';
 import Proposal from 'components/Vote/components/Proposal';
 import MenuItems from "./components/MenuItems";
-import { PAWTH_ADDRESS, COINGECKO_ID } from "./constants";
+import { PAWTH_ADDRESS, COINGECKO_ID, COLORS } from "./constants";
 import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
 import AddLiquidity from "components/DEX/components/AddLiquidity";
 import DexComingSoon from "components/DEX/DexComingSoon";
@@ -39,6 +39,13 @@ const { Header, Footer } = Layout;
 const { useBreakpoint } = Grid;
 
 const styles = {
+  layout: {
+    overflow: "auto", 
+    minHeight: '100vh',
+    // background: COLORS.defaultBg,
+    background: `radial-gradient(ellipse at top, ${COLORS.defaultBg}, transparent 425%),radial-gradient(ellipse at bottom,  ${COLORS.primary}, transparent)`
+    // backgroundColor: `radial-gradient(ellipse at top, ${COLORS.primary}, transparent), radial-gradient(ellipse at bottom, ${COLORS.primary}, transparent)`
+  },
   content: {
     display: "flex",
     justifyContent: "center",
@@ -154,7 +161,7 @@ const App = ({ isServerInfo }) => {
 
   return (
     <AppContext.Provider value={globalState}>
-      <Layout style={{ overflow: "auto", minHeight: '100vh' }}>
+      <Layout style={styles.layout}>
         <Router>
           <Header style={styles.header}>
             <Logo />
@@ -262,7 +269,8 @@ const App = ({ isServerInfo }) => {
         </Router>
         <Footer style={{ 
           textAlign: "center", 
-          paddingBottom: screens.xs ? '74px' : '0px'
+          paddingBottom: screens.xs ? '74px' : '0px',
+          backgroundColor: 'transparent'
         }}>
           <Text style={{ display: "block" }}>
             ⭐️ Version 2.0.5

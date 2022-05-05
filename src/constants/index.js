@@ -236,6 +236,6 @@ export const STAKING_POOL = {
 
 export const COLORS = {
   primary: '#ff65b3',
-  defaultBg: '#F0F2F5',
+  defaultBg: '#faf9fa',
   error: '#f03c4b'
 }

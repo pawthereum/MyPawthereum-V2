@@ -40,6 +40,7 @@ if (process.env.NODE_ENV !== 'production') {
 ConfigProvider.config({
   theme: {
     primaryColor: '#ff65b3',
+    errorColor: '#f03c4b',
   },
 });
 
