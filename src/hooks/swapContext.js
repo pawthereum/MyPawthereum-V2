@@ -46,6 +46,7 @@ const useSwapContext = () => {
   const [pairReserves, setPairReserves] = useState(null)
   const [dex, setDex] = useState(null)
   const [currentBlock, setCurrentBlock] = useState(null)
+  const [highPriceImpactIgnored, setHighPriceImpactIgnored] = useState(false)
 
   const sortTokens = async (tokenList) => {
     return await tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
@@ -62,6 +63,10 @@ const useSwapContext = () => {
 
   const updateSlippage = (amt) => {
     setSlippage(Number(amt) / 100)
+  }
+
+  const updateIgnorePriceHighImpact = (shouldIgnore) => {
+    setHighPriceImpactIgnored(shouldIgnore)
   }
   
   const updateEstimatedSide = (side) => {
@@ -559,6 +564,8 @@ const useSwapContext = () => {
     tokenTaxContractFeeDecimal,
     slippage,
     updateSlippage,
+    highPriceImpactIgnored,
+    updateIgnorePriceHighImpact,
     tradeIsLoading
   }
 }

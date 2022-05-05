@@ -7,7 +7,7 @@ import { useERC20Balance } from '../../hooks/useERC20Balance';
 import { useMoralis } from 'react-moralis'
 import TradeCard from './components/TradeCard';
 import Settings from './components/Settings'
-import { PAWSWAP, DEFAULT_SLIPPAGE } from '../../constants'
+import { PAWSWAP, DEFAULT_SLIPPAGE, COLORS, HIGH_PRICE_IMPACT, MAXMIMUM_PRICE_IMPACT } from '../../constants'
 import useAllowances from 'hooks/useAllowances.js';
 import { networkConfigs } from 'helpers/networks.js';
 import useNative from 'hooks/useNative';
@@ -30,7 +30,7 @@ const styles = {
   }
 }
 function PawSwap() {
-  const { Moralis, chainId, account } = useMoralis()
+  const { Moralis, chainId } = useMoralis()
   const { assets } = useERC20Balance()
   const { 
     estimatedSide, 
@@ -42,7 +42,8 @@ function PawSwap() {
     tradeIsLoading, 
     updateInputCurrency, 
     updateOutputCurrency,
-    inputAmount
+    inputAmount,
+    highPriceImpactIgnored
   } = useContext(AppContext);
   const { hasAllowance, updateAllowance } = useAllowances()
   const { isNative, getNativeBalance } = useNative()
@@ -56,6 +57,8 @@ function PawSwap() {
   const [showApproveBtn, setShowApproveBtn] = useState(false)
   const [approvalIsLoading, setApprovalIsLoading] = useState(false)
   const [approvalText, setApprovalText] = useState('Approve')
+  const [highPriceImpact, setHighPriceImpact] = useState(false)
+  const [exceedsMaxPriceImpact, setExceedsMaxPriceImpact] = useState(false)
 
   const approveInputAmount = async () => {
     setApprovalIsLoading(true)
@@ -93,6 +96,25 @@ function PawSwap() {
       return setInputCurrencyBalance(Moralis.Units.FromWei(balance, 18))
     }
     return setOutputCurrencyBalance(Moralis.Units.FromWei(balance, 18))
+  }
+
+  useEffect(() => {
+    if (!trade) return
+    trade?.swap?.priceImpact.toSignificant() > HIGH_PRICE_IMPACT
+      ? setHighPriceImpact(true)
+      : setHighPriceImpact(false)
+    
+    trade?.swap?.priceImpact.toSignificant() > MAXMIMUM_PRICE_IMPACT && !highPriceImpactIgnored
+      ? setExceedsMaxPriceImpact(true)
+      : setExceedsMaxPriceImpact(false)
+  }, [trade, highPriceImpactIgnored])
+
+  const swapButtonIsDisabled = () => {
+    return showApproveBtn || exceedsMaxPriceImpact
+  }
+
+  const swapButtonText = () => {
+    return exceedsMaxPriceImpact && !showApproveBtn ? 'Price Impact Too High' : 'Swap 🔁'
   }
 
   useEffect(() => {
@@ -273,12 +295,13 @@ function PawSwap() {
                       marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,
                       borderRadius: "0.6rem",
                       height: "50px",
+                      backgroundColor: highPriceImpact && !swapButtonIsDisabled() ? COLORS.error : ''
                     }}
                     onClick={() => trySwap()}
-                    disabled={showApproveBtn}
+                    disabled={swapButtonIsDisabled()}
                     loading={swapButtonIsLoading}
                   >
-                    Swap 🔁
+                    {swapButtonText()}
                   </Button>
                 </Col>
               </Row>

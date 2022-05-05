@@ -34,6 +34,9 @@ export const DECIMALS = 9
 
 export const DEFAULT_SLIPPAGE = 0.02
 
+export const HIGH_PRICE_IMPACT = 5 // 5%
+export const MAXMIMUM_PRICE_IMPACT = 15
+
 export const SLIPPAGE = {
   '0x1': 3,
   'eth': 3,
@@ -232,5 +235,6 @@ export const STAKING_POOL = {
 }
 
 export const COLORS = {
-  primary: '#ff65b3'
+  primary: '#ff65b3',
+  error: '#f03c4b'
 }

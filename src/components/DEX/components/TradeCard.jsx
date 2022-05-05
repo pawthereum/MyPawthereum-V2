@@ -3,6 +3,7 @@ import { Row, Col, Card, Divider } from 'antd'
 import QueueAnim from 'rc-queue-anim'
 import AppContext from '../../../AppContext'
 import { useContext, useEffect, useState } from 'react'
+import { COLORS, HIGH_PRICE_IMPACT } from '../../../constants'
 
 const styles = {
   card: {
@@ -25,6 +26,7 @@ function TradeCard () {
   const { trade, taxes, tokenTaxContractFeeDecimal, priceImpact } = useContext(AppContext);
   const [totalTax, setTotalTax] = useState(0)
   const [formattedTaxes, setFormattedTaxes] = useState(null)
+  const [highPriceImpact, setHighPriceImpact] = useState(false)
 
   const formatMinAmount = (amt) => {
     const maxDigits = Number(amt) > 1 ? 0 : 6
@@ -60,6 +62,11 @@ function TradeCard () {
       }
     })
     setFormattedTaxes(formattedTaxes)
+
+    trade?.swap?.priceImpact.toSignificant() > HIGH_PRICE_IMPACT 
+      ? setHighPriceImpact(true) 
+      : setHighPriceImpact(false)
+    
   }, [taxes, trade])
 
   useEffect(() => {
@@ -86,7 +93,9 @@ function TradeCard () {
               </Row>
               <Row style={styles.tradeCardRow}>
                 <Col>Price Impact</Col>
-                <Col>{formatPriceImpact(trade.swap.priceImpact)}</Col>
+                <Col style={{
+                  color: highPriceImpact ? COLORS.error : ''
+                }}>{formatPriceImpact(trade.swap.priceImpact)}</Col>
               </Row>
               <Divider></Divider>
               <Row style={{ ...styles.tradeCardRow, fontSize: '1rem' }}>
