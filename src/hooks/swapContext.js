@@ -365,12 +365,15 @@ const useSwapContext = () => {
     const amountPreTax = estimatedSide === 'input' 
       ? BigNumber.from(outputAmount)
       : BigNumber.from(inputAmount)
-
+    
     const feeDecimal = tokenTaxContractFeeDecimal
 
     const multiplier = 10**(Number(feeDecimal) + 2)
-    const taxMultiplied = multiplier - totalTax
-    const amount = amountPreTax.mul(taxMultiplied).div(multiplier)
+    const taxMultiplied = estimatedSide === 'output' ? multiplier - totalTax : totalTax
+    const amount = estimatedSide === 'output' 
+      ? amountPreTax.mul(taxMultiplied).div(multiplier)
+      : amountPreTax.mul(taxMultiplied).div(multiplier).add(amountPreTax)
+
     const tokenIn = new Token(
       chainId, 
       web3Provider.utils.getAddress(inputCurrency?.address), 
@@ -382,15 +385,16 @@ const useSwapContext = () => {
       outputCurrency?.decimals
     )
     const sortedTokens = await sortTokens([tokenIn, tokenOut])
-    const tokenPair = new Pair(new TokenAmount(sortedTokens[1], pairReserves[1]), new TokenAmount(sortedTokens[0], pairReserves[0]))
+    const tokenPair = new Pair(new TokenAmount(sortedTokens[0], pairReserves[0]), new TokenAmount(sortedTokens[1], pairReserves[1]))
+    const route = side === 'buy'
+      ? new Route([tokenPair], tokenIn)
+      : new Route([tokenPair], tokenIn)
 
-    let route, trade
+    let trade
     if (estimatedSide === 'output') {
-      route = new Route([tokenPair], tokenIn)
       trade = new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_INPUT)
     } else {
-      route = new Route([tokenPair], tokenOut)
-      trade = new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_OUTPUT)
+      trade = new Trade(route, new TokenAmount(tokenOut, amount), TradeType.EXACT_OUTPUT)
     }
 
     // liquidity taxes aren't accounted for in quotes
@@ -399,11 +403,13 @@ const useSwapContext = () => {
     const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side])
     
     if (liqTax > 0) {
-      const liqTaxMultiplied = multiplier - liqTax
-      trade.outputAmount = trade.outputAmount.multiply(liqTaxMultiplied).divide(multiplier)
+      const liqTaxMultiplied = estimatedSide === 'output' ? multiplier - liqTax : liqTax
+      if (estimatedSide === 'output') {
+        trade.outputAmount = trade.outputAmount.multiply(liqTaxMultiplied).divide(multiplier)
+      } else {
+        trade.inputAmount = trade.inputAmount.multiply(liqTaxMultiplied).divide(multiplier).add(trade.inputAmount)
+      }
     }
-
-    console.log('amount out after tax', trade.outputAmount.toFixed(8))
 
     let amountOutSlippage = trade.outputAmount.toFixed(outputCurrency.decimals)
     if (slippage > 0) {
@@ -411,9 +417,13 @@ const useSwapContext = () => {
       amountOutSlippage = trade.outputAmount.multiply(slippageMultiplied).divide(multiplier).toFixed(outputCurrency.decimals)
     }
 
-    const amountIn = estimatedSide === 'input'
+    const amountIn = estimatedSide === 'output'
       ? inputAmount
-      : Moralis.Units.FromWei(inputAmount, inputCurrency?.decimals)
+      : trade?.inputAmount.toFixed(inputCurrency.decimals)
+    
+    const amountOut = estimatedSide === 'output'
+      ? trade?.outputAmount.toFixed(outputCurrency.decimals)
+      : outputAmount
 
     setTradeIsLoading(false)
     // the latest trade in is the latest trade printed on screen
@@ -422,17 +432,18 @@ const useSwapContext = () => {
       tokenIn: inputCurrency,
       tokenOut: outputCurrency,
       amountIn: amountIn,
-      amountOut: trade.outputAmount.toFixed(outputCurrency.decimals),
+      amountOut: amountOut,
       amountOutSlippage,
       side,
       taxes: tokenTaxStructureTaxes,
       priceImpact: 0,
       swap: trade,
+      estimatedSide
     })
   }
 
   async function executeSwap (trade) {
-    const { tokenIn, tokenOut, amountIn, amountOutSlippage, side } = trade
+    const { tokenIn, tokenOut, amountIn, amountOut, amountOutSlippage, side, estimatedSide } = trade
     const web3Provider = Moralis.web3Library;
     const pawswap = new web3Provider.Contract(
       PAWSWAP[chainId]?.address,
@@ -447,7 +458,9 @@ const useSwapContext = () => {
           '0',
           account,
           '0',
-          Moralis.Units.Token(amountOutSlippage, tokenOut.decimals),
+          estimatedSide === 'output'
+            ? Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
+            : amountOut,
           { value: Moralis.Units.Token(amountIn, 18) }
         )
       } else {

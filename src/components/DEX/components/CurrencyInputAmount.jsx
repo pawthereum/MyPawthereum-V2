@@ -17,10 +17,11 @@ function CurrencyAmountInput (props) {
 
   useEffect(() => {
     if (!trade) return
-    if (estimatedSide === props.side) {
-      setValue(trade?.amountOut)
-    } else {
-      setValue(trade?.amountIn)
+    const tradeSide = props.side === 'input' ? 'amountIn' : 'amountOut'
+    console.log('our trade is', trade)
+    console.log('our side is', trade[tradeSide])
+    if (props.side === estimatedSide) {
+      setValue(trade[tradeSide] ? trade[tradeSide] : null)
     }
   }, [trade])
 
