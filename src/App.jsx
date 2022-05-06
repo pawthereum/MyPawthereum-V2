@@ -42,9 +42,7 @@ const styles = {
   layout: {
     overflow: "auto", 
     minHeight: '100vh',
-    // background: COLORS.defaultBg,
     background: `radial-gradient(ellipse at top, ${COLORS.defaultBg}, transparent 425%),radial-gradient(ellipse at bottom,  ${COLORS.primary}, transparent)`
-    // backgroundColor: `radial-gradient(ellipse at top, ${COLORS.primary}, transparent), radial-gradient(ellipse at bottom, ${COLORS.primary}, transparent)`
   },
   content: {
     display: "flex",

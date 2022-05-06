@@ -197,7 +197,7 @@ function PawSwap() {
               <Row 
                 style={{ 
                   ...styles.inset, 
-                  background: `linear-gradient(to top, ${inputColor} -105%, ${COLORS.defaultBg})` 
+                  background: `linear-gradient(to bottom, ${COLORS.defaultBg}, transparent 250%),radial-gradient(ellipse at bottom,  ${inputColor}, transparent 250%)`
                 }}
                 className={inputIsLoading ? 'pulse' : ''}
               >
@@ -232,8 +232,8 @@ function PawSwap() {
               </Row>
               <Row 
                 style={{ 
-                  ...styles.inset, 
-                  background: `linear-gradient(to top, ${outputColor} -105%, ${COLORS.defaultBg})` 
+                  ...styles.inset,
+                  background: `linear-gradient(to bottom, ${COLORS.defaultBg}, transparent 250%),radial-gradient(ellipse at bottom,  ${outputColor}, transparent 250%)`
                 }}
                 className={outputIsLoading ? 'pulse' : ''}
               >
