@@ -27,6 +27,7 @@ function TradeCard () {
   const [totalTax, setTotalTax] = useState(0)
   const [formattedTaxes, setFormattedTaxes] = useState(null)
   const [highPriceImpact, setHighPriceImpact] = useState(false)
+  const [minimumReceived, setMinimumReceived] = useState(null)
 
   const formatMinAmount = (amt) => {
     const maxDigits = Number(amt) > 1 ? 0 : 6
@@ -63,6 +64,10 @@ function TradeCard () {
     })
     setFormattedTaxes(formattedTaxes)
 
+    trade?.estimatedSide === 'output'
+      ? setMinimumReceived(trade.amountOutSlippage)
+      : setMinimumReceived(Moralis.Units.FromWei(trade.amountOut, trade.tokenOut.decimals))
+
     trade?.swap?.priceImpact.toSignificant() > HIGH_PRICE_IMPACT 
       ? setHighPriceImpact(true) 
       : setHighPriceImpact(false)
@@ -89,7 +94,7 @@ function TradeCard () {
             <Card style={styles.card} key='trade-card'>
               <Row style={styles.tradeCardRow}>
                 <Col>Minimum received</Col>
-                <Col>{`${formatMinAmount(trade.amountOutSlippage)} ${trade?.tokenOut?.symbol}`}</Col>
+                <Col>{`${formatMinAmount(minimumReceived)} ${trade?.tokenOut?.symbol}`}</Col>
               </Row>
               <Row style={styles.tradeCardRow}>
                 <Col>Price Impact</Col>
