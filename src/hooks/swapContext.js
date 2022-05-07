@@ -49,7 +49,7 @@ const useSwapContext = () => {
   const [highPriceImpactIgnored, setHighPriceImpactIgnored] = useState(false)
 
   const sortTokens = async (tokenList) => {
-    return await tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
+    return await tokenList.sort((a, b) => a.address > b.address ? -1 : 1)
   }
 
   useEffect(() => {
@@ -113,9 +113,11 @@ const useSwapContext = () => {
       ["function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)"],
       web3.getSigner()
     )
+    console.log('pair contrac', pairContract)
 
     try {
       const pairReserves = await pairContract.getReserves()
+      console.log('reserves', pairReserves)
       setPairReserves(pairReserves)
       return pairReserves
     } catch (e) {
@@ -206,6 +208,7 @@ const useSwapContext = () => {
   }
 
   const getTaxes = async (taxStructContract) => {
+    console.log({ taxStructContract })
     let taxList = []
     try {
       taxList = await Promise.all([
@@ -306,6 +309,7 @@ const useSwapContext = () => {
       )
       setTokenTaxContract(newStruct)
       setLatestTaxLookup(tokenAddr)
+      console.log({ newStruct })
       const taxes = await getTaxes(newStruct)
       setTokenTaxStructureTaxes(taxes)
       return { taxStructureContract: newStruct, taxes }
@@ -443,6 +447,7 @@ const useSwapContext = () => {
   }
 
   async function executeSwap (trade) {
+    console.log(" TRADE ---<<<<----", trade)
     const { tokenIn, tokenOut, amountIn, amountOut, amountOutSlippage, side, estimatedSide } = trade
     const web3Provider = Moralis.web3Library;
     const pawswap = new web3Provider.Contract(
@@ -461,6 +466,7 @@ const useSwapContext = () => {
           estimatedSide === 'output'
             ? Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
             : amountOut,
+          estimatedSide === 'output',
           { value: Moralis.Units.Token(amountIn, 18) }
         )
       } else {
@@ -470,7 +476,8 @@ const useSwapContext = () => {
           '0',
           account,
           '0',
-          Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
+          Moralis.Units.Token(amountOutSlippage, tokenOut.decimals),
+          estimatedSide === 'output'
         )
       }
     } catch (e) {
@@ -515,6 +522,7 @@ const useSwapContext = () => {
 
     async function setUpForTrades() {
       setTrade(null)
+      if (!account) return
       if (inputCurrency?.address.toLowerCase() === outputCurrency?.address.toLowerCase()) return
       // only fetch a fresh tax structure if we have to
       const side = determineSide(inputCurrency)
@@ -524,14 +532,16 @@ const useSwapContext = () => {
       }
       // fetch details about the pair to estimate trades
       const dex = await updateDex(inputCurrency, outputCurrency)
+      console.log('dex is', dex)
       const sortedTokenPair = await sortTokens([inputCurrency, outputCurrency])
       const pairAddress = await updatePair(
         sortedTokenPair.map(t => t.address), 
         dex.factory
       )
+      console.log({ pairAddress })
       updatePairReserves(pairAddress)
     }
-  }, [inputCurrency, outputCurrency])
+  }, [inputCurrency, outputCurrency, account])
 
   useEffect(() => {
     if (!inputAmount && !outputAmount) return

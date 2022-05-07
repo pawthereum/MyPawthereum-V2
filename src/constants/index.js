@@ -14,8 +14,8 @@ export const PAWTH_ADDRESS = {
   '0x38': '0x409e215738e31d8ab252016369c2dd9c2008fee0', // bsc mainnet
   'bsc': '0x409e215738e31d8ab252016369c2dd9c2008fee0',
   '0x4': '0x459BC05bF203cEd24E76c598B507aEAa9eD36C28', // rinkeby testnet
-  '0x61': '0x3ddA03cA78286fF415E8428BA9E75f6472351E7D', // bsc testnet
-  'bsctest': '0x3ddA03cA78286fF415E8428BA9E75f6472351E7D',
+  '0x61': '0xB556f41Aaa3F3d8BA33388c4aFCe62C0847eb58a', // bsc testnet
+  'bsctest': '0xB556f41Aaa3F3d8BA33388c4aFCe62C0847eb58a',
 }
 
 export const SHIBA_LP_ADDRESS = '0xc57dc778a0d2d150d04fc0fd09a0113ebe9d600c'
@@ -95,11 +95,11 @@ export const PAWSWAP = {
   },
   '0x61': {
     abi: pawswapAbi,
-    address: '0xD50eC0688C6Bd8CE121d4bD50700a948d2AD2C2a',
+    address: '0x3dFafcbfbA37523150BD7acEdCd66b985c1DdE5d',
   },
   'bsctest': {
     abi: pawswapAbi,
-    address: '0xD50eC0688C6Bd8CE121d4bD50700a948d2AD2C2a',
+    address: '0x3dFafcbfbA37523150BD7acEdCd66b985c1DdE5d',
   },
 }
 
@@ -122,11 +122,11 @@ export const PAWSWAP_ROUTER = {
   },
   '0x61': {
     abi: pawswapRouterAbi,
-    address: '0xef9d194f63218533203ba59909f518afeb156e9a',
+    address: '0xC3eF83A0C40c3f809876a3B19560e9523122A04C',
   },
   'bsctest': {
     abi: pawswapRouterAbi,
-    address: '0xef9d194f63218533203ba59909f518afeb156e9a',
+    address: '0xC3eF83A0C40c3f809876a3B19560e9523122A04C',
   },
 }
 
@@ -153,13 +153,13 @@ export const PAWSWAP_FACTORY = {
   },
   '0x61': {
     abi: pawswapFactoryAbi,
-    address: '0x80ae086385f76d68efcdd5ecb7937ae32404ac41',
-    initCodeHash: '0x496c5e6d63efe6a77455ad3cf0c1649757cd659e0669628f88886aa7d6829838',
+    address: '0xf15587BB760DccB5E98C0cd61be240638fB34ED9',
+    initCodeHash: '0xace9625f703c5018f54acd8e2336eea6029147bf559af8ab8f9b6cfcfa53cf5b',
   },
   'bsctest': {
     abi: pawswapFactoryAbi,
-    address: '0x80ae086385f76d68efcdd5ecb7937ae32404ac41',
-    initCodeHash: '0x496c5e6d63efe6a77455ad3cf0c1649757cd659e0669628f88886aa7d6829838',
+    address: '0xf15587BB760DccB5E98C0cd61be240638fB34ED9',
+    initCodeHash: '0xace9625f703c5018f54acd8e2336eea6029147bf559af8ab8f9b6cfcfa53cf5b',
   },
 }
 

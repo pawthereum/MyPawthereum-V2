@@ -55,13 +55,7 @@ function CurrencyPicker (props) {
     setIsModalVisible(true);
   };
 
-  const handleOk = () => {
-    console.log('handling')
-    setIsModalVisible(false);
-  };
-
-  const handleCancel = () => {
-    console.log('canceling')
+  const handleClose = () => {
     setIsModalVisible(false);
   };
 
@@ -139,13 +133,13 @@ function CurrencyPicker (props) {
     console.log('selection', selection)
     setPickedCurrency(selection)
     props.side === "input" ? updateInputCurrency(selection) : updateOutputCurrency(selection)
-    handleOk()
+    handleClose()
   }
 
   return (
     <div style={{ 
       cursor: 'pointer',
-      background: 'linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2))',
+      background: 'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2))',
       boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px',
       borderRadius: '24px',
     }}>
@@ -155,7 +149,7 @@ function CurrencyPicker (props) {
           pickedCurrency?.symbol || 'Select a token'
         }</span> <CaretDownOutlined />
       </Button>
-      <Modal title="Select a token" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+      <Modal title="Select a token" visible={isModalVisible} footer={null} onCancel={handleClose}>
         <AutoComplete
           dropdownClassName="certain-category-search-dropdown"
           dropdownMatchSelectWidth={500}
