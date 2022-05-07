@@ -27,7 +27,7 @@ import Proposal from 'components/Vote/components/Proposal';
 import MenuItems from "./components/MenuItems";
 import { PAWTH_ADDRESS, COINGECKO_ID, COLORS } from "./constants";
 import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
-import AddLiquidity from "components/DEX/components/AddLiquidity";
+import AddLiquidity from "components/DEX/components/AddLiquiditybu";
 import DexComingSoon from "components/DEX/DexComingSoon";
 import PawSend from "components/PawSend/PawSend"
 import RovingDogs from 'components/RovingDogs'

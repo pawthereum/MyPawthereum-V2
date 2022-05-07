@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Button, Row, Col, Space, Card } from 'antd'
+import { Button, Row, Col, Space, Card, Tabs } from 'antd'
 import { ArrowDownOutlined } from "@ant-design/icons";
 import CurrencyAmountInput from './components/CurrencyInputAmount.jsx'
 import AppContext from '../../AppContext'
@@ -11,6 +11,7 @@ import { PAWSWAP, DEFAULT_SLIPPAGE, COLORS, HIGH_PRICE_IMPACT, MAXMIMUM_PRICE_IM
 import useAllowances from 'hooks/useAllowances.js';
 import { networkConfigs } from 'helpers/networks.js';
 import useNative from 'hooks/useNative';
+import Liquidity from './components/Liquidity'
 
 const styles = {
   card: {
@@ -181,142 +182,149 @@ function PawSwap() {
 
   return (
     <div>
-      <Row>
-        <Col>
-          <Card style={styles.card} title={
-            <Row>
-              <Col span={12}>
-                PawSwap
-              </Col>
-              <Col span={12} style={{ display: 'flex', justifyContent: 'end' }}>
-                <Settings />
-              </Col>
-            </Row>
-          }>            
-            <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-              <Row 
-                style={{ 
-                  ...styles.inset, 
-                  background: `linear-gradient(to bottom, ${COLORS.defaultBg}, transparent 250%),radial-gradient(ellipse at bottom,  ${inputColor}, transparent 250%)`
-                }}
-                className={inputIsLoading ? 'pulse' : ''}
-              >
-                <Col span={24}>
-                  <Row style={{ marginBottom: '5px' }}>
-                    <Col span={10}>
-                      <small>From {estimatedSide === 'input' ? '(estimated)' : ''} </small>
-                    </Col>
-                    {
-                      inputCurrencyBalance !== null
-                      ?
-                        <Col span={14} style={{ display: 'flex', justifyContent: 'end' }}>
-                          <small>Balance: {parseFloat(inputCurrencyBalance).toLocaleString([], {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 4
-                          })}</small>
-                        </Col>
-                      : <></>
-                    }
-                  </Row>
-                  <Row>
-                    <Col span={24}>
-                      <CurrencyAmountInput side="input" />
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-              <Row>
-                <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
-                  <ArrowDownOutlined style={{ cursor: 'pointer' }} onClick={swapInputs} />
-                </Col>
-              </Row>
-              <Row 
-                style={{ 
-                  ...styles.inset,
-                  background: `linear-gradient(to bottom, ${COLORS.defaultBg}, transparent 250%),radial-gradient(ellipse at bottom,  ${outputColor}, transparent 250%)`
-                }}
-                className={outputIsLoading ? 'pulse' : ''}
-              >
-                <Col span={24}>
-                  <Row style={{ marginBottom: '5px' }}>
-                    <Col span={10}>
-                      <small>To {estimatedSide === 'output' ? '(estimated)' : ''} </small>
-                    </Col>
-                    {
-                      outputCurrencyBalance !== null
-                      ?
-                        <Col span={14} style={{ display: 'flex', justifyContent: 'end' }}>
-                          <small>Balance: {parseFloat(outputCurrencyBalance).toLocaleString([], {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 4
-                          })}</small>
-                        </Col>
-                      : <></>
-                    }
-                  </Row>
-                  <Row>
-                    <Col span={24}>
-                      <CurrencyAmountInput side="output" />
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-              {
-                slippage === DEFAULT_SLIPPAGE ? '' :
-                <Row style={{ fontSize: '0.80rem', display: 'flex', justifyContent: 'space-between' }}>
-                  <Col span={12}>Slippage Tolerance</Col>
-                  <Col>{slippage * 100}%</Col>
-                </Row>
-              }
-              <Row gutter={6}>
-                {
-                  !showApproveBtn ? '' :
+      <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
+        <Tabs.TabPane tab={<span>Swap</span>} key="1">
+          <Row>
+            <Col>
+              <Card style={styles.card} title={
+                <Row>
                   <Col span={12}>
-                    <Button
-                      type="primary"
-                      size="large"
-                      style={{
-                        width: "100%",
-                        marginTop: "15px",
-                        borderRadius: "0.6rem",
-                        height: "50px",
-                        ...styles.outset,
-                      }}
-                      onClick={() => approveInputAmount()}
-                      loading={approvalIsLoading}
-                    >
-                      {approvalText}
-                    </Button>
+                    PawSwap
                   </Col>
-                }
-                <Col span={showApproveBtn ? 12 : 24}>
-                  <Button
-                    type="primary"
-                    size="large"
-                    style={{
-                      width: "100%",
-                      marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,
-                      borderRadius: "0.6rem",
-                      height: "50px",
-                      backgroundColor: highPriceImpact && !swapButtonIsDisabled() ? COLORS.error : '',
-                      ...styles.outset,
+                  <Col span={12} style={{ display: 'flex', justifyContent: 'end' }}>
+                    <Settings />
+                  </Col>
+                </Row>
+              }>            
+                <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+                  <Row 
+                    style={{ 
+                      ...styles.inset, 
+                      background: `linear-gradient(to bottom, ${COLORS.defaultBg}, transparent 250%),radial-gradient(ellipse at bottom,  ${inputColor}, transparent 250%)`
                     }}
-                    onClick={() => trySwap()}
-                    disabled={swapButtonIsDisabled()}
-                    loading={swapButtonIsLoading}
+                    className={inputIsLoading ? 'pulse' : ''}
                   >
-                    {swapButtonText()}
-                  </Button>
-                </Col>
-              </Row>
-            </Space>
-          </Card>
-        </Col>
-      </Row>
-      { 
-        !trade ? '' :
-        <TradeCard />
-      }
+                    <Col span={24}>
+                      <Row style={{ marginBottom: '5px' }}>
+                        <Col span={10}>
+                          <small>From {estimatedSide === 'input' ? '(estimated)' : ''} </small>
+                        </Col>
+                        {
+                          inputCurrencyBalance !== null
+                          ?
+                            <Col span={14} style={{ display: 'flex', justifyContent: 'end' }}>
+                              <small>Balance: {parseFloat(inputCurrencyBalance).toLocaleString([], {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 4
+                              })}</small>
+                            </Col>
+                          : <></>
+                        }
+                      </Row>
+                      <Row>
+                        <Col span={24}>
+                          <CurrencyAmountInput side="input" />
+                        </Col>
+                      </Row>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
+                      <ArrowDownOutlined style={{ cursor: 'pointer' }} onClick={swapInputs} />
+                    </Col>
+                  </Row>
+                  <Row 
+                    style={{ 
+                      ...styles.inset,
+                      background: `linear-gradient(to bottom, ${COLORS.defaultBg}, transparent 250%),radial-gradient(ellipse at bottom,  ${outputColor}, transparent 250%)`
+                    }}
+                    className={outputIsLoading ? 'pulse' : ''}
+                  >
+                    <Col span={24}>
+                      <Row style={{ marginBottom: '5px' }}>
+                        <Col span={10}>
+                          <small>To {estimatedSide === 'output' ? '(estimated)' : ''} </small>
+                        </Col>
+                        {
+                          outputCurrencyBalance !== null
+                          ?
+                            <Col span={14} style={{ display: 'flex', justifyContent: 'end' }}>
+                              <small>Balance: {parseFloat(outputCurrencyBalance).toLocaleString([], {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 4
+                              })}</small>
+                            </Col>
+                          : <></>
+                        }
+                      </Row>
+                      <Row>
+                        <Col span={24}>
+                          <CurrencyAmountInput side="output" />
+                        </Col>
+                      </Row>
+                    </Col>
+                  </Row>
+                  {
+                    slippage === DEFAULT_SLIPPAGE ? '' :
+                    <Row style={{ fontSize: '0.80rem', display: 'flex', justifyContent: 'space-between' }}>
+                      <Col span={12}>Slippage Tolerance</Col>
+                      <Col>{slippage * 100}%</Col>
+                    </Row>
+                  }
+                  <Row gutter={6}>
+                    {
+                      !showApproveBtn ? '' :
+                      <Col span={12}>
+                        <Button
+                          type="primary"
+                          size="large"
+                          style={{
+                            width: "100%",
+                            marginTop: "15px",
+                            borderRadius: "0.6rem",
+                            height: "50px",
+                            ...styles.outset,
+                          }}
+                          onClick={() => approveInputAmount()}
+                          loading={approvalIsLoading}
+                        >
+                          {approvalText}
+                        </Button>
+                      </Col>
+                    }
+                    <Col span={showApproveBtn ? 12 : 24}>
+                      <Button
+                        type="primary"
+                        size="large"
+                        style={{
+                          width: "100%",
+                          marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,
+                          borderRadius: "0.6rem",
+                          height: "50px",
+                          backgroundColor: highPriceImpact && !swapButtonIsDisabled() ? COLORS.error : '',
+                          ...styles.outset,
+                        }}
+                        onClick={() => trySwap()}
+                        disabled={swapButtonIsDisabled()}
+                        loading={swapButtonIsLoading}
+                      >
+                        {swapButtonText()}
+                      </Button>
+                    </Col>
+                  </Row>
+                </Space>
+              </Card>
+            </Col>
+          </Row>
+          { 
+            !trade ? '' :
+            <TradeCard />
+          }
+        </Tabs.TabPane>
+        <Tabs.TabPane tab={<span>Liquidity</span>} key="2">
+          <Liquidity />
+        </Tabs.TabPane>
+      </Tabs>
     </div>
   )
 }
