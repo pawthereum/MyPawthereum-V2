@@ -66,7 +66,7 @@ function AddLiquidity() {
       // show approve btn if there isnt a sufficient allowance
       setShowApproveBtn(!sufficientAllowance)
     }
-  }, [inputCurrency, inputAmount, outputCurrency])
+  }, [inputCurrency, inputAmount])
 
   return (
     <Space direction="vertical" size="middle" style={{ display: 'flex' }}>

@@ -41,7 +41,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
       width: isMobile ? "400px" : "430px",
       boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
       border: "1px solid #e7eaf3",
-      borderRadius: "1rem",
+      borderRadius: "2rem",
       fontSize: "16px",
       fontWeight: "500",
     },
@@ -343,7 +343,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
   return (
     <>
       <Card style={styles.card} bodyStyle={{ padding: "18px" }}>
-        <Card style={{ borderRadius: "1rem" }} bodyStyle={{ padding: "0.8rem" }}>
+        <Card style={{ borderRadius: "2rem" }} bodyStyle={{ padding: "0.8rem" }}>
           <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>From</div>
           <div
             style={{
@@ -392,7 +392,7 @@ function AddLiquidity({ chain, customTokens = {} }) {
             </Button>
           </div>
         </Card>
-        <Card style={{ borderRadius: "1rem", marginTop: "10px" }} bodyStyle={{ padding: "0.8rem" }}>
+        <Card style={{ borderRadius: "2rem", marginTop: "10px" }} bodyStyle={{ padding: "0.8rem" }}>
           <div style={{ marginBottom: "5px", fontSize: "14px", color: "#434343" }}>To</div>
           <div
             style={{

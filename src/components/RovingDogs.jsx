@@ -9,7 +9,7 @@ const styles = {
   card: {
     boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
     border: "1px solid #e7eaf3",
-    borderRadius: "1rem",
+    borderRadius: "2rem",
     width: "400px",
     fontSize: "16px",
     fontWeight: "500",

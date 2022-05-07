@@ -145,7 +145,7 @@ function Account() {
         <Card
           style={{
             marginTop: "10px",
-            borderRadius: "1rem",
+            borderRadius: "2rem",
           }}
           bodyStyle={{ padding: "15px" }}
         >

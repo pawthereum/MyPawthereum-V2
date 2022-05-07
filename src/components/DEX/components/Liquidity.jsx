@@ -8,7 +8,7 @@ const styles = {
   card: {
     boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
     border: "1px solid #e7eaf3",
-    borderRadius: "1rem",
+    borderRadius: "2rem",
     width: "400px",
     fontSize: "16px",
     fontWeight: "500",
@@ -35,15 +35,20 @@ function Liquidity () {
     <Row>
       <Col>
         <Card style={styles.card} title={
-          <Row>
-            <Col span={12}>
+          <Row style={{ display: 'flex', alignItems: 'center' }}>
+            <Col span={!addLiquidityIsVisible ? 12  : 8 }>
               {
-                !addLiquidityIsVisible ? '' :
+                !addLiquidityIsVisible ? 'Liquidity' :
                 <ArrowLeftOutlined style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => hideAddLiquidity()} />
               }
-              Liquidity
             </Col>
-            <Col span={12} style={{ display: 'flex', justifyContent: 'end' }}>
+            {
+              !addLiquidityIsVisible ? '' :
+              <Col span={8}>
+                Add Liquidity
+              </Col>
+            }
+            <Col span={!addLiquidityIsVisible ? 12  : 8 } style={{ display: 'flex', justifyContent: 'end' }}>
               <Settings />
             </Col>
           </Row>
