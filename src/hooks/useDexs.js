@@ -6,6 +6,7 @@ const useDexs = () => {
 
   const dexs = {
     pawswap: {
+      name: 'Pawswap',
       router: {
         abi: PAWSWAP_ROUTER[chainId]?.abi,
         address: PAWSWAP_ROUTER[chainId]?.address
@@ -17,6 +18,7 @@ const useDexs = () => {
       }
     },
     pancakeswap: {
+      name: 'Pancakeswap',
       router: {
         abi: PANCAKESWAP_ROUTER[chainId]?.abi,
         address: PANCAKESWAP_ROUTER[chainId]?.address
@@ -29,8 +31,16 @@ const useDexs = () => {
     }
   }
 
+  const getDexByRouterAddress = (routerAddress) => {
+    const options = Object.keys(dexs)
+    const dexName = options.find(o => dexs[o]?.router?.address === routerAddress)
+    console.log('got it ', dexName)
+    return dexs[dexName]
+  }
+
   return {
-    dexs
+    dexs,
+    getDexByRouterAddress
   }
 }
 

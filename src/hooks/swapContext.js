@@ -28,7 +28,7 @@ let tradeNonce = 0
 const useSwapContext = () => {
   const { Moralis, chainId, web3, account } = useMoralis()
   const { isNative } = useNative()
-  const { dexs } = useDexs()
+  const { dexs, getDexByRouterAddress } = useDexs()
   const [estimatedSide, setEstimatedSide] = useState(null)
   const [inputCurrency, setInputCurrency] = useState(null)
   const [inputAmount, setInputAmount] = useState(null)
@@ -76,19 +76,6 @@ const useSwapContext = () => {
   const determineSide = (inputCurrency) => {
     if (isNative(inputCurrency.address)) return 'buy'
     return inputCurrency.address.toLowerCase() === networkConfigs[chainId].wrapped?.toLowerCase() ? 'buy' : 'sell'
-  }
-
-  const updateDex = async (inputCurrency, outputCurrency) => {
-    if (!inputCurrency.dex && !outputCurrency.dex) {
-      setDex(dexs['pawswap'])
-      return dexs['pawswap']
-    }
-    if (outputCurrency.dex) {
-      setDex(dexs[outputCurrency.dex])
-      return dexs[outputCurrency.dex]
-    } 
-    setDex(dexs[inputCurrency.dex])
-    return dexs[inputCurrency.dex]
   }
 
   const updatePair = async (sortedPair, factory) => {
@@ -290,6 +277,12 @@ const useSwapContext = () => {
     return taxes
   }
 
+  const getDex = async (taxStructureContract) => {
+    const routerAddress = await taxStructureContract.routerAddress()
+    const dex = getDexByRouterAddress(routerAddress)
+    return dex
+  }
+
   const fetchTaxStructure = async (tokenAddr) => {
     const web3Provider = Moralis.web3Library;
 
@@ -310,9 +303,16 @@ const useSwapContext = () => {
       setTokenTaxContract(newStruct)
       setLatestTaxLookup(tokenAddr)
       console.log({ newStruct })
-      const taxes = await getTaxes(newStruct)
+      const taxStructureData = await Promise.all([
+        getTaxes(newStruct),
+        getDex(newStruct)
+      ])
+      const taxes = taxStructureData[0]
+      const dex = taxStructureData[1]
       setTokenTaxStructureTaxes(taxes)
-      return { taxStructureContract: newStruct, taxes }
+      setDex(dex)
+      console.log('the dex is ~~~~~ ', dex)
+      return { taxStructureContract: newStruct, taxes, dex }
     } catch (e) {
       console.log('error getting token tax contract')
       setTradeIsLoading(false)
@@ -467,12 +467,12 @@ const useSwapContext = () => {
             ? Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
             : amountOut,
           estimatedSide === 'output',
-          { value: Moralis.Units.Token(amountIn, 18) }
+          { value: amountIn }
         )
       } else {
         swapReq = await pawswap.sellOnPawSwap(
           tokenIn.address,
-          Moralis.Units.Token(amountIn, tokenIn.decimals),
+          amountIn,
           '0',
           account,
           '0',
@@ -527,16 +527,18 @@ const useSwapContext = () => {
       // only fetch a fresh tax structure if we have to
       const side = determineSide(inputCurrency)
       const tokenRequiringTaxStructure = side === 'buy' ? outputCurrency : inputCurrency
+      
+      let dexForTrade = dex
       if (latestTaxLookup !== tokenRequiringTaxStructure.address) {
-        await fetchTaxStructure(tokenRequiringTaxStructure.address)
+        const { dex: updatedDex } = await fetchTaxStructure(tokenRequiringTaxStructure.address)
+        dexForTrade = updatedDex
       }
       // fetch details about the pair to estimate trades
-      const dex = await updateDex(inputCurrency, outputCurrency)
-      console.log('dex is', dex)
+      // const dex = await updateDex(inputCurrency, outputCurrency)
       const sortedTokenPair = await sortTokens([inputCurrency, outputCurrency])
       const pairAddress = await updatePair(
         sortedTokenPair.map(t => t.address), 
-        dex.factory
+        dexForTrade.factory
       )
       console.log({ pairAddress })
       updatePairReserves(pairAddress)
