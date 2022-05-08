@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react'
 import { PAWSWAP_FACTORY } from "../constants";
 import { useMoralis } from "react-moralis";
-import { networkConfigs } from "helpers/networks";
 import { notification } from 'antd';
 import { pack, keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
@@ -20,12 +18,8 @@ const openNotification = ({ message, description, link }) => {
 };
 
 const useLiquidity = () => {
-  const { chainId, account, Moralis, web3 } = useMoralis()
-  const [weth, setWeth] = useState(null)
-
-  useEffect(() => {
-    setWeth(networkConfigs[chainId]?.wrapped)
-  }, [chainId])
+  const { chainId, Moralis, web3 } = useMoralis()
+  const { wrappedAddress } = useNative()
 
   const sortTokens = (tokenList) => {
     return tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
@@ -33,7 +27,7 @@ const useLiquidity = () => {
 
   const getPawswapPair = (tokenAddr) => {
     const web3Provider = Moralis.web3Library;
-    const sortedTokens = sortTokens([tokenAddr, weth])
+    const sortedTokens = sortTokens([tokenAddr, wrappedAddress])
     console.log({ sortedTokens })
     const pairAddress = getCreate2Address(
       web3Provider.utils.getAddress(PAWSWAP_FACTORY[chainId]?.address),

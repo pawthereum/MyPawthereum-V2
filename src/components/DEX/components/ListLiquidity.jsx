@@ -27,6 +27,7 @@ function ListLiquidity () {
   }
 
   const sortTokens = (tokenList) => {
+    const web3Provider = Moralis.web3Library;
     return tokenList.sort((a, b) => 
       web3Provider.utils.getAddress(a.address) > 
       web3Provider.utils.getAddress(b.address) 
@@ -43,7 +44,7 @@ function ListLiquidity () {
       getPairReserves(lpToken?.token_address),
       getPairTotalSupply(lpToken?.token_address),
     ])
-    const sortedTokens = sortTokens([tokenAddress, wrapped])
+    const sortedTokens = sortTokens([tokenAddress, wrappedAddress])
     const reserves = pairData[0]
     const totalSupply = pairData[1]
     const shareOfSupply = new Percent(
