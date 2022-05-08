@@ -28,7 +28,7 @@ let tradeNonce = 0
 const useSwapContext = () => {
   const { Moralis, chainId, web3, account } = useMoralis()
   const { isNative } = useNative()
-  const { dexs, getDexByRouterAddress } = useDexs()
+  const { getDexByRouterAddress } = useDexs()
   const [estimatedSide, setEstimatedSide] = useState(null)
   const [inputCurrency, setInputCurrency] = useState(null)
   const [inputAmount, setInputAmount] = useState(null)
@@ -372,12 +372,15 @@ const useSwapContext = () => {
     
     const feeDecimal = tokenTaxContractFeeDecimal
 
+    // if buy, amount in is reduced by tax percentage
+    // if sell, amount out is reduced by tax percentage later
     const multiplier = 10**(Number(feeDecimal) + 2)
     const taxMultiplied = estimatedSide === 'output' ? multiplier - totalTax : totalTax
     const amount = estimatedSide === 'output' 
       ? amountPreTax.mul(taxMultiplied).div(multiplier)
       : amountPreTax.mul(taxMultiplied).div(multiplier).add(amountPreTax)
 
+    // tokens in the swap
     const tokenIn = new Token(
       chainId, 
       web3Provider.utils.getAddress(inputCurrency?.address), 
@@ -388,12 +391,17 @@ const useSwapContext = () => {
       web3Provider.utils.getAddress(outputCurrency?.address), 
       outputCurrency?.decimals
     )
+
+    // token pair
     const sortedTokens = await sortTokens([tokenIn, tokenOut])
     const tokenPair = new Pair(new TokenAmount(sortedTokens[0], pairReserves[0]), new TokenAmount(sortedTokens[1], pairReserves[1]))
+    
+    // trade route
     const route = side === 'buy'
       ? new Route([tokenPair], tokenIn)
       : new Route([tokenPair], tokenIn)
 
+    // trade
     let trade
     if (estimatedSide === 'output') {
       trade = new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_INPUT)
@@ -415,11 +423,16 @@ const useSwapContext = () => {
       }
     }
 
-    let amountOutSlippage = trade.outputAmount.toFixed(outputCurrency.decimals)
+    let amountOutSlippage = trade.outputAmount
     if (slippage > 0) {
       const slippageMultiplied = multiplier - (slippage * multiplier)
-      amountOutSlippage = trade.outputAmount.multiply(slippageMultiplied).divide(multiplier).toFixed(outputCurrency.decimals)
+      amountOutSlippage = amountOutSlippage.multiply(slippageMultiplied).divide(multiplier)//.toFixed(outputCurrency.decimals)
     }
+    // if (side === 'sell' && estimatedSide === 'output') {
+    //   amountOutSlippage = amountOutSlippage.multiply(taxMultiplied).divide(multiplier)
+    //   console.log({ totalTax, amountOutSlippage })
+    // }
+    amountOutSlippage = amountOutSlippage.toFixed(outputCurrency?.decimals)
 
     const amountIn = estimatedSide === 'output'
       ? inputAmount
@@ -472,7 +485,9 @@ const useSwapContext = () => {
       } else {
         swapReq = await pawswap.sellOnPawSwap(
           tokenIn.address,
-          amountIn,
+          estimatedSide === 'input'
+          ? Moralis.Units.Token(amountIn, tokenIn?.decimals)
+          : amountIn,
           '0',
           account,
           '0',

@@ -21,6 +21,7 @@ function CurrencyAmountInput (props) {
     console.log('our trade is', trade)
     console.log('our side is', trade[tradeSide])
     if (props.side === estimatedSide) {
+      if (props.side === 'output') return setValue(trade.amountOutSlippage)
       setValue(trade[tradeSide] ? trade[tradeSide] : null)
     }
   }, [trade])
