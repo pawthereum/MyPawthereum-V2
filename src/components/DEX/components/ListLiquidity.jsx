@@ -3,6 +3,7 @@ import { useMoralis } from 'react-moralis';
 import { Row, Col, Input } from 'antd';
 import { useERC20Balance } from 'hooks/useERC20Balance';
 import useLiquidity from 'hooks/useLiquidity';
+import useNative from 'hooks/useNative';
 import Web3 from "web3"; 
 import { TokenAmount, Percent } from '@uniswap/sdk'
 
@@ -10,6 +11,7 @@ function ListLiquidity () {
   const { Moralis } = useMoralis()
   const { getPawswapPair, getPairReserves, getPairTotalSupply } = useLiquidity()
   const { assets } = useERC20Balance()
+  const { getWrappedNativeToken, wrappedAddress } = useNative()
 
   const { Search } = Input
 
@@ -24,7 +26,15 @@ function ListLiquidity () {
     })
   }
 
-  const getLpTokenData = async (lpToken) => {
+  const sortTokens = (tokenList) => {
+    return tokenList.sort((a, b) => 
+      web3Provider.utils.getAddress(a.address) > 
+      web3Provider.utils.getAddress(b.address) 
+      ? 1 : -1
+    )
+  }
+
+  const getLpTokenData = async (lpToken, tokenAddress) => {
     console.log({ lpToken })
     const web3Provider = Moralis.web3Library;
     const BigNumber = web3Provider.BigNumber
@@ -33,6 +43,7 @@ function ListLiquidity () {
       getPairReserves(lpToken?.token_address),
       getPairTotalSupply(lpToken?.token_address),
     ])
+    const sortedTokens = sortTokens([tokenAddress, wrapped])
     const reserves = pairData[0]
     const totalSupply = pairData[1]
     const shareOfSupply = new Percent(
@@ -63,7 +74,7 @@ function ListLiquidity () {
       const lpTokenAddress = await getPawswapPair(checkSummedAddress)
       const lpToken = assets.find(a => a.token_address.toLowerCase() === lpTokenAddress.toLowerCase())
       setLpToken(lpToken)
-      getLpTokenData(lpToken)
+      getLpTokenData(lpToken, checkSummedAddress)
     } catch (e) {
       console.log('error', e)
     }
