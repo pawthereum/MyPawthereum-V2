@@ -3,6 +3,7 @@ import { Row, Col, Card, Button } from 'antd';
 import Settings from './Settings';
 import AddLiquidity from './AddLiquidity';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import ListLiquidity from './ListLiquidity';
 
 const styles = {
   card: {
@@ -18,7 +19,7 @@ const styles = {
   }
 }
 
-function Liquidity () {
+function Liquidity () {  
   const [addLiquidityIsVisible, setAddLiquidityIsVisible] = useState(false)
 
   const showAddLiquidity = () => {
@@ -56,19 +57,26 @@ function Liquidity () {
           {
             !addLiquidityIsVisible
             ?
-              <Button
-                type="primary"
-                size="large"
-                style={{
-                  width: "100%",
-                  borderRadius: "0.6rem",
-                  height: "50px",
-                  ...styles.outset,
-                }}
-                onClick={() => showAddLiquidity()}
-              >
-                Add Liquidity
-              </Button>
+              <>
+                <Row>
+                  <Col span={24}>
+                    <Button
+                      type="primary"
+                      size="large"
+                      style={{
+                        width: "100%",
+                        borderRadius: "0.6rem",
+                        height: "50px",
+                        ...styles.outset,
+                      }}
+                      onClick={() => showAddLiquidity()}
+                    >
+                      Add Liquidity
+                    </Button>
+                  </Col>
+                </Row>
+                <ListLiquidity />
+              </>
             :
               <AddLiquidity />
           }
