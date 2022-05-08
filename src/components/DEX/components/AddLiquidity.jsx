@@ -6,6 +6,8 @@ import { networkConfigs } from 'helpers/networks'
 import CurrencyPairForm from './CurrencyPairForm'
 import useAllowances from 'hooks/useAllowances'
 import { useMoralis } from 'react-moralis'
+import { DEFAULT_SLIPPAGE } from '../../../constants'
+import useLiquidity from 'hooks/useLiquidity'
 
 const styles = {
   outset: {
@@ -26,10 +28,16 @@ function AddLiquidity() {
   } = useContext(AppContext);
 
   const { chainId } = useMoralis()
+  const { addLiquidity } = useLiquidity()
   const { hasAllowance, updateAllowance } = useAllowances()
   const [approvalIsLoading, setApprovalIsLoading] = useState(false)
   const [approvalText, setApprovalText] = useState('Approve')
   const [showApproveBtn, setShowApproveBtn] = useState(false)
+  
+  const tryAddLiquidity = async () => {
+    const added = await addLiquidity()
+    console.log({ added })
+  }
 
   const approveInputAmount = async () => {
     setApprovalIsLoading(true)
@@ -93,8 +101,7 @@ function AddLiquidity() {
           </Col>
         }
         <Col span={showApproveBtn ? 12 : 24}>
-          Button
-          {/* <Button
+          <Button
             type="primary"
             size="large"
             style={{
@@ -102,15 +109,12 @@ function AddLiquidity() {
               marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,
               borderRadius: "0.6rem",
               height: "50px",
-              backgroundColor: highPriceImpact && !swapButtonIsDisabled() ? COLORS.error : '',
               ...styles.outset,
             }}
-            onClick={() => trySwap()}
-            disabled={swapButtonIsDisabled()}
-            loading={swapButtonIsLoading}
+            onClick={() => tryAddLiquidity()}
           >
-            {swapButtonText()}
-          </Button> */}
+            Add Liquidity
+          </Button>
         </Col>
       </Row>
     </Space>
