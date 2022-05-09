@@ -27,11 +27,15 @@ function TradeCard () {
   const [totalTax, setTotalTax] = useState(0)
   const [formattedTaxes, setFormattedTaxes] = useState(null)
   const [highPriceImpact, setHighPriceImpact] = useState(false)
-  const [minimumReceived, setMinimumReceived] = useState(null)
+  const [estimateSideText, setEstimatedSideText] = useState(null)
+  const [estimatedSideAmount, setEstimatedSideAmount] = useState(null)
+  const [estimatedSideToken, setEstimatedSideToken] = useState(null)
 
-  const formatMinAmount = (amt) => {
-    const maxDigits = Number(amt) > 1 ? 0 : 6
-    return Math.floor(amt).toLocaleString([], {
+  const formatEstimatedAmount = (amt) => {
+    if (!amt) return 0
+    const maxDigits = Number(amt) > 0 ? 4 : estimatedSideToken.decimals
+    
+    return amt.toLocaleString([], {
       minimumFractionDigits: 0,
       maximumFractionDigits: maxDigits
     })
@@ -47,6 +51,9 @@ function TradeCard () {
   }
 
   useEffect(() => {
+    const web3Provider = Moralis.web3Library;
+    const BigNumber = web3Provider.BigNumber
+
     if (!taxes || taxes.length === 0) return
     if (!trade?.side) return
     const totalTax = taxes.reduce((p, t) => {
@@ -64,9 +71,18 @@ function TradeCard () {
     })
     setFormattedTaxes(formattedTaxes)
 
+    trade?.estimatedSide === 'ouput'
+      ? setEstimatedSideText('Minimum received')
+      : setEstimatedSideText('Maximum spent')
+    
     trade?.estimatedSide === 'output'
-      ? setMinimumReceived(trade.amountOutSlippage)
-      : setMinimumReceived(Moralis.Units.FromWei(trade.amountOut, trade.tokenOut.decimals))
+      ? setEstimatedSideToken(trade.swap.outputAmount.token)
+      : setEstimatedSideToken(trade.swap.inputAmount.token)
+
+    const minAmountDecimals = trade.swap.amountSlippage.token.decimals
+    trade?.estimatedSide === 'output'
+      ? setEstimatedSideAmount(Moralis.Units.FromWei(BigNumber.from(trade.swap.amountSlippage.raw.toString()), minAmountDecimals))
+      : setEstimatedSideAmount(Moralis.Units.FromWei(BigNumber.from(trade.swap.amountSlippage.raw.toString()), minAmountDecimals))
 
     trade?.swap?.priceImpact.toSignificant() > HIGH_PRICE_IMPACT 
       ? setHighPriceImpact(true) 
@@ -77,12 +93,21 @@ function TradeCard () {
   useEffect(() => {
     console.log('got a trade', trade)
     if (!trade) return setShowTradeCard(false)
-    if (trade?.amountIn === "0" && trade?.amountOut === 0) {
-      setShowTradeCard(false)
+    const web3Provider = Moralis.web3Library;
+    const BigNumber = web3Provider.BigNumber
+
+    const outputGtZero = () => {
+      const outputAmt = BigNumber.from(trade?.swap?.outputAmount.raw.toString())
+      return outputAmt.gt(BigNumber.from(0))
     }
-    if (trade.amountIn && trade.amountOut && trade.tokenIn && trade.tokenOut) {
-      setShowTradeCard(true)
+    const inputGtZero = () => {
+      const inputAmt = BigNumber.from(trade?.swap?.inputAmount.raw.toString())
+      return inputAmt.gt(BigNumber.from(0))
     }
+    if (!inputGtZero() || !outputGtZero()) {
+      return setShowTradeCard(false)
+    }
+    return setShowTradeCard(true)
   }, [trade])
 
   return (
@@ -93,8 +118,8 @@ function TradeCard () {
             !showTradeCard ? '' : 
             <Card style={styles.card} key='trade-card'>
               <Row style={styles.tradeCardRow}>
-                <Col>Minimum received</Col>
-                <Col>{`${formatMinAmount(minimumReceived)} ${trade?.tokenOut?.symbol}`}</Col>
+                <Col>{estimateSideText}</Col>
+                <Col>{`${formatEstimatedAmount(estimatedSideAmount)} ${estimatedSideToken?.symbol}`}</Col>
               </Row>
               <Row style={styles.tradeCardRow}>
                 <Col>Price Impact</Col>

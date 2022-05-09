@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react'
 import { InputNumber } from 'antd'
 import CurrencyPicker from './CurrencyPicker'
 import AppContext from 'AppContext'
+import { useMoralis } from 'react-moralis' 
 
 function CurrencyAmountInput (props) {
   const { 
@@ -12,34 +13,49 @@ function CurrencyAmountInput (props) {
     inputCurrency, 
     outputCurrency, 
   } = useContext(AppContext);
+  const { Moralis } = useMoralis()
 
   const [value, setValue] = useState(null)
+  const [precision, setPrecision] = useState(9)
 
   useEffect(() => {
     if (!trade) return
-    const tradeSide = props.side === 'input' ? 'amountIn' : 'amountOut'
-    console.log('our trade is', trade)
-    console.log('our side is', trade[tradeSide])
-    if (props.side === estimatedSide) {
-      if (props.side === 'output') return setValue(trade.amountOutSlippage)
-      setValue(trade[tradeSide] ? trade[tradeSide] : null)
-    }
+    if (props.side !== estimatedSide) return
+    const amount = props.side === 'output' ? 'outputAmount' : 'inputAmount'
+    setValue(trade.swap[amount].toSignificant(trade.swap[amount].token.decimals))
   }, [trade])
 
   function onInputChange(amount) {
     if (!props.side) return
-    props.side === 'input' 
-    ? updateInputAmount({ amount, updateEstimated: true }) 
-    : updateOutputAmount({ amount, updateEstimated: true })
+    if (!amount) return
+    // prevent decimal overflow by returning if exceeding max decimals
+    const maxDecimals = props.side === 'output' 
+      ? outputCurrency?.decimals
+      : inputCurrency?.decimals
+    const numDecimals = amount.toString().split('.')[1]?.length
+    const isUnderMaxDecimals = !numDecimals || numDecimals <= maxDecimals
+    if (!isUnderMaxDecimals) return
+
+    // prevent decimal overflow by converting to weth and back to eth
+    const tokenAmt = Moralis.Units.Token(amount, maxDecimals)
+    const ethAmt = Moralis.Units.FromWei(tokenAmt, maxDecimals)
+
+    setValue(ethAmt)
+
+    props.side === 'output' 
+      ? updateOutputAmount({ amount: ethAmt, updateEstimated: true })
+      : updateInputAmount({ amount: ethAmt, updateEstimated: true })  
   }
 
   useEffect(() => {
     if (props.side === 'input') {
       if (!inputCurrency) return
       setValue(null)
+      setPrecision(inputCurrency?.decimals)
     } else {
       if (!outputCurrency) return
       setValue(null)
+      setPrecision(outputCurrency?.decimals)
     }
   }, [inputCurrency, outputCurrency])
 
@@ -60,6 +76,7 @@ function CurrencyAmountInput (props) {
         size="large"
         defaultValue={null}
         min="0"
+        precision={precision}
         value={value}
         onChange={onInputChange}
         controls={false}

@@ -9,7 +9,7 @@ import useNative from './useNative'
 import useDexs from './useDexs'
 import { pack, keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
-import { Token, TokenAmount, Pair, TradeType, Trade, Route } from '@uniswap/sdk'
+import { Token, TokenAmount, Pair, TradeType, Trade, Route, Percent } from '@uniswap/sdk'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -32,6 +32,8 @@ const useSwapContext = () => {
   const [estimatedSide, setEstimatedSide] = useState(null)
   const [inputCurrency, setInputCurrency] = useState(null)
   const [inputAmount, setInputAmount] = useState(null)
+  const [inputToken, setInputToken] = useState(null)
+  const [outputToken, setOutputToken] = useState(null)
   const [outputCurrency, setOutputCurrency] = useState(null)
   const [outputAmount, setOutputAmount] = useState(null)
   const [trade, setTrade] = useState(null)
@@ -118,9 +120,11 @@ const useSwapContext = () => {
   }
 
   const updateInputCurrency = async (currency) => {
+    const token = new Token(chainId, currency?.address, currency?.decimals, currency?.symbol, currency?.name)
     await Promise.all([
       setInputAmount(null),
-      setInputCurrency(currency)
+      setInputCurrency(currency),
+      setInputToken(token)
     ])
   }
 
@@ -129,12 +133,20 @@ const useSwapContext = () => {
       updateEstimatedSide('output')
     }
     if (amount === null) return setInputAmount(null)
-    const decimals = inputCurrency?.decimals || '18'
-    setInputAmount(Moralis.Units.Token(amount, decimals))
+    const tokenAmount = new TokenAmount(
+      inputToken, 
+      Moralis.Units.Token(amount, inputToken?.decimals)
+    )
+    // const decimals = inputCurrency?.decimals || '18'
+    setInputAmount(tokenAmount)
   }
 
   const updateOutputCurrency = async (currency) => {
-    await setOutputCurrency(currency)
+    const token = new Token(chainId, currency?.address, currency?.decimals, currency?.symbol, currency?.name)
+    await Promise.all([
+      setOutputCurrency(currency),
+      setOutputToken(token)
+    ])
   }
 
   const updateOutputAmount = ({ amount, updateEstimated }) => {
@@ -142,8 +154,15 @@ const useSwapContext = () => {
       updateEstimatedSide('input')
     }
     if (amount === null) return setOutputAmount(null)
-    const decimals = outputCurrency?.decimals || '18'
-    setOutputAmount(Moralis.Units.Token(amount, decimals))
+    const tokenAmount = new TokenAmount(
+      outputToken, 
+      Moralis.Units.Token(amount, outputToken?.decimals)
+    )
+
+    setOutputAmount(tokenAmount)
+
+    // const decimals = outputCurrency?.decimals || '18'
+    // setOutputAmount(Moralis.Units.Token(amount, decimals))
   }
 
   const fetchQuote = async (params) => {
@@ -355,108 +374,179 @@ const useSwapContext = () => {
   }
 
   async function createTrade (params) {
-    const web3Provider = Moralis.web3Library;
-    const BigNumber = web3Provider.BigNumber
-
     setTradeIsLoading(true)
+    console.log({
+      inputToken,
+      outputToken
+    })
 
+    // is this a sell or a buy
     const side = determineSide(inputCurrency)
 
+    // used to calculate taxes
+    const feeDecimal = tokenTaxContractFeeDecimal
     const totalTax = tokenTaxStructureTaxes.reduce((p, t) => {
       return p + Number(t[side])
     }, 0)
-
-    const amountPreTax = estimatedSide === 'input' 
-      ? BigNumber.from(outputAmount)
-      : BigNumber.from(inputAmount)
-    
-    const feeDecimal = tokenTaxContractFeeDecimal
-
-    // if buy, amount in is reduced by tax percentage
-    // if sell, amount out is reduced by tax percentage later
-    const multiplier = 10**(Number(feeDecimal) + 2)
-    const taxMultiplied = estimatedSide === 'output' ? multiplier - totalTax : totalTax
-    const amount = estimatedSide === 'output' 
-      ? amountPreTax.mul(taxMultiplied).div(multiplier)
-      : amountPreTax.mul(taxMultiplied).div(multiplier).add(amountPreTax)
-
-    // tokens in the swap
-    const tokenIn = new Token(
-      chainId, 
-      web3Provider.utils.getAddress(inputCurrency?.address), 
-      inputCurrency?.decimals
-    )
-    const tokenOut = new Token(
-      chainId, 
-      web3Provider.utils.getAddress(outputCurrency?.address), 
-      outputCurrency?.decimals
-    )
+    const tradingFee = dex?.name.toLowerCase() !== 'pawswap' 
+      ? new Percent('28', '10000') // 0.28% -- most other dexs have .25% and pawswap will always take 0.03%
+      : new Percent('20', '10000') // 0.2% trading fee on pawswap
+    const taxPercentage = new Percent(totalTax / 10**feeDecimal, 100).add(tradingFee)
+    const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
 
     // token pair
-    const sortedTokens = await sortTokens([tokenIn, tokenOut])
-    const tokenPair = new Pair(new TokenAmount(sortedTokens[0], pairReserves[0]), new TokenAmount(sortedTokens[1], pairReserves[1]))
-    
-    // trade route
-    const route = side === 'buy'
-      ? new Route([tokenPair], tokenIn)
-      : new Route([tokenPair], tokenIn)
+    const sortedTokens = await sortTokens([inputToken, outputToken])
+    const tokenPair = new Pair(
+      new TokenAmount(sortedTokens[0], pairReserves[0]), 
+      new TokenAmount(sortedTokens[1], pairReserves[1])
+    )
+    console.log({ tokenPair })
 
-    // trade
-    let trade
-    if (estimatedSide === 'output') {
-      trade = new Trade(route, new TokenAmount(tokenIn, amount), TradeType.EXACT_INPUT)
-    } else {
-      trade = new Trade(route, new TokenAmount(tokenOut, amount), TradeType.EXACT_OUTPUT)
-    }
-
-    // liquidity taxes aren't accounted for in quotes
-    const liqTaxSearch = tokenTaxStructureTaxes.find(t => t.isLiquidity)
-    // const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side]) / 100**feeDecimal
-    const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side])
-    
-    if (liqTax > 0) {
-      const liqTaxMultiplied = estimatedSide === 'output' ? multiplier - liqTax : liqTax
-      if (estimatedSide === 'output') {
-        trade.outputAmount = trade.outputAmount.multiply(liqTaxMultiplied).divide(multiplier)
-      } else {
-        trade.inputAmount = trade.inputAmount.multiply(liqTaxMultiplied).divide(multiplier).add(trade.inputAmount)
-      }
-    }
-
-    let amountOutSlippage = trade.outputAmount
-    if (slippage > 0) {
-      const slippageMultiplied = multiplier - (slippage * multiplier)
-      amountOutSlippage = amountOutSlippage.multiply(slippageMultiplied).divide(multiplier)//.toFixed(outputCurrency.decimals)
-    }
-    // if (side === 'sell' && estimatedSide === 'output') {
-    //   amountOutSlippage = amountOutSlippage.multiply(taxMultiplied).divide(multiplier)
-    //   console.log({ totalTax, amountOutSlippage })
-    // }
-    amountOutSlippage = amountOutSlippage.toFixed(outputCurrency?.decimals)
-
-    const amountIn = estimatedSide === 'output'
+    // calculated amount (opposite of user input)
+    const amountPreTax = estimatedSide === 'output'
       ? inputAmount
-      : trade?.inputAmount.toFixed(inputCurrency.decimals)
-    
-    const amountOut = estimatedSide === 'output'
-      ? trade?.outputAmount.toFixed(outputCurrency.decimals)
       : outputAmount
+    
+    console.log('amountPreTax', amountPreTax.toSignificant(6))
 
+    // the amount of taxes to adjust in the trade
+    const taxAmount = estimatedSide === 'output'
+      ? new TokenAmount(inputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
+      : new TokenAmount(outputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
+      
+    console.log('taxAmount', taxAmount.toSignificant(6))
+
+    // the amount after tax adjustments
+    const amountPostTax = estimatedSide === 'output'
+      ? amountPreTax.subtract(taxAmount)
+      : amountPreTax.add(taxAmount)
+    
+    console.log(amountPostTax)
+    console.log('amt post tax', amountPostTax.toSignificant(6))
+    // trade route
+    const route = new Route([tokenPair], inputToken)
+
+    console.log({ route, amountPostTax })
+    console.log(route.pairs[0].tokenAmounts[0].toSignificant(6))
+    console.log(route.pairs[0].tokenAmounts[1].toSignificant(6))
+    console.log({ params })
+    // trade
+    const trade = estimatedSide === 'ouput'
+      ? new Trade(route, amountPostTax, TradeType.EXACT_INPUT)
+      : new Trade(route, amountPostTax, TradeType.EXACT_OUTPUT)
+
+    console.log({ trade })
+    console.log(' put in ' + trade.inputAmount.toSignificant(6) + ' BNB')
+    console.log(' get ' + trade.outputAmount.toSignificant(6) + ' PAWTH')
+
+    // slippage amount
+    const slippageAmount = estimatedSide === 'output'
+      ? new TokenAmount(outputToken, slippagePercentage.multiply(trade.outputAmount.raw).quotient)
+      : new TokenAmount(inputToken, slippagePercentage.multiply(trade.inputAmount.raw).quotient)
+
+    console.log({ slippageAmount: slippageAmount.toSignificant(6) })
+
+    // the amount to send to the trade to account for slippage
+    trade.amountSlippage = estimatedSide === 'output'
+      ? trade.outputAmount.subtract(slippageAmount)
+      : trade.inputAmount.add(slippageAmount)
+    
+    console.log({ tradeSlip: trade.amountSlippage.toSignificant(6) })
+
+    // minimum amount in before reverting
+    // const amountInMin = estimatedSide === 'output'
+    //   ? new TokenAmount(tokenIn, amountPreTax)
+    //   : new TokenAmount(tokenIn, amountPostTax)
+    
+    // // minimum amount out before reverting
+    // const amountOutMin = estimatedSide === 'output'
+    //   ? new TokenAmount(tokenOut, amountPostTax)
+    //   : new TokenAmount(tokenOut, amountPreTax)
+
+    console.log({
+      swap: trade,
+      side,
+      estimatedSide,
+      taxes: tokenTaxStructureTaxes,
+    })
+  
     setTradeIsLoading(false)
     // the latest trade in is the latest trade printed on screen
     if (tradeNonce - 1 !== params.nonce) return false
     setTrade({
-      tokenIn: inputCurrency,
-      tokenOut: outputCurrency,
-      amountIn: amountIn,
-      amountOut: amountOut,
-      amountOutSlippage,
-      side,
-      taxes: tokenTaxStructureTaxes,
-      priceImpact: 0,
       swap: trade,
-      estimatedSide
+      side,
+      estimatedSide,
+      taxes: tokenTaxStructureTaxes,
     })
+    //   tokenIn: inputCurrency,
+    //   tokenOut: outputCurrency,
+    //   amountIn: amountIn,
+    //   amountOut: amountOut,
+    //   amountOutSlippage,
+    //   side,
+    //   taxes: tokenTaxStructureTaxes,
+    //   priceImpact: 0,
+    //   swap: trade,
+    //   estimatedSide
+    // })
+  
+    // // if buy, amount in is reduced by tax percentage
+    // // if sell, amount out is reduced by tax percentage later
+    // const multiplier = 10**(Number(feeDecimal) + 2)
+    // const taxMultiplied = estimatedSide === 'output' ? multiplier - totalTax : totalTax
+    // const amount = estimatedSide === 'output' 
+    //   ? amountPreTax.mul(taxMultiplied).div(multiplier)
+    //   : amountPreTax.mul(taxMultiplied).div(multiplier).add(amountPreTax)
+
+    // // liquidity taxes aren't accounted for in quotes
+    // const liqTaxSearch = tokenTaxStructureTaxes.find(t => t.isLiquidity)
+    // // const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side]) / 100**feeDecimal
+    // const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side])
+    
+    // if (liqTax > 0) {
+    //   const liqTaxMultiplied = estimatedSide === 'output' ? multiplier - liqTax : liqTax
+    //   if (estimatedSide === 'output') {
+    //     trade.outputAmount = trade.outputAmount.multiply(liqTaxMultiplied).divide(multiplier)
+    //   } else {
+    //     trade.inputAmount = trade.inputAmount.multiply(liqTaxMultiplied).divide(multiplier).add(trade.inputAmount)
+    //   }
+    // }
+
+    // let amountOutSlippage = trade.outputAmount
+    // if (slippage > 0) {
+    //   const slippageMultiplied = multiplier - (slippage * multiplier)
+    //   amountOutSlippage = amountOutSlippage.multiply(slippageMultiplied).divide(multiplier)//.toFixed(outputCurrency.decimals)
+    // }
+    // // if (side === 'sell' && estimatedSide === 'output') {
+    // //   amountOutSlippage = amountOutSlippage.multiply(taxMultiplied).divide(multiplier)
+    // //   console.log({ totalTax, amountOutSlippage })
+    // // }
+    // amountOutSlippage = amountOutSlippage.toFixed(outputCurrency?.decimals)
+
+    // const amountIn = estimatedSide === 'output'
+    //   ? inputAmount
+    //   : trade?.inputAmount.toFixed(inputCurrency.decimals)
+    
+    // const amountOut = estimatedSide === 'output'
+    //   ? trade?.outputAmount.toFixed(outputCurrency.decimals)
+    //   : outputAmount
+
+    // setTradeIsLoading(false)
+    // // the latest trade in is the latest trade printed on screen
+    // if (tradeNonce - 1 !== params.nonce) return false
+    // setTrade({
+    //   tokenIn: inputCurrency,
+    //   tokenOut: outputCurrency,
+    //   amountIn: amountIn,
+    //   amountOut: amountOut,
+    //   amountOutSlippage,
+    //   side,
+    //   taxes: tokenTaxStructureTaxes,
+    //   priceImpact: 0,
+    //   swap: trade,
+    //   estimatedSide
+    // })
   }
 
   async function executeSwap (trade) {
