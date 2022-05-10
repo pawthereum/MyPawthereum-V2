@@ -160,9 +160,6 @@ const useSwapContext = () => {
     )
 
     setOutputAmount(tokenAmount)
-
-    // const decimals = outputCurrency?.decimals || '18'
-    // setOutputAmount(Moralis.Units.Token(amount, decimals))
   }
 
   const fetchQuote = async (params) => {
@@ -474,6 +471,8 @@ const useSwapContext = () => {
     // the latest trade in is the latest trade printed on screen
     if (tradeNonce - 1 !== params.nonce) return false
     setTrade({
+      inputAmount,
+      outputAmount,
       swap: trade,
       side,
       estimatedSide,
@@ -551,7 +550,7 @@ const useSwapContext = () => {
 
   async function executeSwap (trade) {
     console.log(" TRADE ---<<<<----", trade)
-    const { tokenIn, tokenOut, amountIn, amountOut, amountOutSlippage, side, estimatedSide } = trade
+    const { tokenIn, tokenOut, amountIn, amountOut, amountOutSlippage, inputAmount, outputAmount, side, estimatedSide, swap } = trade
     const web3Provider = Moralis.web3Library;
     const pawswap = new web3Provider.Contract(
       PAWSWAP[chainId]?.address,
@@ -559,29 +558,42 @@ const useSwapContext = () => {
       web3.getSigner()
     )
     let swapReq
+    console.log({
+      estimatedSide,
+      exactOut: outputAmount.raw.toString(),
+      valueSent: swap.amountSlippage.raw.toString(),
+      rawOut: swap.outputAmount.raw.toString(), 
+      rawInSlip: swap.amountSlippage.raw.toString(), 
+      rawIn: swap.inputAmount.raw.toString(),
+      output: outputAmount.raw.toString(),
+    })
     try {
       if (side === 'buy') {
         swapReq = await pawswap.buyOnPawSwap(
-          tokenOut.address,
+          swap.outputAmount.token.address,
           '0',
           account,
           '0',
           estimatedSide === 'output'
-            ? Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
-            : amountOut,
+            ? swap.amountSlippage.raw.toString()
+            : outputAmount.raw.toString(), //Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
           estimatedSide === 'output',
-          { value: amountIn }
+          {
+            value: estimatedSide === 'output'
+              ? swap.amountSlippage.raw.toString()
+              : swap.inputAmount.raw.toString()
+          }
         )
       } else {
         swapReq = await pawswap.sellOnPawSwap(
-          tokenIn.address,
+          swap.inputAmount.token.address,
           estimatedSide === 'input'
-          ? Moralis.Units.Token(amountIn, tokenIn?.decimals)
-          : amountIn,
+          ? swap.amountSlippage.raw.toString() //Moralis.Units.Token(amountIn, tokenIn?.decimals)
+          : swap.inputAmount.raw.toString(),
           '0',
           account,
           '0',
-          Moralis.Units.Token(amountOutSlippage, tokenOut.decimals),
+          swap.amountSlippage.raw.toString(),//Moralis.Units.Token(amountOutSlippage, tokenOut.decimals),
           estimatedSide === 'output'
         )
       }
