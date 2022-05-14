@@ -71,7 +71,7 @@ function TradeCard () {
     })
     setFormattedTaxes(formattedTaxes)
 
-    trade?.estimatedSide === 'ouput'
+    trade?.estimatedSide === 'output'
       ? setEstimatedSideText('Minimum received')
       : setEstimatedSideText('Maximum spent')
     

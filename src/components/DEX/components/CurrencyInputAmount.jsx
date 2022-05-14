@@ -77,6 +77,7 @@ function CurrencyAmountInput (props) {
         defaultValue={null}
         min="0"
         precision={precision}
+        formatter={v => v.toString()}
         value={value}
         onChange={onInputChange}
         controls={false}

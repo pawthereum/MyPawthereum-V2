@@ -457,8 +457,6 @@ const useSwapContext = () => {
       ? inputAmount
       : outputAmount
     
-    console.log('amountPreTax', amountPreTax.toSignificant(6))
-
     // the amount of taxes to adjust in the trade
     // const taxAmount = estimatedSide === 'output'
     //   ? new TokenAmount(inputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
