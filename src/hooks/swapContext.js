@@ -51,7 +51,7 @@ const useSwapContext = () => {
   const [highPriceImpactIgnored, setHighPriceImpactIgnored] = useState(false)
 
   const sortTokens = async (tokenList) => {
-    return await tokenList.sort((a, b) => a.address > b.address ? -1 : 1)
+    return await tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
   }
 
   useEffect(() => {
@@ -219,6 +219,9 @@ const useSwapContext = () => {
         taxStructContract.burnTaxSellAmount(account),
         taxStructContract.liquidityTaxBuyAmount(account),
         taxStructContract.liquidityTaxSellAmount(account),
+        taxStructContract.tokenTaxName(),
+        taxStructContract.tokenTaxBuyAmount(account),
+        taxStructContract.tokenTaxSellAmount(account),
         taxStructContract.tax1Name(),
         taxStructContract.tax1BuyAmount(account),
         taxStructContract.tax1SellAmount(account),
@@ -231,9 +234,6 @@ const useSwapContext = () => {
         taxStructContract.tax4Name(),
         taxStructContract.tax4BuyAmount(account),
         taxStructContract.tax4SellAmount(account),
-        taxStructContract.tokenTaxName(),
-        taxStructContract.tokenTaxBuyAmount(account),
-        taxStructContract.tokenTaxSellAmount(account),
         taxStructContract.customTaxName(),
         taxStructContract.feeDecimal(),
       ])
@@ -251,42 +251,74 @@ const useSwapContext = () => {
         buy: taxList[0],
         sell: taxList[1],
         isBurn: true,
+        preSwapSellTaxAmount: 1,
+        preSwapBuyTaxAmount: 0,
+        postSwapSellTaxAmount: 0,
+        postSwapBuyTaxAmount: 1,
       },
       {
         name: 'Liquidity Tax',
         buy: taxList[2],
         sell: taxList[3],
         isLiquidity: true,
+        preSwapSellTaxAmount: 0.5,
+        preSwapBuyTaxAmount: 0.5,
+        postSwapSellTaxAmount: 0.5,
+        postSwapBuyTaxAmount: 0.5,
       },
       {
         name: taxList[4],
         buy: taxList[5],
-        sell: taxList[6]
+        sell: taxList[6],
+        preSwapSellTaxAmount: 1,
+        preSwapBuyTaxAmount: 0,
+        postSwapSellTaxAmount: 0,
+        postSwapBuyTaxAmount: 1,
       },
       {
         name: taxList[7],
         buy: taxList[8],
-        sell: taxList[9]
+        sell: taxList[9],
+        preSwapSellTaxAmount: 0,
+        preSwapBuyTaxAmount: 1,
+        postSwapSellTaxAmount: 1,
+        postSwapBuyTaxAmount: 0,
       },
       {
         name: taxList[10],
         buy: taxList[11],
-        sell: taxList[12]
+        sell: taxList[12],
+        preSwapSellTaxAmount: 0,
+        preSwapBuyTaxAmount: 1,
+        postSwapSellTaxAmount: 1,
+        postSwapBuyTaxAmount: 0,
       },
       {
         name: taxList[13],
         buy: taxList[14],
-        sell: taxList[15]
+        sell: taxList[15],
+        preSwapSellTaxAmount: 0,
+        preSwapBuyTaxAmount: 1,
+        postSwapSellTaxAmount: 1,
+        postSwapBuyTaxAmount: 0,
       },
       {
         name: taxList[16],
         buy: taxList[17],
-        sell: taxList[18]
+        sell: taxList[18],
+        preSwapSellTaxAmount: 0,
+        preSwapBuyTaxAmount: 1,
+        postSwapSellTaxAmount: 1,
+        postSwapBuyTaxAmount: 0,
       },
       {
         name: taxList[19],
         buy: 0,
-        sell: 0
+        sell: 0,
+        preSwapSellTaxAmount: 0,
+        preSwapBuyTaxAmount: 1,
+        postSwapSellTaxAmount: 1,
+        postSwapBuyTaxAmount: 0,
       }
     ]
     setTokenTaxContractFeeDecimal(taxList[20])
@@ -386,7 +418,7 @@ const useSwapContext = () => {
       return p + Number(t[side])
     }, 0)
     const tradingFee = dex?.name.toLowerCase() !== 'pawswap' 
-      ? new Percent('28', '10000') // 0.28% -- most other dexs have .25% and pawswap will always take 0.03%
+      ? new Percent('30', '10000') // 0.28% -- most other dexs have  0.3% - .25% and pawswap will always take 0.03%
       : new Percent('20', '10000') // 0.2% trading fee on pawswap
     const taxPercentage = new Percent(totalTax / 10**feeDecimal, 100).add(tradingFee)
     const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
@@ -428,9 +460,19 @@ const useSwapContext = () => {
     console.log(route.pairs[0].tokenAmounts[1].toSignificant(6))
     console.log({ params })
     // trade
-    const trade = estimatedSide === 'ouput'
+    let trade
+    try {
+      trade = estimatedSide === 'ouput'
       ? new Trade(route, amountPostTax, TradeType.EXACT_INPUT)
       : new Trade(route, amountPostTax, TradeType.EXACT_OUTPUT)
+    } catch (e) {
+      console.log('error creating trade', e)
+      setTradeIsLoading(false)
+      return openNotification({
+        message: "⚠️ Error estimating trade!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
 
     console.log({ trade })
     console.log(' put in ' + trade.inputAmount.toSignificant(6) + ' BNB')
@@ -580,8 +622,8 @@ const useSwapContext = () => {
           estimatedSide === 'output',
           {
             value: estimatedSide === 'output'
-              ? swap.amountSlippage.raw.toString()
-              : swap.inputAmount.raw.toString()
+              ? swap.inputAmount.raw.toString()
+              : swap.amountSlippage.raw.toString()
           }
         )
       } else {
