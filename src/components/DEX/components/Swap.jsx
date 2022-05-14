@@ -106,9 +106,9 @@ function Swap () {
   useEffect(() => {
     if (!inputCurrency) return
     if (
-      inputCurrency.address !== networkConfigs[chainId]?.wrapped &&
+      inputCurrency.address.toLowerCase() !== networkConfigs[chainId]?.wrapped.toLowerCase() &&
       inputAmount && 
-      Number(inputAmount) > 0
+      inputAmount.toSignificant(inputCurrency.decimals) > 0
     ) {
       checkAllowance()
     }

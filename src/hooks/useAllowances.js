@@ -49,9 +49,10 @@ const useAllowances = () => {
     )
 
     try {
+      console.log('amount', amount)
       const approveReq = await tokenContract.approve(
         spender,
-        Moralis.Units.Token(amount, token.decimals).toString()
+        amount.toSignificant(token.decimals)
       )
       openNotification({
         message: "🔊 Approval Submitted!",
