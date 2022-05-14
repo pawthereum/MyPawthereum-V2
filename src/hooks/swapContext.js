@@ -417,9 +417,30 @@ const useSwapContext = () => {
     const totalTax = tokenTaxStructureTaxes.reduce((p, t) => {
       return p + Number(t[side])
     }, 0)
+
+    // dexes usually take a trading fee
     const tradingFee = dex?.name.toLowerCase() !== 'pawswap' 
-      ? new Percent('30', '10000') // 0.28% -- most other dexs have  0.3% - .25% and pawswap will always take 0.03%
-      : new Percent('20', '10000') // 0.2% trading fee on pawswap
+    ? new Percent('30', '10000') // 0.28% -- most other dexs have  0.3% - .25% and pawswap will always take 0.03%
+    : new Percent('20', '10000') // 0.2% trading fee on pawswap
+
+    // calculate the amount that will get taken out before swapping
+    const preSwapTaxAmountProp = side === 'buy' 
+      ? 'preSwapBuyTaxAmount'
+      : 'preSwapSellTaxAmount' 
+    const percentTakenFromInputPreSwap = tokenTaxStructureTaxes.reduce((p, t) => {
+      return p + Number(t[side] * t[preSwapTaxAmountProp])
+    }, 0)
+    const preSwapTaxPercentage = new Percent(percentTakenFromInputPreSwap / 10**feeDecimal, 100)
+
+    // calculate the amount that will get taken out after swapping
+    const postSwapTaxAmountProp = side === 'buy'
+      ? 'postSwapBuyTaxAmount'
+      : 'postSwapSellTaxAmount'
+    const percentTakenFromOutputPostSwap = tokenTaxStructureTaxes.reduce((p, t) => {
+      return p + Number(t[side] * t[postSwapTaxAmountProp])
+    }, 0)
+    const postSwapTaxPercentage = new Percent(percentTakenFromOutputPostSwap / 10**feeDecimal, 100).add(tradingFee)
+
     const taxPercentage = new Percent(totalTax / 10**feeDecimal, 100).add(tradingFee)
     const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
 
@@ -439,9 +460,12 @@ const useSwapContext = () => {
     console.log('amountPreTax', amountPreTax.toSignificant(6))
 
     // the amount of taxes to adjust in the trade
+    // const taxAmount = estimatedSide === 'output'
+    //   ? new TokenAmount(inputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
+    //   : new TokenAmount(outputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
     const taxAmount = estimatedSide === 'output'
-      ? new TokenAmount(inputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
-      : new TokenAmount(outputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
+      ? new TokenAmount(inputToken, preSwapTaxPercentage.multiply(amountPreTax.raw).quotient)
+      : new TokenAmount(outputToken, postSwapTaxPercentage.multiply(amountPreTax.raw).quotient)
       
     console.log('taxAmount', taxAmount.toSignificant(6))
 
@@ -459,10 +483,10 @@ const useSwapContext = () => {
     console.log(route.pairs[0].tokenAmounts[0].toSignificant(6))
     console.log(route.pairs[0].tokenAmounts[1].toSignificant(6))
     console.log({ params })
-    // trade
+
     let trade
     try {
-      trade = estimatedSide === 'ouput'
+      trade = estimatedSide === 'output'
       ? new Trade(route, amountPostTax, TradeType.EXACT_INPUT)
       : new Trade(route, amountPostTax, TradeType.EXACT_OUTPUT)
     } catch (e) {
@@ -602,12 +626,12 @@ const useSwapContext = () => {
     let swapReq
     console.log({
       estimatedSide,
-      exactOut: outputAmount.raw.toString(),
+      exactOut: swap.outputAmount.raw.toString(),
       valueSent: swap.amountSlippage.raw.toString(),
       rawOut: swap.outputAmount.raw.toString(), 
       rawInSlip: swap.amountSlippage.raw.toString(), 
       rawIn: swap.inputAmount.raw.toString(),
-      output: outputAmount.raw.toString(),
+      output: swap.outputAmount.raw.toString(),
     })
     try {
       if (side === 'buy') {
@@ -622,7 +646,7 @@ const useSwapContext = () => {
           estimatedSide === 'output',
           {
             value: estimatedSide === 'output'
-              ? swap.inputAmount.raw.toString()
+              ? inputAmount.raw.toString()
               : swap.amountSlippage.raw.toString()
           }
         )
