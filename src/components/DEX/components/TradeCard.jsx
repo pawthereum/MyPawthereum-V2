@@ -80,10 +80,13 @@ function TradeCard () {
       : setEstimatedSideToken(trade.swap.inputAmount.token)
 
       console.log('trade', trade.swap)
-    const minAmountDecimals = trade.swap.outputAmountSlippage.token.decimals
+    const minAmountDecimals = trade?.estimatedSide === 'output'
+      ? trade.swap.outputAmountSlippage.token.decimals
+      : trade.swap.inputAmountSlippage.token.decimals
+
     trade?.estimatedSide === 'output'
       ? setEstimatedSideAmount(Moralis.Units.FromWei(BigNumber.from(trade.swap.outputAmountSlippage.raw.toString()), minAmountDecimals))
-      : setEstimatedSideAmount(Moralis.Units.FromWei(BigNumber.from(trade.swap.outputAmountSlippage.raw.toString()), minAmountDecimals))
+      : setEstimatedSideAmount(Moralis.Units.FromWei(BigNumber.from(trade.swap.inputAmountSlippage.raw.toString()), minAmountDecimals))
 
     trade?.swap?.priceImpact.toSignificant() > HIGH_PRICE_IMPACT 
       ? setHighPriceImpact(true) 

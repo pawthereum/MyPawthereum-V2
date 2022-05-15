@@ -165,7 +165,7 @@ function Swap () {
                 </Col>
               }
               <Col span={showApproveBtn ? 12 : 24}>
-                <ConfirmSwapModal />
+                {/* <ConfirmSwapModal /> */}
                 <Button
                   type="primary"
                   size="large"
