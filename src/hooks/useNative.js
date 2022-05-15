@@ -9,7 +9,7 @@ const useNative = () => {
   const Web3Api = useMoralisWeb3Api();
   const [wrappedAddress, setWrappedAddress] = useState(null)
   const nativeAddress = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
-
+  const unsupportedChains = ['0x539']
   useEffect(() => {
     const web3js = new Web3(Moralis.provider)
     const checkSummedAddress = web3js.utils.toChecksumAddress(
@@ -23,6 +23,7 @@ const useNative = () => {
     address.toLowerCase() === networkConfigs[chainId]?.wrapped.toLowerCase()
   
   const getNativeBalance = async () => {
+    if (unsupportedChains.includes(chainId)) return 0
     const balanceReq = await Web3Api.account.getNativeBalance({
       chain: chainId,
       address: account

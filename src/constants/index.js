@@ -16,6 +16,8 @@ export const PAWTH_ADDRESS = {
   '0x4': '0x459BC05bF203cEd24E76c598B507aEAa9eD36C28', // rinkeby testnet
   '0x61': '0x716A8aa18afEfae3742bBD547045Dc43E87F8E92', // bsc testnet
   'bsctest': '0x716A8aa18afEfae3742bBD547045Dc43E87F8E92',
+  'localdevchain': '0x58CDCaC4CedCb3fA27d65F60Bb5a09F0Fad5DB2a',
+  '0x539': '0x58CDCaC4CedCb3fA27d65F60Bb5a09F0Fad5DB2a'
 }
 
 export const SHIBA_LP_ADDRESS = '0xc57dc778a0d2d150d04fc0fd09a0113ebe9d600c'
@@ -95,12 +97,16 @@ export const PAWSWAP = {
   },
   '0x61': {
     abi: pawswapAbi,
-    address: '0x12F6Bb85d1a577691df65F73FDd55e90b1456aD6',
+    address: '0x59659F96a63BCe77351642aFA060c4c12E239e41',
   },
   'bsctest': {
     abi: pawswapAbi,
-    address: '0x12F6Bb85d1a577691df65F73FDd55e90b1456aD6',
+    address: '0x59659F96a63BCe77351642aFA060c4c12E239e41',
   },
+  '0x539': {
+    abi: pawswapAbi,
+    address: '0x6409C7E8409763c47d121416F8ed997CA0571d8D'
+  }
 }
 
 export const PAWSWAP_ROUTER = {
@@ -128,6 +134,14 @@ export const PAWSWAP_ROUTER = {
     abi: pawswapRouterAbi,
     address: '0xfdCd4e7912CAF173504C76700eD8F42a06c08F2C',
   },
+  'localdevchain': {
+    abi: pawswapRouterAbi,
+    address: '0x279C3ef32d4e422547483304dAc692C7ABEA7280'
+  },
+  '0x539': {
+    abi: pawswapRouterAbi,
+    address: '0x279C3ef32d4e422547483304dAc692C7ABEA7280'
+  }
 }
 
 export const PAWSWAP_FACTORY = {
@@ -161,6 +175,16 @@ export const PAWSWAP_FACTORY = {
     address: '0xBe0058a8fd8867F224950206F5C4eB210710B250',
     initCodeHash: '0x20b12f2b70897893a1441d8b2fa329add1df110ca39a25687332ada21d161b87',
   },
+  'localdevchain': {
+    abi: pawswapFactoryAbi,
+    address: '0x754511F1c15532fEc424FE724154acA4ea29FB73',
+    initCodeHash: '0x048602781262cfac6d42a7e607eec280f5199d68b80bc1ec6c6f7176fc2b54ca'
+  },
+  '0x539': {
+    abi: pawswapFactoryAbi,
+    address: '0x754511F1c15532fEc424FE724154acA4ea29FB73',
+    initCodeHash: '0x048602781262cfac6d42a7e607eec280f5199d68b80bc1ec6c6f7176fc2b54ca'
+  }
 }
 
 export const PANCAKESWAP_FACTORY = {
@@ -194,6 +218,16 @@ export const PANCAKESWAP_FACTORY = {
     address: '0xB7926C0430Afb07AA7DEfDE6DA862aE0Bde767bc',
     initCodeHash: '0xecba335299a6693cb2ebc4782e74669b84290b6378ea3a3873c7231a8d7d1074',
   },
+  'localdevchain': {
+    abi: pancakeswapFactoryAbi,
+    address: '',
+    initCodeHash: '',
+  },
+  '0x539': {
+    abi: pancakeswapFactoryAbi,
+    address: '',
+    initCodeHash: '',
+  }
 }
 
 export const PANCAKESWAP_ROUTER = {
@@ -221,6 +255,14 @@ export const PANCAKESWAP_ROUTER = {
     abi: pancakeswapRouterAbi,
     address: '0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3',
   },
+  'localdevchain': {
+    abi: pancakeswapRouterAbi,
+    address: '',
+  },
+  '0x539': {
+    abi: pancakeswapRouterAbi,
+    address: '',
+  }
 }
 
 export const STAKING_POOL = {

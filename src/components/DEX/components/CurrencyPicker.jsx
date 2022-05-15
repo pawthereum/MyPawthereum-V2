@@ -45,6 +45,9 @@ function CurrencyPicker (props) {
 
   useEffect(() => {
     if (!tokenList) return
+    if (!assets) {
+      console.log('~~~~~~~~~ no assets, ', tokenList)
+    }
     if (!assets) return setTokenListWithBalances(tokenList)
     console.log('hello')
     setTokenBalances()

@@ -8,6 +8,7 @@ import { PAWSWAP, DEFAULT_SLIPPAGE, COLORS, HIGH_PRICE_IMPACT, MAXMIMUM_PRICE_IM
 import useAllowances from 'hooks/useAllowances.js';
 import { networkConfigs } from 'helpers/networks.js';
 import CurrencyPairForm from './CurrencyPairForm.jsx';
+import ConfirmSwapModal from './ConfirmSwapModal';
 
 const styles = {
   card: {
@@ -164,6 +165,7 @@ function Swap () {
                 </Col>
               }
               <Col span={showApproveBtn ? 12 : 24}>
+                <ConfirmSwapModal />
                 <Button
                   type="primary"
                   size="large"

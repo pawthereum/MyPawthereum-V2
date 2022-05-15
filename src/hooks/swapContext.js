@@ -331,14 +331,45 @@ const useSwapContext = () => {
     return dex
   }
 
-  const fetchTaxStructure = async (tokenAddr) => {
+  const getBuyAmountIn = async () => {
     const web3Provider = Moralis.web3Library;
+    const BigNumber = web3Provider.BigNumber
 
     const pawswap = new web3Provider.Contract(
       PAWSWAP[chainId]?.address,
       PAWSWAP[chainId]?.abi,
       web3.getSigner()
     )
+    
+    try {
+      console.log('🌈🌈🌈🌈🌈🌈🌈')
+      console.log(trade?.swap?.outputAmount.raw.toString())
+      // console.log(BigNumber.from(trade?.swap?.outputAmount.raw).toString())
+      
+      const amountIn = await pawswap.getBuyAmountIn(
+        account,
+        outputCurrency?.address,
+        '0', //TODO: this is the custom tax
+        '0', //this is the extra tax 1
+        trade?.swap?.outputAmount.raw.toString()
+      )
+      console.log('amount in', amountIn.toString())
+    } catch (e) {
+      console.log('e', e)
+      console.log('could not estimated')
+    }
+  }
+
+  const fetchTaxStructure = async (tokenAddr) => {
+    console.log('feetching for', tokenAddr)
+    const web3Provider = Moralis.web3Library;
+    console.log('PAWSWAP[chainId]?.address', PAWSWAP[chainId]?.address)
+    const pawswap = new web3Provider.Contract(
+      PAWSWAP[chainId]?.address,
+      PAWSWAP[chainId]?.abi,
+      web3.getSigner()
+    )
+    console.log('pawswap', pawswap)
 
     try {
       const taxStructAddr = await pawswap.tokenTaxContracts(tokenAddr)
@@ -694,8 +725,8 @@ const useSwapContext = () => {
   }
 
   useEffect(() => {
-    setTokenList(defaultTokenList.tokens)
-  }, [defaultTokenList])
+    setTokenList(defaultTokenList.tokens.filter(t => t.chainId == parseInt(chainId, 16)))
+  }, [chainId])
 
   useEffect(() => {
     if (!inputCurrency || !outputCurrency) return
@@ -712,6 +743,7 @@ const useSwapContext = () => {
       let dexForTrade = dex
       if (latestTaxLookup !== tokenRequiringTaxStructure.address) {
         const { dex: updatedDex } = await fetchTaxStructure(tokenRequiringTaxStructure.address)
+        console.log('dex', dex)
         dexForTrade = updatedDex
       }
       // fetch details about the pair to estimate trades
@@ -772,7 +804,8 @@ const useSwapContext = () => {
     updateSlippage,
     highPriceImpactIgnored,
     updateIgnorePriceHighImpact,
-    tradeIsLoading
+    tradeIsLoading,
+    getBuyAmountIn
   }
 }
 

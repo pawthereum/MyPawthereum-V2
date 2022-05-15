@@ -7,6 +7,8 @@ export const useERC20Balance = (params) => {
 
   const [assets, setAssets] = useState();
 
+  const unsupportedChains = ['0x539']
+
   useEffect(() => {
     if (isInitialized && walletAddress && chainId) {
       fetchERC20Balance().then((balance) => setAssets(balance));
@@ -15,6 +17,7 @@ export const useERC20Balance = (params) => {
   }, [isInitialized, chainId, walletAddress]);
 
   const fetchERC20Balance = async () => {
+    if (unsupportedChains.includes(chainId)) return
     return await account
       .getTokenBalances({ address: walletAddress, chain: params?.chain || chainId })
       .then((result) => result);

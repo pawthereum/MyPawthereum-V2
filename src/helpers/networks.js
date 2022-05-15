@@ -112,6 +112,26 @@ export const networkConfigs = {
     blockExplorerUrl: "https://mumbai.polygonscan.com/",
     network: 'test',
   },
+  "0x539": {
+    chainId: 1337,
+    chainName: "Local",
+    currencyName: "ETH",
+    currencySymbol: "ETH",
+    rpcUrl: "http://127.0.0.1:8545",
+    blockExplorerUrl: "https://google.com/?s=",
+    network: 'test',
+    wrapped: '0xFc3b0E1f42e88f7D66f79Ac612AF5ba4CD59E4De',
+  },
+  "local": {
+    chainId: 1337,
+    chainName: "Local",
+    currencyName: "ETH",
+    currencySymbol: "ETH",
+    rpcUrl: "http://127.0.0.1:8545",
+    blockExplorerUrl: "https://google.com/?s=",
+    network: 'test',
+    wrapped: '0xFc3b0E1f42e88f7D66f79Ac612AF5ba4CD59E4De'
+  },
 };
 
 export const getNativeByChain = (chain) =>
