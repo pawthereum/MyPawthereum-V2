@@ -17,7 +17,7 @@ function CurrencyPicker (props) {
     estimatedSide
   } = useContext(AppContext)
   const { assets } = useERC20Balance()
-  const { Moralis, chainId } = useMoralis()
+  const { Moralis, chainId, account } = useMoralis()
   const { isNative, getNativeBalance } = useNative()
   const [tokenListWithBalances, setTokenListWithBalances] = useState([])
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -31,7 +31,9 @@ function CurrencyPicker (props) {
       let balance
       if (isNative(t.address)) {
         balance = await getNativeBalance()
-        balance = Moralis.Units.FromWei(balance, 18)
+        balance = !balance ? '0' : Moralis.Units.FromWei(balance, 18)
+      } else if (!assets) {
+        t.userBalance = '0'
       } else {
         const asset = assets.find(a => a.token_address === t.address.toLowerCase())
         balance = Moralis.Units.FromWei(asset?.balance || '0', asset?.decimals || '18')
@@ -44,14 +46,15 @@ function CurrencyPicker (props) {
   }
 
   useEffect(() => {
+    if (!account || !chainId) return
     if (!tokenList) return
     if (!assets) {
       console.log('~~~~~~~~~ no assets, ', tokenList)
     }
-    if (!assets) return setTokenListWithBalances(tokenList)
+    // if (!assets) return setTokenListWithBalances(tokenList)
     console.log('hello')
     setTokenBalances()
-  }, [tokenList, assets])
+  }, [tokenList, assets, chainId, account])
 
   const showModal = () => {
     console.log('showing')
@@ -117,7 +120,6 @@ function CurrencyPicker (props) {
         setNativeCurrency(nativeCurrency)
       }
     }
-    console.log('omitted', omittedSelectionAddresses)
     setOptions([
       {
         options: tokenListWithBalances

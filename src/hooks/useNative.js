@@ -23,7 +23,12 @@ const useNative = () => {
     address.toLowerCase() === networkConfigs[chainId]?.wrapped.toLowerCase()
   
   const getNativeBalance = async () => {
-    if (unsupportedChains.includes(chainId)) return 0
+    if (!account || !chainId) return
+    if (unsupportedChains.includes(chainId)) {
+      const web3js = await new Web3(Moralis.provider)
+      const balanceReq = await web3js.eth.getBalance(account)
+      return balanceReq
+    }
     const balanceReq = await Web3Api.account.getNativeBalance({
       chain: chainId,
       address: account
