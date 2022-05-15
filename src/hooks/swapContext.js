@@ -562,6 +562,8 @@ const useSwapContext = () => {
 
 
   async function createTrade2 (params) {
+    if (estimatedSide === 'output' && !inputAmount) return
+    if (estimatedSide === 'input' && !outputAmount) return
     setTradeIsLoading(true)
     const side = determineSide(inputCurrency)
     const trade = estimatedSide === 'output' 
@@ -940,6 +942,7 @@ const useSwapContext = () => {
   }, [inputCurrency, outputCurrency, account])
 
   useEffect(() => {
+    console.log('🌈🌈🌈🌈🌈🌈🌈')
     console.log({
       inputAmount,
       outputAmount
