@@ -433,6 +433,67 @@ const useSwapContext = () => {
     }
   }
 
+  async function createExactInputTrade (side) {
+    const feeDecimal = tokenTaxContractFeeDecimal
+    
+    // account for taxes that get taken before the swap happens
+    const preSwapTaxProp = side === 'buy'
+      ? 'preSwapBuyTaxAmount'
+      : 'preSwapSellTaxAmount'
+    const percentTakenFromInputPreSwap = tokenTaxStructureTaxes.reduce((p, t)=> {
+      return p + Number(t[side] * t[preSwapTaxProp])
+    }, 0)
+    const preSwapTaxPercentage = new Percent(percentTakenFromInputPreSwap / 10**feeDecimal, 100)
+    const preSwapTaxAmount = new TokenAmount(inputToken, preSwapTaxPercentage.multiply(inputAmount.raw).quotient)
+    const amountIn = inputAmount.subtract(preSwapTaxAmount)
+
+    // build the trade
+    const sortedTokens = await sortTokens([inputToken, outputToken])
+    const tokenPair = new Pair(
+      new TokenAmount(sortedTokens[0], pairReserves[0]),
+      new TokenAmount(sortedTokens[1], pairReserves[1])
+    )
+    const route = new Route([tokenPair], inputToken)
+    const trade = new Trade(route, amountIn, TradeType.EXACT_INPUT)
+
+    // account for slippage
+    const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
+    const slippageAmount = new TokenAmount(outputToken, slippagePercentage.multiply(trade.outputAmount.raw).quotient)
+
+    // account for taxes that get taken out after the swap
+    const postSwapTaxProp = side === 'buy'
+      ? 'postSwapBuyTaxAmount'
+      : 'postSwapSellTaxAmount'
+    const percentTakenFromOutputPostSwap = tokenTaxStructureTaxes.reduce((p, t)=> {
+      return p + Number(t[side] * t[postSwapTaxProp])
+    }, 0)
+    const postSwapTaxPercentage = new Percent(percentTakenFromOutputPostSwap / 10**feeDecimal, 100)
+    const postSwapTaxAmount = new TokenAmount(outputToken, postSwapTaxPercentage.multiply(trade.outputAmount.raw).quotient)
+
+    const amountOut = trade.outputAmount.subtract(postSwapTaxAmount)
+
+    trade.outputAmountSlippage = trade.outputAmount.subtract(postSwapTaxAmount).subtract(slippageAmount)
+    trade.outputAmount = amountOut
+    return trade
+  }
+
+  async function createTrade2 (params) {
+    setTradeIsLoading(true)
+    const side = determineSide(inputCurrency)
+    const trade = await createExactInputTrade(side)
+    // const trade = estimatedSide === 'output' ? await createExactInputTrade() : await createExactOutputTrade()
+    setTrade({
+      inputAmount,
+      outputAmount,
+      swap: trade,
+      side,
+      estimatedSide,
+      taxes: tokenTaxStructureTaxes,
+      isExactIn: estimatedSide === 'output'
+    })
+    setTradeIsLoading(false)
+  }
+
   async function createTrade (params) {
     setTradeIsLoading(true)
     console.log({
@@ -645,7 +706,7 @@ const useSwapContext = () => {
 
   async function executeSwap (trade) {
     console.log(" TRADE ---<<<<----", trade)
-    const { tokenIn, tokenOut, amountIn, amountOut, amountOutSlippage, inputAmount, outputAmount, side, estimatedSide, swap } = trade
+    const { isExactIn, inputAmount, outputAmount, side, estimatedSide, swap } = trade
     const web3Provider = Moralis.web3Library;
     const pawswap = new web3Provider.Contract(
       PAWSWAP[chainId]?.address,
@@ -653,14 +714,26 @@ const useSwapContext = () => {
       web3.getSigner()
     )
     let swapReq
+    // console.log({
+    //   estimatedSide,
+    //   exactOut: swap.outputAmount.raw.toString(),
+    //   valueSent: swap.amountSlippage.raw.toString(),
+    //   rawOut: swap.outputAmount.raw.toString(), 
+    //   rawInSlip: swap.amountSlippage.raw.toString(), 
+    //   rawIn: swap.inputAmount.raw.toString(),
+    //   output: swap.outputAmount.raw.toString(),
+    // })
     console.log({
-      estimatedSide,
-      exactOut: swap.outputAmount.raw.toString(),
-      valueSent: swap.amountSlippage.raw.toString(),
-      rawOut: swap.outputAmount.raw.toString(), 
-      rawInSlip: swap.amountSlippage.raw.toString(), 
-      rawIn: swap.inputAmount.raw.toString(),
-      output: swap.outputAmount.raw.toString(),
+      token: swap.outputAmount.token.address,
+      customAmt: '0',
+      customAddr: account,
+      extraTax1: '0',
+      amountMin: swap.outputAmountSlippage.raw.toString(),
+      // estimatedSide === 'output'
+      //   ? swap.amountSlippage.raw.toString()
+      //   : outputAmount.raw.toString(), //Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
+      isExact: isExactIn,
+      spent: inputAmount.raw.toString()
     })
     try {
       if (side === 'buy') {
@@ -669,14 +742,16 @@ const useSwapContext = () => {
           '0',
           account,
           '0',
-          estimatedSide === 'output'
-            ? swap.amountSlippage.raw.toString()
-            : outputAmount.raw.toString(), //Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
-          estimatedSide === 'output',
+          swap.outputAmount.raw.toString(),
+          // estimatedSide === 'output'
+          //   ? swap.amountSlippage.raw.toString()
+          //   : outputAmount.raw.toString(), //Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
+          isExactIn,
           {
-            value: estimatedSide === 'output'
-              ? inputAmount.raw.toString()
-              : swap.amountSlippage.raw.toString()
+            // value: estimatedSide === 'output'
+            //   ? inputAmount.raw.toString()
+            //   : swap.amountSlippage.raw.toString()
+            value: inputAmount.raw.toString()
           }
         )
       } else {
@@ -760,8 +835,8 @@ const useSwapContext = () => {
 
   useEffect(() => {
     if (!inputAmount && !outputAmount) return
-    if (inputAmount === "0" && !outputAmount) return
-    if (!inputAmount && outputAmount === "0") return
+    if (inputAmount.toSignificant(inputCurrency.decimals) === "0" && !outputAmount) return
+    if (!inputAmount && outputAmount.toSignificant(outputCurrency?.decimals)) return
     if (!inputCurrency || !outputCurrency || !pairReserves) return
     if (!tokenTaxContract || !tokenTaxStructureTaxes || !tokenTaxContractFeeDecimal) return
     const side = determineSide(inputCurrency)
@@ -773,7 +848,7 @@ const useSwapContext = () => {
     })
     const nonce = tradeNonce
     tradeNonce++
-    createTrade({
+    createTrade2({
       inputAmount,
       outputAmount,
       inputCurrency,

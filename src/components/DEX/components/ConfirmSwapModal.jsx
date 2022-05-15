@@ -52,8 +52,8 @@ const ConfirmSwapModal = () => {
       } else {
         setEstimationText(`Input is estimated. You will spend at most `)
       }
-      const minAmountDecimals = trade.swap.amountSlippage.token.decimals
-      setEstimatedAmount(Moralis.Units.FromWei(BigNumber.from(trade.swap.amountSlippage.raw.toString()), minAmountDecimals))
+      const minAmountDecimals = trade.swap.outputAmountSlippage.token.decimals
+      setEstimatedAmount(Moralis.Units.FromWei(BigNumber.from(trade.swap.outputAmountSlippage.raw.toString()), minAmountDecimals))
       return setBuildModal(true)
     }
     return setBuildModal(false)
@@ -73,7 +73,7 @@ const ConfirmSwapModal = () => {
                   <div style={{ display: 'flex', alignItems: 'center'}}>
                     <img src={inputCurrency?.logoURI} width="50px"/>
                     <span style={{ marginLeft: '10px' }}>
-                      {trade?.swap?.inputAmount.toSignificant(9)}
+                      {inputAmount.toSignificant(9)}
                     </span>
                   </div>
                   <div>
