@@ -512,6 +512,8 @@ const useSwapContext = () => {
         outputCurrency.decimals
       )
     )
+    console.log('🌈🌈🌈🌈🌈🌈🌈')
+    console.log({ amountRequiredToSwap: amountRequiredToSwap.toSignificant(6) })
 
     // account for slippage
     const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
@@ -525,8 +527,8 @@ const useSwapContext = () => {
       new TokenAmount(sortedTokens[1], pairReserves[1])
     )
     const route = new Route([tokenPair], inputToken)
-    const trade = new Trade(route, amountRequiredToSwap, TradeType.EXACT_OUTPUT)
-    const tradeWithSlippage = new Trade(route, amountRequiredToSwapWithSlippage, TradeType.EXACT_OUTPUT)
+    const originalTrade = new Trade(route, amountRequiredToSwap, TradeType.EXACT_OUTPUT)
+    const trade = new Trade(route, amountRequiredToSwapWithSlippage, TradeType.EXACT_OUTPUT)
 
     // account for taxes that get taken out before the swap
     const preSwapTaxProp = side === 'buy'
@@ -546,7 +548,7 @@ const useSwapContext = () => {
     const tradingFeeAmount = new TokenAmount(inputToken, tradingFeePercentage.multiply(amountIn.raw).quotient)
     amountIn = amountIn.add(tradingFeeAmount)
 
-    const preSwapWithSlippageTaxAmount = new TokenAmount(inputToken, preSwapTaxPercentage.multiply(tradeWithSlippage.inputAmount.raw).quotient)
+    const preSwapWithSlippageTaxAmount = new TokenAmount(inputToken, preSwapTaxPercentage.multiply(trade.inputAmount.raw).quotient)
     trade.inputAmountSlippage = trade.inputAmount.add(preSwapWithSlippageTaxAmount)
     const tradingFeeAmountForSlippageTrade = new TokenAmount(inputToken, tradingFeePercentage.multiply(trade.inputAmountSlippage.raw).quotient)
     trade.inputAmountSlippage = trade.inputAmountSlippage.add(tradingFeeAmountForSlippageTrade)
@@ -555,6 +557,8 @@ const useSwapContext = () => {
       amountIn: amountIn.toSignificant(inputToken.decimals),
       amountInSlip: trade.inputAmountSlippage.toSignificant(inputToken.decimals)
     })
+    console.log('INPUT --->>>>', amountIn.raw.toString())
+    console.log('OUTPUT --->>>>', amountIn.raw.toString())
 
     trade.inputAmount = amountIn
     return trade
@@ -942,7 +946,6 @@ const useSwapContext = () => {
   }, [inputCurrency, outputCurrency, account])
 
   useEffect(() => {
-    console.log('🌈🌈🌈🌈🌈🌈🌈')
     console.log({
       inputAmount,
       outputAmount
