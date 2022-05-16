@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { tokenList as defaultTokenList } from '../constants/tokenList'
-import { PAWSWAP_ROUTER, PANCAKESWAP_ROUTER, PAWSWAP, DEFAULT_SLIPPAGE, PAWSWAP_FACTORY, PANCAKESWAP_FACTORY } from '../constants'
+import { ERC20ABI, PAWSWAP_ROUTER, PANCAKESWAP_ROUTER, PAWSWAP, DEFAULT_SLIPPAGE, PAWSWAP_FACTORY, PANCAKESWAP_FACTORY } from '../constants'
 import { notification } from 'antd'
 import { networkConfigs } from 'helpers/networks'
 import { taxStructureAbi } from 'constants/abis/taxStructure'
@@ -343,7 +343,6 @@ const useSwapContext = () => {
     )
     
     try {
-      console.log('🌈🌈🌈🌈🌈🌈🌈')
       console.log(trade?.swap?.outputAmount.raw.toString())
       // console.log(BigNumber.from(trade?.swap?.outputAmount.raw).toString())
       
@@ -444,8 +443,19 @@ const useSwapContext = () => {
     const percentTakenFromInputPreSwap = tokenTaxStructureTaxes.reduce((p, t)=> {
       return p + Number(t[side] * t[preSwapTaxProp])
     }, 0)
-    const preSwapTaxPercentage = new Percent(percentTakenFromInputPreSwap, 100*feeDecimal)
+    console.log({
+      preSwapTaxProp,
+      percentTakenFromInputPreSwap
+    })
+
+    const preSwapTaxPercentage = new Percent(percentTakenFromInputPreSwap, 100**feeDecimal)
     const preSwapTaxAmount = new TokenAmount(inputToken, preSwapTaxPercentage.multiply(inputAmount.raw).quotient)
+    console.log({
+      inpttttt: inputAmount.toSignificant(inputCurrency.decimals),
+      preswaptx: preSwapTaxAmount.toSignificant(inputCurrency.decimals),
+      bigger: inputAmount > preSwapTaxAmount,
+      preSwapTaxPercentage: preSwapTaxPercentage.toSignificant(10)
+    })
     let amountIn = inputAmount.subtract(preSwapTaxAmount)
 
     // dexes usually take a trading fee
@@ -453,7 +463,12 @@ const useSwapContext = () => {
       ? new Percent('35', '1000') // most other dexs have  0.3% - .25% and pawswap will always take 0.03% so call it 0.35%
       : new Percent('20', '1000') // 0.2% trading fee on pawswap
     const tradingFeeAmount = new TokenAmount(inputToken, tradingFeePercentage.multiply(amountIn.raw).quotient)
-    amountIn = amountIn.subtract(tradingFeeAmount)
+    console.log({
+      tradingFee: tradingFeePercentage.toSignificant(9)
+    })
+    if (side === 'buy') {
+      amountIn = amountIn.subtract(tradingFeeAmount)
+    }
 
     // build the trade
     const sortedTokens = await sortTokens([inputToken, outputToken])
@@ -512,7 +527,6 @@ const useSwapContext = () => {
         outputCurrency.decimals
       )
     )
-    console.log('🌈🌈🌈🌈🌈🌈🌈')
     console.log({ amountRequiredToSwap: amountRequiredToSwap.toSignificant(6) })
 
     // account for slippage
@@ -526,8 +540,12 @@ const useSwapContext = () => {
       new TokenAmount(sortedTokens[0], pairReserves[0]),
       new TokenAmount(sortedTokens[1], pairReserves[1])
     )
+    console.log({
+      amountRequiredToSwapWithSlippage: amountRequiredToSwapWithSlippage.toSignificant(outputCurrency.decimals),
+      amountRequiredToSwap: amountRequiredToSwap.toSignificant(outputCurrency.decimals)
+    })
     const route = new Route([tokenPair], inputToken)
-    const originalTrade = new Trade(route, amountRequiredToSwap, TradeType.EXACT_OUTPUT)
+    const tradeWithSlippage = new Trade(route, amountRequiredToSwap, TradeType.EXACT_OUTPUT)
     const trade = new Trade(route, amountRequiredToSwapWithSlippage, TradeType.EXACT_OUTPUT)
 
     // account for taxes that get taken out before the swap
@@ -555,7 +573,9 @@ const useSwapContext = () => {
 
     console.log({
       amountIn: amountIn.toSignificant(inputToken.decimals),
-      amountInSlip: trade.inputAmountSlippage.toSignificant(inputToken.decimals)
+      amountInSlip: trade.inputAmountSlippage.toSignificant(inputToken.decimals),
+      swapAmt: outputAmount.raw.toString(),
+      swamt: trade.outputAmount.raw.toString()
     })
     console.log('INPUT --->>>>', amountIn.raw.toString())
     console.log('OUTPUT --->>>>', amountIn.raw.toString())
@@ -833,7 +853,7 @@ const useSwapContext = () => {
       customAddr: account,
       extra: '0',
       amountToBuy: isExactIn 
-      ? swap.outputAmount.raw.toString()
+      ? swap.outputAmountSlippage.raw.toString()
       : outputAmount.raw.toString(),
       // estimatedSide === 'output'
       //   ? swap.amountSlippage.raw.toString()
@@ -843,15 +863,32 @@ const useSwapContext = () => {
       ? inputAmount.raw.toString()
       : swap.inputAmountSlippage.raw.toString()
     })
+
+    const ethers = Moralis.web3Library;
+    const network = 'rinkeby' // use rinkeby testnet
+    console.log('ethers', ethers)
+    const provider = ethers.getDefaultProvider('http://localhost:8545')
+    const ethBalanceBeforeRaw = await provider.getBalance(account)
+    let ethBalanceBefore, tokenBalanceBefore, token
+
     try {
       if (side === 'buy') {
+        token = await new web3Provider.Contract(
+          outputCurrency.address,
+          ERC20ABI,
+          web3.getSigner()
+        )
+        const tokenBalanceBeforeRaw = await token.balanceOf(account)
+        tokenBalanceBefore = new TokenAmount(outputToken, tokenBalanceBeforeRaw)
+        ethBalanceBefore = new TokenAmount(inputToken, ethBalanceBeforeRaw)
+
         swapReq = await pawswap.buyOnPawSwap(
           swap.outputAmount.token.address,
           '0',
           account,
           '0',
           isExactIn 
-          ? swap.outputAmount.raw.toString()
+          ? swap.outputAmountSlippage.raw.toString()
           : outputAmount.raw.toString(),
           // estimatedSide === 'output'
           //   ? swap.amountSlippage.raw.toString()
@@ -865,10 +902,19 @@ const useSwapContext = () => {
           }
         )
       } else {
+        token = await new web3Provider.Contract(
+          inputCurrency.address,
+          ERC20ABI,
+          web3.getSigner()
+        )
+        const tokenBalanceBeforeRaw = await token.balanceOf(account)
+        tokenBalanceBefore = new TokenAmount(inputToken, tokenBalanceBeforeRaw)
+        ethBalanceBefore = new TokenAmount(outputToken, ethBalanceBeforeRaw)
+
         swapReq = await pawswap.sellOnPawSwap(
           swap.inputAmount.token.address,
-          estimatedSide === 'output'
-            ? swap.inputAmount.raw.toString() //Moralis.Units.Token(amountIn, tokenIn?.decimals)
+          isExactIn
+            ? inputAmount.raw.toString() //Moralis.Units.Token(amountIn, tokenIn?.decimals)
             : swap.inputAmountSlippage.raw.toString(),
           '0',
           account,
@@ -901,6 +947,27 @@ const useSwapContext = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       })
+      console.log('🌈🌈🌈🌈🌈🌈🌈')
+      const tokenBalanceAfterRaw = await token.balanceOf(account)
+      const tokenBalanceAfter = new TokenAmount(side === 'buy' ? outputToken : inputToken, tokenBalanceAfterRaw)
+      const ethBalanceAfterRaw = await provider.getBalance(account)
+      const ethBalanceAfter = new TokenAmount(side === 'buy' ? inputToken : outputToken, ethBalanceAfterRaw)
+
+      // const tokenBalanceDiff = tokenBalanceAfter > tokenBalanceBefore
+      //   ? tokenBalanceAfter.subtract(tokenBalanceBefore).toSignificant(18)
+      //   : tokenBalanceBefore.subtract(tokenBalanceAfter).toSignificant(18)
+      
+      // const ethBalanceDiff = ethBalanceAfter > ethBalanceBefore
+      //   ? ethBalanceAfter.subtract(ethBalanceBefore).toSignificant(18)
+      //   : ethBalanceBefore.subtract(ethBalanceAfter).toSignificant(18)
+
+      console.log({
+        tokenBalanceBefore: tokenBalanceBefore.toSignificant(18),
+        tokenBalanceAfter: tokenBalanceAfter.toSignificant(18),
+        ethBalanceBefore: ethBalanceBefore.toSignificant(18),
+        ethBalanceAfter: ethBalanceAfter.toSignificant(18)
+      })
+
       return tx
     } catch (e) {
       setTradeIsLoading(false)

@@ -19,6 +19,7 @@ const useNative = () => {
   }, [chainId])
 
   const isNative = (address) => 
+    !address ? false :
     address.toLowerCase() === nativeAddress ||
     address.toLowerCase() === networkConfigs[chainId]?.wrapped.toLowerCase()
   

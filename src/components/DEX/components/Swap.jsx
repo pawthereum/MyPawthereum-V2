@@ -9,6 +9,7 @@ import useAllowances from 'hooks/useAllowances.js';
 import { networkConfigs } from 'helpers/networks.js';
 import CurrencyPairForm from './CurrencyPairForm.jsx';
 import ConfirmSwapModal from './ConfirmSwapModal';
+import useNative from 'hooks/useNative';
 
 const styles = {
   card: {
@@ -43,6 +44,7 @@ function Swap () {
     highPriceImpactIgnored
   } = useContext(AppContext);
   const { hasAllowance, updateAllowance } = useAllowances()
+  const { isNative } = useNative()
   const [swapButtonIsLoading, setSwapButtonIsLoading] = useState(false)
   const [inputIsLoading, setInputIsLoading] = useState(false)
   const [outputIsLoading, setOutputIsLoading] = useState(false)
@@ -107,7 +109,7 @@ function Swap () {
   useEffect(() => {
     if (!inputCurrency) return
     if (
-      inputCurrency.address.toLowerCase() !== networkConfigs[chainId]?.wrapped.toLowerCase() &&
+      !isNative(inputCurrency?.address) &&
       inputAmount && 
       inputAmount.toSignificant(inputCurrency.decimals) > 0
     ) {
