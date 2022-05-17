@@ -566,6 +566,101 @@ const useSwapContext = () => {
     return trade
   }
 
+  async function createSellExactOut (params) {
+    const { outputAmount, slippage } = params
+
+    const side = determineSide(inputCurrency)
+    const feeDecimal = tokenTaxContractFeeDecimal
+    const ONE_HUNDRED_PERCENT = new Percent(100, 100)
+
+    // account for taxes that get taken after the swap happens.
+    // we need to find the amount out to build a trade such that the % tax after the swap
+    // leaves us with the amount that the user wants to receive
+    // A = 100(outputdesired) / taxAmount
+    const postSwapTaxProp = 'postSwapSellTaxAmount'
+    const percentTaxesFromOutputPostSwap = tokenTaxStructureTaxes.reduce((p, t)=> {
+      return p + Number(t[side] * t[postSwapTaxProp])
+    }, 0)
+    const postSwapTaxPercentage = new Percent(percentTaxesFromOutputPostSwap, 100**feeDecimal)
+    const amountOutPercentageOfSwapResult = ONE_HUNDRED_PERCENT.subtract(postSwapTaxPercentage)
+    let amountOut = new TokenAmount(
+      outputToken,
+      Moralis.Units.Token(
+        outputAmount.divide(amountOutPercentageOfSwapResult).toFixed(outputCurrency.decimals),
+        outputCurrency.decimals
+      )
+    )
+
+    // dex trading fees for non-pawswap dexes come out postswap in eth
+    if (dex?.name.toLowerCase() !== 'pawswap') {
+      const tradingFeePercentage = new Percent('33', '1000') // most other dexs have  0.3% - .25% and pawswap will always take 0.03% so call it 0.33%
+      const amountOutPercentageOfTradingFee = ONE_HUNDRED_PERCENT.subtract(tradingFeePercentage)
+      amountOut = new TokenAmount(
+        outputToken,
+        Moralis.Units.Token(
+          amountIn.divide(amountOutPercentageOfTradingFee).toFixed(outputCurrency.decimals),
+          outputCurrency.decimals
+        )
+      )
+    }
+
+    // build the trade
+    const sortedTokens = await sortTokens([inputToken, outputToken])
+    const tokenPair = new Pair(
+      new TokenAmount(sortedTokens[0], pairReserves[0]),
+      new TokenAmount(sortedTokens[1], pairReserves[1])
+    )
+    const route = new Route([tokenPair], inputToken)
+    const trade = new Trade(route, amountOut, TradeType.EXACT_OUTPUT)
+
+    // account for slippage
+    const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
+    const slippageAmount = new TokenAmount(inputToken, slippagePercentage.multiply(trade.inputAmount.raw).quotient)
+    let amountInSlippage = trade.inputAmount.add(slippageAmount)
+
+    // account for taxes that get taken out after the swap in tokens
+    const preSwapTaxProp = 'preSwapSellTaxAmount'
+    const percentTakenFromInputPreSwap = tokenTaxStructureTaxes.reduce((p, t)=> {
+      return p + Number(t[side] * t[preSwapTaxProp])
+    }, 0)
+    const preSwapTaxPercentage = new Percent(percentTakenFromInputPreSwap, 100**feeDecimal)
+    const amountInPercentageOfSwapResult = ONE_HUNDRED_PERCENT.subtract(preSwapTaxPercentage)
+    let amountIn = new TokenAmount(
+      inputToken,
+      Moralis.Units.Token(
+        trade.inputAmount.divide(amountInPercentageOfSwapResult).toFixed(inputCurrency.decimals),
+        inputCurrency.decimals
+      )
+    )
+    amountInSlippage = new TokenAmount(
+      inputToken,
+      Moralis.Units.Token(
+        amountInSlippage.divide(amountInPercentageOfSwapResult).toFixed(inputCurrency.decimals),
+        inputCurrency.decimals
+      )
+    )
+
+    // dex trading fees for pawswap come out as LP token tax which can be treated like slippage
+    if (dex?.name.toLowerCase() === 'pawswap') {
+      const tradingFeePercentage = new Percent('20', '1000') // 0.2% trading fee on pawswap
+      const tradingFeeAmountTakenFromInputPreSwap = new TokenAmount(
+        inputToken, 
+        tradingFeePercentage.multiply(amountIn.raw).quotient
+      )
+      amountIn = amountIn.add(tradingFeeAmountTakenFromInputPreSwap)
+
+      const tradingFeeAmountTakenFromInputWithSlippagePreSwap = new TokenAmount(
+        inputToken, 
+        tradingFeePercentage.multiply(amountIn.raw).quotient
+      )
+      amountInSlippage = amountInSlippage.add(tradingFeeAmountTakenFromInputWithSlippagePreSwap)
+    }
+
+    trade.inputAmountSlippage = amountInSlippage // will send this as part of the tx (min to receive before reverting)
+    trade.inputAmount = amountIn // will show this in the UI
+    return trade
+  }
+
   async function createBuyExactOut (params) {
     const { outputAmount, slippage } = params
 
@@ -595,13 +690,18 @@ const useSwapContext = () => {
     if (dex?.name.toLowerCase() === 'pawswap') {
       const tradingFeePercentage = new Percent('20', '1000') // 0.2% trading fee on pawswap
       const tradingFeeAmountTakenFromInputPostSwap = new TokenAmount(outputToken, tradingFeePercentage.multiply(amountOut.raw).quotient)
-      amountOut = amountOut.subtract(tradingFeeAmountTakenFromInputPostSwap)
+      amountOut = amountOut.add(tradingFeeAmountTakenFromInputPostSwap)
     }
     
     // account for slippage
     const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
     const slippageAmount = new TokenAmount(outputToken, slippagePercentage.multiply(amountOut.raw).quotient)
     const amountOutSlippage = amountOut.add(slippageAmount)
+
+    console.log({
+      amountOut: amountOut.toSignificant(18),
+      amountOutSlippage: amountOutSlippage.toSignificant(18)
+    })
 
     // build the trade
     const sortedTokens = await sortTokens([inputToken, outputToken])
@@ -821,13 +921,19 @@ const useSwapContext = () => {
     //   ? await createExactInputTrade(side)
     //   : await createExactOutputTrade(side)
     
-    let trade
+    let trade, isExactIn
     if (side === 'buy' && estimatedSide === 'output') {
       trade = await createBuyExactIn(params)
+      isExactIn = true
     } else if (side === 'sell' && estimatedSide === 'output') {
       trade = await createSellExactIn(params)
+      isExactIn = true
     } else if (side === 'buy' && estimatedSide === 'input') {
       trade = await createBuyExactOut(params)
+      isExactIn = false
+    } else {
+      trade = await createSellExactOut(params)
+      isExactIn = false
     }
     console.log('🌈🌈🌈🌈🌈🌈')
     console.log({
@@ -841,7 +947,7 @@ const useSwapContext = () => {
       side,
       estimatedSide,
       taxes: tokenTaxStructureTaxes,
-      isExactIn: estimatedSide === 'output'
+      isExactIn
     })
     setTradeIsLoading(false)
   }
@@ -1224,6 +1330,10 @@ const useSwapContext = () => {
 
   useEffect(() => {
     if (!inputCurrency || !outputCurrency) return
+    console.log({
+      inputCurrency,
+      outputCurrency
+    })
     setUpForTrades()
 
     async function setUpForTrades() {
