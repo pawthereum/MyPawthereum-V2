@@ -687,11 +687,11 @@ const useSwapContext = () => {
     )
 
     // dex trading fees for pawswap come out as LP token tax which can be treated like slippage
-    // if (dex?.name.toLowerCase() === 'pawswap') {
-    //   const tradingFeePercentage = new Percent('20', '1000') // 0.2% trading fee on pawswap
-    //   const tradingFeeAmountTakenFromInputPostSwap = new TokenAmount(outputToken, tradingFeePercentage.multiply(amountOut.raw).quotient)
-    //   amountOut = amountOut.add(tradingFeeAmountTakenFromInputPostSwap)
-    // }
+    if (dex?.name.toLowerCase() === 'pawswap') {
+      const tradingFeePercentage = new Percent('20', '1000') // 0.2% trading fee on pawswap
+      const tradingFeeAmountTakenFromInputPostSwap = new TokenAmount(outputToken, tradingFeePercentage.multiply(amountOut.raw).quotient)
+      amountOut = amountOut.add(tradingFeeAmountTakenFromInputPostSwap)
+    }
     
     // account for slippage
     const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
@@ -699,6 +699,7 @@ const useSwapContext = () => {
     const amountOutSlippage = amountOut.add(slippageAmount)
 
     console.log({
+      hello: '~~~~~~~~~~~~~~~~~~',
       amountOut: amountOut.toSignificant(18),
       amountOutSlippage: amountOutSlippage.toSignificant(18)
     })
