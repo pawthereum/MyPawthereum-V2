@@ -936,7 +936,6 @@ const useSwapContext = () => {
       trade = await createSellExactOut(params)
       isExactIn = false
     }
-    console.log('🌈🌈🌈🌈🌈🌈')
     console.log({
       trade
     })
@@ -1406,6 +1405,7 @@ const useSwapContext = () => {
     inputAmount,
     tokenList,
     trade,
+    pair,
     executeSwap,
     taxes: tokenTaxStructureTaxes,
     tokenTaxContractFeeDecimal,

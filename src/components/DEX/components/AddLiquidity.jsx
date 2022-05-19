@@ -8,6 +8,7 @@ import useAllowances from 'hooks/useAllowances'
 import { useMoralis } from 'react-moralis'
 import { DEFAULT_SLIPPAGE } from '../../../constants'
 import useLiquidity from 'hooks/useLiquidity'
+import useNative from 'hooks/useNative'
 
 const styles = {
   outset: {
@@ -24,10 +25,13 @@ function AddLiquidity() {
     executeSwap, 
     slippage, 
     inputAmount,
-    highPriceImpactIgnored
+    outputAmount,
+    highPriceImpactIgnored,
+    pair
   } = useContext(AppContext);
 
   const { chainId } = useMoralis()
+  const { isNative } = useNative()
   const { addLiquidity } = useLiquidity()
   const { hasAllowance, updateAllowance } = useAllowances()
   const [approvalIsLoading, setApprovalIsLoading] = useState(false)
@@ -45,7 +49,7 @@ function AddLiquidity() {
 
     await updateAllowance({
       amount: inputAmount,
-      spender: PAWSWAP[chainId]?.address,
+      spender: pair,
       token: inputCurrency
     })
 
@@ -57,24 +61,44 @@ function AddLiquidity() {
   }
 
   useEffect(() => {
-    if (!inputCurrency) return
+    if (!inputCurrency || !outputCurrency) return
     if (
-      inputCurrency.address !== networkConfigs[chainId]?.wrapped &&
-      inputAmount && 
-      Number(inputAmount) > 0
+      inputAmount?.toSignificant(inputCurrency.decimals) > 0 ||
+      outputAmount?.toSignificant(outputCurrency.decimals) > 0
     ) {
       checkAllowance()
     }
     async function checkAllowance () {
-      const sufficientAllowance = await hasAllowance({
-        amount: inputAmount,
-        token: inputCurrency,
-        spender: PAWSWAP[chainId]?.address
+      if (!trade) return
+      console.log({
+        output: trade?.swap?.outputAmount?.toSignificant(18),
+        outputSlip: trade?.swap?.outputAmountSlippage?.toSignificant(18),
+        input: trade?.swap?.inputAmount?.toSignificant(18),
+        inputSlip: trade?.swap?.inputAmountSlippage?.toSignificant(18),
       })
+      const token = isNative(inputCurrency?.address) ? outputCurrency : inputCurrency
+      const amount = isNative(inputCurrency?.address) 
+        ? estimatedSide === 'output' ? outputAmount : trade.swap.outputAmount
+        : estimatedSide === 'output' ? inputAmount : trade.swap.inputAmount
+
+      if (amount && amount.toSignificant(token.decimals) === 0) return true
+      console.log('🌈🌈🌈🌈🌈🌈')
+      console.log({
+        amount: amount.raw.toString(),
+        token,
+        pair,
+      })
+      const sufficientAllowance = await hasAllowance({
+        amount: amount.toSignificant(token.decimals),
+        token,
+        spender: pair
+      })
+      console.log('🦄🦄🦄🦄🦄🦄')
+      console.log(sufficientAllowance)
       // show approve btn if there isnt a sufficient allowance
       setShowApproveBtn(!sufficientAllowance)
     }
-  }, [inputCurrency, inputAmount])
+  }, [trade])
 
   return (
     <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
@@ -104,6 +128,7 @@ function AddLiquidity() {
           <Button
             type="primary"
             size="large"
+            disabled={showApproveBtn}
             style={{
               width: "100%",
               marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,

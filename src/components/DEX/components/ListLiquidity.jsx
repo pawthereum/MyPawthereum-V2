@@ -101,7 +101,7 @@ function ListLiquidity () {
           <Search 
             size="large"
             placeholder="Token Address" 
-            onSearch={onSearch} 
+            onSearch={tryAutoSearch} 
             onChange={tryAutoSearch}
             style={{ width: '100%' }} 
           />

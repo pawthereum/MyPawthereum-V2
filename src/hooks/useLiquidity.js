@@ -6,6 +6,7 @@ import { pack, keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
 import useNative from './useNative';
 import AppContext from "AppContext";
+import { networkConfigs } from "helpers/networks";
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -20,9 +21,9 @@ const openNotification = ({ message, description, link }) => {
 };
 
 const useLiquidity = () => {
-  const { trade } = useContext(AppContext)
+  const { estimatedSide, trade, outputAmount, inputAmount } = useContext(AppContext)
   const { chainId, Moralis, web3, account } = useMoralis()
-  const { wrappedAddress } = useNative()
+  const { wrappedAddress, isNative } = useNative()
 
   const sortTokens = (tokenList) => {
     return tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
@@ -100,37 +101,62 @@ const useLiquidity = () => {
     try {
       console.log('adding again...')
       console.log({ trade })
-      const ethAmtIn = trade.side === 'sell' 
-        ? trade.estimatedSide === 'output'
-          ? 'amountOutSlippage'
-          : 'amountOut'
-        : 'amountIn'
-      const token = trade.side === 'sell'
-        ? trade.tokenIn
-        : trade.tokenOut
-      const tokenAmtIn = trade.side === 'sell'
-        ? 'amountIn'
-        : trade.estimatedSide === 'output'
-          ? 'amountOutSlippage'
-          : 'amountOut'
+      const ethAmtIn = trade.side === 'sell'
+        ? estimatedSide === 'output' ? trade.swap.outputAmount : outputAmount
+        : estimatedSide === 'output' ? inputAmount : trade.swap.inputAmount
       
-      console.log(trade[tokenAmtIn])
-      console.log(Moralis.Units.Token(trade[ethAmtIn], 18))
+      const tokenAmtIn = trade.side === 'sell'
+        ? estimatedSide === 'output' ? inputAmount : trade.swap.inputAmount
+        : estimatedSide === 'output' ? outputAmount : trade.swap.outputAmount
+      // const ethAmtIn = trade.side === 'sell' 
+      //   ? trade.estimatedSide === 'output'
+      //     ? outputAmount
+      //     : trade.swap.outputAmount
+      //   : inputAmount
+      const token = trade.side === 'sell'
+        ? trade.swap.inputAmount.token
+        : trade.swap.outputAmount.token
+      // const tokenAmtIn = trade.side === 'sell'
+      //   ? inputAmount
+      //   : trade.estimatedSide === 'output'
+      //     ? outputAmount
+      //     : trade.swap.outputAmount
+      
+      console.log({
+        e: ethAmtIn.raw.toString(),t: tokenAmtIn.raw.toString(), ta: token.address
+      })
+      // console.log(Moralis.Units.Token(trade[ethAmtIn], 18))
 
-      const added = await routerContract.addLiquidityETH(
+      const addRequest = await routerContract.addLiquidityETH(
         token?.address,
-        trade[tokenAmtIn],
+        tokenAmtIn.raw.toString(),
         0,
         0,
         account,
-        new Date().getTime() / 1000 + 50000,
-        { value: Moralis.Units.Token(trade[ethAmtIn], 18) }
+        parseInt(new Date().getTime() / 1000 + 50000),
+        { value: ethAmtIn.raw.toString() }
       )
-      console.log(' did we do it?'. added)
-      return added
+      openNotification({
+        message: "🔊 Liquidity Add Submitted!",
+        description: `${addRequest.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + addRequest.hash
+      })
+      try {
+        const tx = await addRequest.wait()
+        openNotification({
+          message: "🎉 Liquidity Add Complete!",
+          description: `${tx.transactionHash}`,
+          link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+        })
+      } catch (e) {
+        openNotification({
+          message: "⚠️ Error adding liquidity!",
+          description: `${e.message} ${e.data?.message}`
+        });
+      }
     } catch (e) {
       console.log('error adding liquidity', e)
-      return openNotification({
+      openNotification({
         message: "⚠️ Error adding liquidity!",
         description: `${e.message} ${e.data?.message}`
       });

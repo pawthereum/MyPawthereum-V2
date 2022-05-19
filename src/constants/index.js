@@ -105,7 +105,7 @@ export const PAWSWAP = {
   },
   '0x539': {
     abi: pawswapAbi,
-    address: '0x27D00dF9D32e91a51D4A7cD021B265eaC56Af122'
+    address: '0xB9842Ff1deAfc0aB21f6bddcDe923393463252c6'
   }
 }
 
