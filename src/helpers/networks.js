@@ -120,7 +120,7 @@ export const networkConfigs = {
     rpcUrl: "http://127.0.0.1:8545",
     blockExplorerUrl: "https://google.com/?s=",
     network: 'test',
-    wrapped: '0xFc3b0E1f42e88f7D66f79Ac612AF5ba4CD59E4De',
+    wrapped: '0x5fbdb2315678afecb367f032d93f642f64180aa3',
   },
   "local": {
     chainId: 1337,
@@ -130,7 +130,7 @@ export const networkConfigs = {
     rpcUrl: "http://127.0.0.1:8545",
     blockExplorerUrl: "https://google.com/?s=",
     network: 'test',
-    wrapped: '0xFc3b0E1f42e88f7D66f79Ac612AF5ba4CD59E4De'
+    wrapped: '0x5fbdb2315678afecb367f032d93f642f64180aa3'
   },
 };
 

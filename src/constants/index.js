@@ -16,8 +16,8 @@ export const PAWTH_ADDRESS = {
   '0x4': '0x459BC05bF203cEd24E76c598B507aEAa9eD36C28', // rinkeby testnet
   '0x61': '0xe32Ba5D0755F996BB0c650aC7A7fBDEa0839d417', // bsc testnet
   'bsctest': '0xe32Ba5D0755F996BB0c650aC7A7fBDEa0839d417',
-  'localdevchain': '0x58CDCaC4CedCb3fA27d65F60Bb5a09F0Fad5DB2a',
-  '0x539': '0x58CDCaC4CedCb3fA27d65F60Bb5a09F0Fad5DB2a'
+  'localdevchain': '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9',
+  '0x539': '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9'
 }
 
 export const SHIBA_LP_ADDRESS = '0xc57dc778a0d2d150d04fc0fd09a0113ebe9d600c'
@@ -105,7 +105,7 @@ export const PAWSWAP = {
   },
   '0x539': {
     abi: pawswapAbi,
-    address: '0xB9842Ff1deAfc0aB21f6bddcDe923393463252c6'
+    address: '0xcf7ed3acca5a467e9e704c703e8d87f634fb0fc9'
   }
 }
 
@@ -136,11 +136,11 @@ export const PAWSWAP_ROUTER = {
   },
   'localdevchain': {
     abi: pawswapRouterAbi,
-    address: '0x279C3ef32d4e422547483304dAc692C7ABEA7280'
+    address: '0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0'
   },
   '0x539': {
     abi: pawswapRouterAbi,
-    address: '0x279C3ef32d4e422547483304dAc692C7ABEA7280'
+    address: '0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0'
   }
 }
 
@@ -177,13 +177,13 @@ export const PAWSWAP_FACTORY = {
   },
   'localdevchain': {
     abi: pawswapFactoryAbi,
-    address: '0x754511F1c15532fEc424FE724154acA4ea29FB73',
-    initCodeHash: '0x048602781262cfac6d42a7e607eec280f5199d68b80bc1ec6c6f7176fc2b54ca'
+    address: '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512',
+    initCodeHash: '0xcf3565c3fafd16be9fe1964038a53134ac87ae3781984eb501d0a56a5e0b5edb'
   },
   '0x539': {
     abi: pawswapFactoryAbi,
-    address: '0x754511F1c15532fEc424FE724154acA4ea29FB73',
-    initCodeHash: '0x048602781262cfac6d42a7e607eec280f5199d68b80bc1ec6c6f7176fc2b54ca'
+    address: '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512',
+    initCodeHash: '0xcf3565c3fafd16be9fe1964038a53134ac87ae3781984eb501d0a56a5e0b5edb'
   }
 }
 

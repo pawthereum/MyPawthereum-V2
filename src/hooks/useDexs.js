@@ -37,13 +37,8 @@ const useDexs = () => {
   }, [chainId])
 
   const getDexByRouterAddress = (routerAddress) => {
-    console.log('dexs', dexs)
-    console.log({ routerAddress })
-    console.log('pawswap', PAWSWAP_ROUTER[chainId]?.address)
     const options = Object.keys(dexs)
-    console.log({ options })
-    const dexName = options.find(o => dexs[o]?.router?.address === routerAddress)
-    console.log('got it ', dexName)
+    const dexName = options.find(o => dexs[o]?.router?.address.toLowerCase() === routerAddress.toLowerCase())
     return dexs[dexName]
   }
 
