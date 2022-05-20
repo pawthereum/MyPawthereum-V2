@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import { Row, Col, Space, Button } from 'antd'
 import AppContext from 'AppContext'
-import { PAWSWAP } from '../../../constants'
+import { PAWSWAP_ROUTER } from '../../../constants'
 import { networkConfigs } from 'helpers/networks'
 import CurrencyPairForm from './CurrencyPairForm'
 import useAllowances from 'hooks/useAllowances'
@@ -49,7 +49,7 @@ function AddLiquidity() {
 
     await updateAllowance({
       amount: inputAmount,
-      spender: pair,
+      spender: PAWSWAP_ROUTER[chainId]?.address,
       token: inputCurrency
     })
 
@@ -91,7 +91,7 @@ function AddLiquidity() {
       const sufficientAllowance = await hasAllowance({
         amount: amount.toSignificant(token.decimals),
         token,
-        spender: pair
+        spender: PAWSWAP_ROUTER[chainId]?.address
       })
       console.log('🦄🦄🦄🦄🦄🦄')
       console.log(sufficientAllowance)
