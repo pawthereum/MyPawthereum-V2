@@ -4,6 +4,7 @@ import Settings from './Settings';
 import AddLiquidity from './AddLiquidity';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import ListLiquidity from './ListLiquidity';
+import RemoveLiquidity from './RemoveLiquidity';
 
 const styles = {
   card: {
@@ -20,6 +21,7 @@ const styles = {
 }
 
 function Liquidity () {  
+  const [removeLiquidityIsVisible, setRemoveLiquidityIsVisible] = useState(true)
   const [addLiquidityIsVisible, setAddLiquidityIsVisible] = useState(false)
 
   const showAddLiquidity = () => {
@@ -32,15 +34,28 @@ function Liquidity () {
     setAddLiquidityIsVisible(false)
   }
 
+  const showRemoveLiquidity = () => {
+    console.log('showing...')
+    setRemoveLiquidityIsVisible(true)
+  }
+
+  const hideRemoveLiquidity = () => {
+    console.log('hiding...')
+    setRemoveLiquidityIsVisible(false)
+  }
+
   return (
     <Row>
       <Col>
         <Card style={styles.card} title={
           <Row style={{ display: 'flex', alignItems: 'center' }}>
-            <Col span={!addLiquidityIsVisible ? 12  : 8 }>
+            <Col span={!addLiquidityIsVisible && !removeLiquidityIsVisible ? 12  : 8 }>
               {
-                !addLiquidityIsVisible ? 'Liquidity' :
-                <ArrowLeftOutlined style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => hideAddLiquidity()} />
+                !addLiquidityIsVisible && !removeLiquidityIsVisible ? 'Liquidity' :
+                <ArrowLeftOutlined style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => {
+                  hideAddLiquidity()
+                  hideRemoveLiquidity()
+                }} />
               }
             </Col>
             {
@@ -49,11 +64,21 @@ function Liquidity () {
                 Add Liquidity
               </Col>
             }
-            <Col span={!addLiquidityIsVisible ? 12  : 8 } style={{ display: 'flex', justifyContent: 'end' }}>
+            {
+              !removeLiquidityIsVisible ? '' :
+              <Col span={8}>
+                Remove Liquidity
+              </Col>
+            }
+            <Col span={!addLiquidityIsVisible && !removeLiquidityIsVisible ? 12  : 8 } style={{ display: 'flex', justifyContent: 'end' }}>
               <Settings />
             </Col>
           </Row>
         }>
+          {
+            !removeLiquidityIsVisible ? '' :
+            <RemoveLiquidity />
+          }
           {
             !addLiquidityIsVisible
             ?

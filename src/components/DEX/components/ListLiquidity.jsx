@@ -6,9 +6,10 @@ import useLiquidity from 'hooks/useLiquidity';
 import useNative from 'hooks/useNative';
 import Web3 from "web3"; 
 import { TokenAmount, Percent } from '@uniswap/sdk'
+import { networkConfigs } from 'helpers/networks';
 
 function ListLiquidity () {
-  const { Moralis } = useMoralis()
+  const { Moralis, chainId } = useMoralis()
   const { getPawswapPair, getPairReserves, getPairTotalSupply } = useLiquidity()
   const { assets } = useERC20Balance()
   const { getWrappedNativeToken, wrappedAddress } = useNative()
@@ -97,10 +98,9 @@ function ListLiquidity () {
       </Row>
       <Row>
         <Col span={24}>
-          <span>Insert LP Token</span>
           <Search 
             size="large"
-            placeholder="Token Address" 
+            placeholder={`Token Paired with ${networkConfigs[chainId].currencySymbol}`}
             onSearch={tryAutoSearch} 
             onChange={tryAutoSearch}
             style={{ width: '100%' }} 

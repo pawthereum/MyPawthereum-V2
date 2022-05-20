@@ -7,6 +7,7 @@ import { getCreate2Address } from '@ethersproject/address'
 import useNative from './useNative';
 import AppContext from "AppContext";
 import { networkConfigs } from "helpers/networks";
+import { TokenAmount } from "@uniswap/sdk";
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -81,6 +82,40 @@ const useLiquidity = () => {
         message: "⚠️ Error getting reserves!",
         description: `${e.message} ${e.data?.message}`
       });
+    }
+  }
+
+  const removeLiquidity = async (params) => {
+    const { token, lpToken, percentage } = params
+    const web3Provider = Moralis.web3Library;
+
+    const routerContract = new web3Provider.Contract(
+      PAWSWAP_ROUTER[chainId]?.address,
+      PAWSWAP_ROUTER[chainId]?.abi,
+      web3.getSigner()
+    )
+    
+    // TODO: gotta get this stuff
+    // const lpTokenBalance = new TokenAmount(lpToken, )
+    // const percentageToRemove = new Percentage(percentage, 100)
+    // const amountToRemove = new TokenAmount(lpToken, percentageToRemove.multiply(lpTokenBalance).quotient)
+
+    try {
+      const removeRequest = await routerContract.removeLiquidityETHSupportingFeeOnTransferTokens(
+        token?.address,
+        amountToRemove.raw.toString(),
+        0,
+        0,
+        account,
+        parseInt(new Date().getTime() / 1000 + 50000)
+      )
+      openNotification({
+        message: "🔊 Liquidity Removal Submitted!",
+        description: `${removeRequest.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + removeRequest.hash
+      })
+    } catch (e) {
+      console.log({ e })
     }
   }
 
