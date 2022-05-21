@@ -8,6 +8,7 @@ import { SelectOutlined } from "@ant-design/icons";
 import { getExplorer } from "helpers/networks";
 import Text from "antd/lib/typography/Text";
 import { connectors } from "./config";
+import CoinbaseWalletSDK from '@coinbase/wallet-sdk'
 
 const { useBreakpoint } = Grid;
 
@@ -53,6 +54,46 @@ function Account() {
   const screens = useBreakpoint()
 
   const acctLength = screens.xs ? 4 : 6
+
+  const getCoinbaseConnector = async () => {
+    const APP_NAME = 'My Pawthereum'
+    const APP_LOGO_URL = 'https://github.com/pawthereum/MyPawthereum/raw/main/src/assets/images/myPawthLogo.png'
+    const DEFAULT_ETH_JSONRPC_URL = process.env.REACT_APP_MORALIS_SPEEDY_NODE
+    const DEFAULT_CHAIN_ID = 1
+
+    const coinbaseWallet = new CoinbaseWalletSDK({
+      appName: APP_NAME,
+      appLogoUrl: APP_LOGO_URL,
+      darkMode: false
+    })
+
+    return coinbaseWallet.makeWeb3Provider(DEFAULT_ETH_JSONRPC_URL, DEFAULT_CHAIN_ID)
+  }
+
+  async function activateInjectedProvider(providerName) {
+    const { ethereum } = window;
+    if (!ethereum?.providers) {
+      return undefined;
+    }
+  
+    let provider;
+    switch (providerName) {
+      case 'Coinbase Wallet':
+        provider = ethereum.providers.find(({ isCoinbaseWallet }) => isCoinbaseWallet);
+        console.log('GOT IT')
+        break;
+      case 'Metamask':
+        provider = ethereum.providers.find(({ isMetaMask }) => isMetaMask);
+        break;
+      default:
+        return;
+    }
+  
+    if (provider) {
+      ethereum.setSelectedProvider(provider);
+    }
+    return provider
+  }
   
   if (!isAuthenticated || !account) {
     return (
@@ -86,10 +127,16 @@ function Account() {
                 key={key}
                 onClick={async () => {
                   try {
-                    await authenticate({ 
+                    await activateInjectedProvider(title);
+                    let connectionOptions = { 
                       provider: connectorId,
                       signingMessage: 'My Pawthereum' 
-                    });
+                    }
+                    if (title === 'Coinbase Wallet') {
+                      connectionOptions['connector'] = await getCoinbaseConnector()
+                    }
+                    await authenticate(connectionOptions);
+
                     window.localStorage.setItem("connectorId", connectorId);
                     setIsAuthModalVisible(false);
                   } catch (e) {
@@ -109,22 +156,6 @@ function Account() {
 
   return (
     <>
-      {/* <button
-        onClick={async () => {
-          try {
-            console.log("change")
-            await web3._provider.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: "0x38" }],
-            });
-            console.log("changed")
-          } catch (e) {
-            console.error(e);
-          }
-        }}
-      >
-        Hi
-      </button> */}
       <div style={styles.account} onClick={() => setIsModalVisible(true)}>
         <p style={{ marginRight: "5px", marginBottom: "0", ...styles.text }}>{getEllipsisTxt(account, acctLength)}</p>
         <Blockie currentWallet scale={3} />
