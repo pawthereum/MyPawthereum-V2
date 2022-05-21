@@ -105,7 +105,10 @@ function CurrencyPairForm (props) {
         <Col span={24}>
           <Row style={{ marginBottom: '5px' }}>
             <Col span={10}>
-              <small>From {estimatedSide === 'input' ? '(estimated)' : ''} </small>
+              {
+                type === 'liquidity' ? '' :
+                <small>From {estimatedSide === 'input' ? '(estimated)' : ''} </small>
+              }
             </Col>
             {
               inputCurrencyBalance !== null
@@ -145,7 +148,10 @@ function CurrencyPairForm (props) {
         <Col span={24}>
           <Row style={{ marginBottom: '5px' }}>
             <Col span={10}>
-              <small>To {estimatedSide === 'output' ? '(estimated)' : ''} </small>
+              {
+                type === 'liquidity' ? '' :
+                <small>To {estimatedSide === 'output' ? '(estimated)' : ''} </small>
+              }
             </Col>
             {
               outputCurrencyBalance !== null
