@@ -932,6 +932,10 @@ const useSwapContext = () => {
 
 
   async function createTrade2 (params) {
+    const ethers = Moralis.web3Library;
+    const provider = ethers.getDefaultProvider('http://localhost:8545')
+    const ethBalanceBeforeRaw = await provider.getBalance(account)
+    console.log({ethBalanceBeforeRaw: ethBalanceBeforeRaw.toString()})
     if (estimatedSide === 'output' && !inputAmount) return
     if (estimatedSide === 'input' && !outputAmount) return
     setTradeIsLoading(true)
@@ -1018,7 +1022,6 @@ const useSwapContext = () => {
       new TokenAmount(sortedTokens[0], pairReserves[0]), 
       new TokenAmount(sortedTokens[1], pairReserves[1])
     )
-    console.log({ tokenPair })
 
     // calculated amount (opposite of user input)
     const amountPreTax = estimatedSide === 'output'
@@ -1026,22 +1029,15 @@ const useSwapContext = () => {
       : outputAmount
     
     // the amount of taxes to adjust in the trade
-    // const taxAmount = estimatedSide === 'output'
-    //   ? new TokenAmount(inputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
-    //   : new TokenAmount(outputToken, taxPercentage.multiply(amountPreTax.raw).quotient)
     const taxAmount = estimatedSide === 'output'
       ? new TokenAmount(inputToken, preSwapTaxPercentage.multiply(amountPreTax.raw).quotient)
       : new TokenAmount(outputToken, postSwapTaxPercentage.multiply(amountPreTax.raw).quotient)
       
-    console.log('taxAmount', taxAmount.toSignificant(6))
-
     // the amount after tax adjustments
     const amountPostTax = estimatedSide === 'output'
       ? amountPreTax.subtract(taxAmount)
       : amountPreTax.add(taxAmount)
     
-    console.log(amountPostTax)
-    console.log('amt post tax', amountPostTax.toSignificant(6))
     // trade route
     const route = new Route([tokenPair], inputToken)
 
@@ -1080,25 +1076,6 @@ const useSwapContext = () => {
       ? trade.outputAmount.subtract(slippageAmount)
       : trade.inputAmount.add(slippageAmount)
     
-    console.log({ tradeSlip: trade.amountSlippage.toSignificant(6) })
-
-    // minimum amount in before reverting
-    // const amountInMin = estimatedSide === 'output'
-    //   ? new TokenAmount(tokenIn, amountPreTax)
-    //   : new TokenAmount(tokenIn, amountPostTax)
-    
-    // // minimum amount out before reverting
-    // const amountOutMin = estimatedSide === 'output'
-    //   ? new TokenAmount(tokenOut, amountPostTax)
-    //   : new TokenAmount(tokenOut, amountPreTax)
-
-    console.log({
-      swap: trade,
-      side,
-      estimatedSide,
-      taxes: tokenTaxStructureTaxes,
-    })
-  
     setTradeIsLoading(false)
     // the latest trade in is the latest trade printed on screen
     if (tradeNonce - 1 !== params.nonce) return false
@@ -1110,74 +1087,6 @@ const useSwapContext = () => {
       estimatedSide,
       taxes: tokenTaxStructureTaxes,
     })
-    //   tokenIn: inputCurrency,
-    //   tokenOut: outputCurrency,
-    //   amountIn: amountIn,
-    //   amountOut: amountOut,
-    //   amountOutSlippage,
-    //   side,
-    //   taxes: tokenTaxStructureTaxes,
-    //   priceImpact: 0,
-    //   swap: trade,
-    //   estimatedSide
-    // })
-  
-    // // if buy, amount in is reduced by tax percentage
-    // // if sell, amount out is reduced by tax percentage later
-    // const multiplier = 10**(Number(feeDecimal) + 2)
-    // const taxMultiplied = estimatedSide === 'output' ? multiplier - totalTax : totalTax
-    // const amount = estimatedSide === 'output' 
-    //   ? amountPreTax.mul(taxMultiplied).div(multiplier)
-    //   : amountPreTax.mul(taxMultiplied).div(multiplier).add(amountPreTax)
-
-    // // liquidity taxes aren't accounted for in quotes
-    // const liqTaxSearch = tokenTaxStructureTaxes.find(t => t.isLiquidity)
-    // // const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side]) / 100**feeDecimal
-    // const liqTax = !liqTaxSearch ? 0 : Number(liqTaxSearch[side])
-    
-    // if (liqTax > 0) {
-    //   const liqTaxMultiplied = estimatedSide === 'output' ? multiplier - liqTax : liqTax
-    //   if (estimatedSide === 'output') {
-    //     trade.outputAmount = trade.outputAmount.multiply(liqTaxMultiplied).divide(multiplier)
-    //   } else {
-    //     trade.inputAmount = trade.inputAmount.multiply(liqTaxMultiplied).divide(multiplier).add(trade.inputAmount)
-    //   }
-    // }
-
-    // let amountOutSlippage = trade.outputAmount
-    // if (slippage > 0) {
-    //   const slippageMultiplied = multiplier - (slippage * multiplier)
-    //   amountOutSlippage = amountOutSlippage.multiply(slippageMultiplied).divide(multiplier)//.toFixed(outputCurrency.decimals)
-    // }
-    // // if (side === 'sell' && estimatedSide === 'output') {
-    // //   amountOutSlippage = amountOutSlippage.multiply(taxMultiplied).divide(multiplier)
-    // //   console.log({ totalTax, amountOutSlippage })
-    // // }
-    // amountOutSlippage = amountOutSlippage.toFixed(outputCurrency?.decimals)
-
-    // const amountIn = estimatedSide === 'output'
-    //   ? inputAmount
-    //   : trade?.inputAmount.toFixed(inputCurrency.decimals)
-    
-    // const amountOut = estimatedSide === 'output'
-    //   ? trade?.outputAmount.toFixed(outputCurrency.decimals)
-    //   : outputAmount
-
-    // setTradeIsLoading(false)
-    // // the latest trade in is the latest trade printed on screen
-    // if (tradeNonce - 1 !== params.nonce) return false
-    // setTrade({
-    //   tokenIn: inputCurrency,
-    //   tokenOut: outputCurrency,
-    //   amountIn: amountIn,
-    //   amountOut: amountOut,
-    //   amountOutSlippage,
-    //   side,
-    //   taxes: tokenTaxStructureTaxes,
-    //   priceImpact: 0,
-    //   swap: trade,
-    //   estimatedSide
-    // })
   }
 
   async function executeSwap (trade) {
@@ -1190,47 +1099,8 @@ const useSwapContext = () => {
       web3.getSigner()
     )
     let swapReq
-    // console.log({
-    //   estimatedSide,
-    //   exactOut: swap.outputAmount.raw.toString(),
-    //   valueSent: swap.amountSlippage.raw.toString(),
-    //   rawOut: swap.outputAmount.raw.toString(), 
-    //   rawInSlip: swap.amountSlippage.raw.toString(), 
-    //   rawIn: swap.inputAmount.raw.toString(),
-    //   output: swap.outputAmount.raw.toString(),
-    // })
-    // console.log({
-    //   token: swap.outputAmount.token.address,
-    //   customAmt: '0',
-    //   customAddr: account,
-    //   extraTax1: '0',
-    //   amountMin: swap.outputAmountSlippage.raw.toString(),
-    //   // estimatedSide === 'output'
-    //   //   ? swap.amountSlippage.raw.toString()
-    //   //   : outputAmount.raw.toString(), //Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
-    //   isExact: isExactIn,
-    //   spent: inputAmount.raw.toString()
-    // })
-    console.log({
-      token: swap.outputAmount.token.address,
-      custom: '0',
-      customAddr: account,
-      extra: '0',
-      amountToBuy: isExactIn 
-      ? swap.outputAmountSlippage.raw.toString()
-      : outputAmount.raw.toString(),
-      // estimatedSide === 'output'
-      //   ? swap.amountSlippage.raw.toString()
-      //   : outputAmount.raw.toString(), //Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
-      isExact: isExactIn,
-      spend: isExactIn
-      ? inputAmount.raw.toString()
-      : swap.inputAmountSlippage.raw.toString()
-    })
 
     const ethers = Moralis.web3Library;
-    const network = 'rinkeby' // use rinkeby testnet
-    console.log('ethers', ethers)
     const provider = ethers.getDefaultProvider('http://localhost:8545')
     const ethBalanceBeforeRaw = await provider.getBalance(account)
     let ethBalanceBefore, tokenBalanceBefore, token
@@ -1248,21 +1118,17 @@ const useSwapContext = () => {
 
         swapReq = await pawswap.buyOnPawSwap(
           swap.outputAmount.token.address,
-          '0',
-          account,
+          tokenTaxStructureTaxes.find(t => t.isCustom).buy,
+          account, // this is where the custom wallet will go
           '0',
           isExactIn 
           ? swap.outputAmountSlippage.raw.toString()
           : outputAmount.raw.toString(),
-          // estimatedSide === 'output'
-          //   ? swap.amountSlippage.raw.toString()
-          //   : outputAmount.raw.toString(), //Moralis.Units.Token(amountOutSlippage, tokenOut.decimals)
           isExactIn,
           {
             value: isExactIn
               ? inputAmount.raw.toString()
               : swap.inputAmountSlippage.raw.toString()
-            // value: inputAmount.raw.toString()
           }
         )
       } else {
@@ -1280,7 +1146,7 @@ const useSwapContext = () => {
           isExactIn
             ? inputAmount.raw.toString() //Moralis.Units.Token(amountIn, tokenIn?.decimals)
             : swap.inputAmountSlippage.raw.toString(),
-          '0',
+          tokenTaxStructureTaxes.find(t => t.isCustom).sell,
           account,
           '0',
           isExactIn
