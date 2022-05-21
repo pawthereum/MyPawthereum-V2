@@ -7,7 +7,8 @@ import AppContext from 'AppContext';
 import { useERC20Balance } from 'hooks/useERC20Balance';
 import useNative from 'hooks/useNative';
 import CurrencyAmountInput from './CurrencyInputAmount';
-import { PlusOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import CustomTaxInputAmount from './CustomTaxInputAmount';
+import { PlusOutlined, ArrowDownOutlined, EllipsisOutlined } from '@ant-design/icons';
 
 const styles = {
   inset: {
@@ -34,7 +35,8 @@ function CurrencyPairForm (props) {
     executeSwap, 
     slippage, 
     inputAmount,
-    highPriceImpactIgnored
+    highPriceImpactIgnored,
+    taxes
   } = useContext(AppContext);
 
   const { Moralis, chainId } = useMoralis()
@@ -45,6 +47,7 @@ function CurrencyPairForm (props) {
   const [outputColor, setOutputColor] = useState(COLORS.defaultBg)
   const [inputCurrencyBalance, setInputCurrencyBalance] = useState(null)
   const [outputCurrencyBalance, setOutputCurrencyBalance] = useState(null)
+  const [customTaxName, setCustomTaxName] = useState(null)
 
   const setNativeBalance = async (side) => {
     const balance = await getNativeBalance()
@@ -93,6 +96,14 @@ function CurrencyPairForm (props) {
     }
   }, [inputCurrency, inputAmount, outputCurrency])
 
+  useEffect(() => {
+    if (!taxes) return setCustomTaxName(null)
+
+    const customTax = taxes.find(t => t.isCustom)
+    if (customTax.name === '') return setCustomTaxName(null)
+    setCustomTaxName(customTax.name)
+  }, [taxes])
+
   return (
     <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
       <Row 
@@ -103,7 +114,7 @@ function CurrencyPairForm (props) {
         className={inputIsLoading ? 'pulse' : ''}
       >
         <Col span={24}>
-          <Row style={{ marginBottom: '5px' }}>
+          <Row style={{ marginBottom: '5px', alignItems: 'center' }}>
             <Col span={10}>
               {
                 type === 'liquidity' ? '' :
@@ -146,7 +157,7 @@ function CurrencyPairForm (props) {
         className={outputIsLoading ? 'pulse' : ''}
       >
         <Col span={24}>
-          <Row style={{ marginBottom: '5px' }}>
+          <Row style={{ marginBottom: '5px', alignItems: 'center' }}>
             <Col span={10}>
               {
                 type === 'liquidity' ? '' :
@@ -172,6 +183,33 @@ function CurrencyPairForm (props) {
           </Row>
         </Col>
       </Row>
+      {
+        type !== 'swap' || !customTaxName ? '' :
+        <>
+          <Row>
+            <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
+              <EllipsisOutlined />
+            </Col>
+          </Row>
+          <Row style={styles.inset}>
+            <Col span={24}>
+              <Row style={{ marginBottom: '5px', alignItems: 'center' }}>
+                <Col span={10}>
+                  <small>{customTaxName}</small>
+                </Col>
+                <Col span={14} style={{ display: 'flex', justifyContent: 'end' }}>
+                  <small>Optional</small>
+                </Col>
+              </Row>
+              <Row>
+                <Col span={24}>
+                  <CustomTaxInputAmount side="output" />
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        </>
+      }
       {
         slippage === DEFAULT_SLIPPAGE ? '' :
         <Row style={{ fontSize: '0.80rem', display: 'flex', justifyContent: 'space-between' }}>

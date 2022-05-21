@@ -37,6 +37,7 @@ const useSwapContext = () => {
   const [outputToken, setOutputToken] = useState(null)
   const [outputCurrency, setOutputCurrency] = useState(null)
   const [outputAmount, setOutputAmount] = useState(null)
+  const [customTaxPercentage, setCustomTaxPercentage] = useState(null)
   const [trade, setTrade] = useState(null)
   const [tokenList, setTokenList] = useState([])
   const [tokenTaxContract, setTokenTaxContract] = useState(null)
@@ -161,6 +162,22 @@ const useSwapContext = () => {
     )
 
     setOutputAmount(tokenAmount)
+  }
+
+  const updateCustomTaxPercentage = amount => {
+    if (!amount) amount = 0
+    const updatedCustomTaxPercentage = new Percent(amount, 100)
+    const replacementCustomTax = amount * 10**tokenTaxContractFeeDecimal
+    const updatedTokenTaxStructure = tokenTaxStructureTaxes.map(t => {
+      if (t.isCustom) {
+        t.buy = replacementCustomTax
+        t.sell = replacementCustomTax
+      }
+      return t
+    })
+    setTokenTaxStructureTaxes(updatedTokenTaxStructure)
+
+    setCustomTaxPercentage(updatedCustomTaxPercentage)
   }
 
   const fetchQuote = async (params) => {
@@ -316,6 +333,7 @@ const useSwapContext = () => {
         name: taxList[19],
         buy: 0,
         sell: 0,
+        isCustom: true,
         preSwapSellTaxAmount: 0,
         preSwapBuyTaxAmount: 1,
         postSwapSellTaxAmount: 1,
@@ -1414,7 +1432,9 @@ const useSwapContext = () => {
     highPriceImpactIgnored,
     updateIgnorePriceHighImpact,
     tradeIsLoading,
-    getBuyAmountIn
+    getBuyAmountIn,
+    updateCustomTaxPercentage,
+    customTaxPercentage
   }
 }
 
