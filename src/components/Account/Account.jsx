@@ -80,7 +80,6 @@ function Account() {
     switch (providerName) {
       case 'Coinbase Wallet':
         provider = ethereum.providers.find(({ isCoinbaseWallet }) => isCoinbaseWallet);
-        console.log('GOT IT')
         break;
       case 'Metamask':
         provider = ethereum.providers.find(({ isMetaMask }) => isMetaMask);
@@ -128,15 +127,10 @@ function Account() {
                 onClick={async () => {
                   try {
                     await activateInjectedProvider(title);
-                    let connectionOptions = { 
+                    await authenticate({ 
                       provider: connectorId,
                       signingMessage: 'My Pawthereum' 
-                    }
-                    if (title === 'Coinbase Wallet') {
-                      connectionOptions['connector'] = await getCoinbaseConnector()
-                    }
-                    await authenticate(connectionOptions);
-
+                    });
                     window.localStorage.setItem("connectorId", connectorId);
                     setIsAuthModalVisible(false);
                   } catch (e) {
