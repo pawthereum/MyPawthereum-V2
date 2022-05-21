@@ -38,6 +38,7 @@ const useSwapContext = () => {
   const [outputCurrency, setOutputCurrency] = useState(null)
   const [outputAmount, setOutputAmount] = useState(null)
   const [customTaxPercentage, setCustomTaxPercentage] = useState(null)
+  const [customTaxWallet, setCustomTaxWallet] = useState(null)
   const [trade, setTrade] = useState(null)
   const [tokenList, setTokenList] = useState([])
   const [tokenTaxContract, setTokenTaxContract] = useState(null)
@@ -162,6 +163,10 @@ const useSwapContext = () => {
     )
 
     setOutputAmount(tokenAmount)
+  }
+
+  const updateCustomTaxWallet = addr => {
+    setCustomTaxWallet(addr)
   }
 
   const updateCustomTaxPercentage = amount => {
@@ -1300,7 +1305,8 @@ const useSwapContext = () => {
     tradeIsLoading,
     getBuyAmountIn,
     updateCustomTaxPercentage,
-    customTaxPercentage
+    customTaxPercentage,
+    updateCustomTaxWallet
   }
 }
 

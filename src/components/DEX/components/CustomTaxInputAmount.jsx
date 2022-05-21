@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from 'react'
 import { InputNumber } from 'antd'
-import CurrencyPicker from './CurrencyPicker'
 import AppContext from 'AppContext'
 import { useMoralis } from 'react-moralis' 
+import CustomWalletPicker from './CustomWalletPicker'
 
 function CustomTaxInputAmount (props) {
   const { 
@@ -14,7 +14,6 @@ function CustomTaxInputAmount (props) {
   const { Moralis } = useMoralis()
 
   const [value, setValue] = useState(null)
-  const [precision, setPrecision] = useState(9)
 
   function onInputChange(amount) {
     console.log('updating to...', amount)
@@ -54,7 +53,7 @@ function CustomTaxInputAmount (props) {
         controls={false}
         keyboard={true}
       />
-      <CurrencyPicker side={props.side} />
+      <CustomWalletPicker />
     </div>
   )
 }

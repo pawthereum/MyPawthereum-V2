@@ -20,6 +20,17 @@ export const PAWTH_ADDRESS = {
   '0x539': '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9'
 }
 
+export const PAWTH_CHARITY_WALLET = {
+  '0x1': '',
+  'eth': '',
+  '0x38': '',
+  'bsc': '',
+  '0x61': '',
+  'bsctest': '',
+  'localdevchain': '0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f',
+  '0x539': '0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f'
+}
+
 export const SHIBA_LP_ADDRESS = '0xc57dc778a0d2d150d04fc0fd09a0113ebe9d600c'
 
 export const UNI_LP_ADDRESS = '0x800a45f2b861229d59e952aef57b22e84ff949a1'
