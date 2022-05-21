@@ -25,19 +25,9 @@ const useLiquidity = () => {
   const { estimatedSide, trade, outputAmount, inputAmount } = useContext(AppContext)
   const { chainId, Moralis, web3, account } = useMoralis()
   const { wrappedAddress, isNative } = useNative()
-  const [lpTokenRemovalData, setLpTokenRemovalData] = useState(null)
-  const [showRemoveLiquidity, setShowRemoveLiquidity] = useState(false)
 
   const sortTokens = (tokenList) => {
     return tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
-  }
-
-  const updateShowRemoveLiquidity = shouldShow => {
-    setShowRemoveLiquidity(shouldShow)
-  }
-
-  const updateLpTokenRemovalData = data => {
-    setLpTokenRemovalData(data)
   }
 
   const getPawswapPair = (tokenAddr) => {
@@ -96,7 +86,7 @@ const useLiquidity = () => {
   }
 
   const removeLiquidity = async (params) => {
-    const { token, lpToken, percentage } = params
+    const { token, amountToRemove, percentage } = params
     const web3Provider = Moralis.web3Library;
 
     const routerContract = new web3Provider.Contract(
@@ -113,7 +103,7 @@ const useLiquidity = () => {
     try {
       const removeRequest = await routerContract.removeLiquidityETHSupportingFeeOnTransferTokens(
         token?.address,
-        '100',//amountToRemove.raw.toString(),
+        amountToRemove.raw.toString(),
         0,
         0,
         account,
@@ -124,6 +114,19 @@ const useLiquidity = () => {
         description: `${removeRequest.hash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + removeRequest.hash
       })
+      try {
+        const tx = await removeRequest.wait()
+        openNotification({
+          message: "🎉 Liquidity Removal Complete!",
+          description: `${tx.transactionHash}`,
+          link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+        })
+      } catch (e) {
+        openNotification({
+          message: "⚠️ Error adding liquidity!",
+          description: `${e.message} ${e.data?.message}`
+        });
+      }
     } catch (e) {
       console.log({ e })
     }
@@ -228,12 +231,10 @@ const useLiquidity = () => {
 
   return {
     addLiquidity,
+    removeLiquidity,
     getPawswapPair,
     getPairReserves,
     getPairTotalSupply,
-    updateLpTokenRemovalData,
-    updateShowRemoveLiquidity,
-    showRemoveLiquidity
   }
 }
 

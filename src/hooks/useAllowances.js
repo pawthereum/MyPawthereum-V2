@@ -50,6 +50,7 @@ const useAllowances = () => {
 
     try {
       console.log('amount', amount)
+      console.log(amount.raw)
       const approveReq = await tokenContract.approve(
         spender,
         Moralis.Units.Token(amount.raw, token?.decimals)
