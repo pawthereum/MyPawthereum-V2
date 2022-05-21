@@ -145,7 +145,9 @@ function Swap () {
               inputIsLoading={inputIsLoading}
               outputIsLoading={outputIsLoading}
             />
-            <Row gutter={6}>
+            <Row gutter={6} style={{
+              marginTop: slippage === DEFAULT_SLIPPAGE ? '30px' : '15px'
+            }}>
               {
                 !showApproveBtn ? '' :
                 <Col span={12}>
@@ -154,7 +156,7 @@ function Swap () {
                     size="large"
                     style={{
                       width: "100%",
-                      marginTop: "15px",
+                      // marginTop: "15px",
                       borderRadius: "0.6rem",
                       height: "50px",
                       ...styles.outset,
@@ -173,7 +175,7 @@ function Swap () {
                   size="large"
                   style={{
                     width: "100%",
-                    marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,
+                    // marginTop: `${slippage === DEFAULT_SLIPPAGE ? '15px' : '0px'}`,
                     borderRadius: "0.6rem",
                     height: "50px",
                     backgroundColor: highPriceImpact && !swapButtonIsDisabled() ? COLORS.error : '',
