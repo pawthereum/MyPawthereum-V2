@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis';
-import { Row, Col, Input } from 'antd';
+import { Button, Card, Row, Col, Input } from 'antd';
 import { useERC20Balance } from 'hooks/useERC20Balance';
 import useLiquidity from 'hooks/useLiquidity';
 import useNative from 'hooks/useNative';
 import Web3 from "web3"; 
-import { TokenAmount, Percent } from '@uniswap/sdk'
+import { Fetcher, TokenAmount, Percent, Token } from '@uniswap/sdk'
 import { networkConfigs } from 'helpers/networks';
 
 function ListLiquidity () {
-  const { Moralis, chainId } = useMoralis()
-  const { getPawswapPair, getPairReserves, getPairTotalSupply } = useLiquidity()
+  const { Moralis, chainId, web3 } = useMoralis()
+  const { 
+    getPawswapPair, 
+    getPairReserves, 
+    getPairTotalSupply, 
+    updateLpTokenRemovalData,
+    updateShowRemoveLiquidity
+  } = useLiquidity()
   const { assets } = useERC20Balance()
   const { getWrappedNativeToken, wrappedAddress } = useNative()
 
@@ -27,38 +33,52 @@ function ListLiquidity () {
     })
   }
 
-  const sortTokens = (tokenList) => {
-    const web3Provider = Moralis.web3Library;
-    return tokenList.sort((a, b) => 
-      web3Provider.utils.getAddress(a.address) > 
-      web3Provider.utils.getAddress(b.address) 
-      ? 1 : -1
-    )
-  }
-
   const getLpTokenData = async (lpToken, tokenAddress) => {
-    console.log({ lpToken })
     const web3Provider = Moralis.web3Library;
     const BigNumber = web3Provider.BigNumber
+
+    const token = await Fetcher.fetchTokenData(chainId, tokenAddress, web3.getSigner());
+    const weth = getWrappedNativeToken()
 
     const pairData = await Promise.all([
       getPairReserves(lpToken?.token_address),
       getPairTotalSupply(lpToken?.token_address),
     ])
-    const sortedTokens = sortTokens([tokenAddress, wrappedAddress])
     const reserves = pairData[0]
     const totalSupply = pairData[1]
+    
+    //TODO: this is for testing only, remove this
+    lpToken.balance = totalSupply
+
     const shareOfSupply = new Percent(
       BigNumber.from(lpToken?.balance),
       totalSupply
     )
-    const token0AmountInLpShare = reserves[0].mul(shareOfSupply)
-    const token1AmountInLpShare = reserves[0].mul(shareOfSupply)
-    console.log({ 
-      pairData, 
-      shareOfSupply: shareOfSupply.toSignificant(2),
-      token0AmountInLpShare: token0AmountInLpShare.toSignificant(6),
-      token1AmountInLpShare: token1AmountInLpShare.toSignificant(6),
+    console.log({ totalSupply})
+
+    // figure out which reserve is token and which is weth
+    const tokenReserves = token?.address > weth?.address ? reserves[1] : reserves[0]
+    const wethReserves = token?.address > weth?.address ? reserves[0] : reserves[1]
+
+    // make a token amount class for each
+    const tokenReservesAmount = new TokenAmount(token, tokenReserves)
+    const wethReservesAmount = new TokenAmount(weth, wethReserves)
+
+    // user's amount based on their LP token balance
+    const tokenAmountInLpShare = new TokenAmount(token, shareOfSupply.multiply(
+      tokenReservesAmount.raw
+    ).quotient)
+    const wethAmountInLpShare = new TokenAmount(weth, shareOfSupply.multiply(
+      wethReservesAmount.raw
+    ).quotient)
+
+    updateLpTokenRemovalData({
+      tokenReservesAmount,
+      wethReservesAmount,
+      tokenAmountInLpShare,
+      wethAmountInLpShare,
+      totalSupply,
+      shareOfSupply
     })
   }
 
@@ -74,7 +94,9 @@ function ListLiquidity () {
       console.log({ isAddress })
       if (!isAddress) return
       const lpTokenAddress = await getPawswapPair(checkSummedAddress)
-      const lpToken = assets.find(a => a.token_address.toLowerCase() === lpTokenAddress.toLowerCase())
+      const lpToken = chainId === '0x539'
+        ? { balance: '0', token_address: lpTokenAddress, decimals: 18, symbol: 'Paw-LP', name: 'Pawswap LP Token' }
+        : assets.find(a => a.token_address.toLowerCase() === lpTokenAddress.toLowerCase())
       setLpToken(lpToken)
       getLpTokenData(lpToken, checkSummedAddress)
     } catch (e) {
@@ -87,6 +109,11 @@ function ListLiquidity () {
     const pawswapLpTokens = assets.filter(a => a.symbol === 'Paw-LP')
     setPawLpTokens(pawswapLpTokens)
   }, [assets])
+
+  const goToRemoveLiquidity = () => {
+    console.log('showing remove liq...')
+    updateShowRemoveLiquidity(true)
+  }
 
 
   return (
@@ -108,9 +135,17 @@ function ListLiquidity () {
         </Col>
       </Row>
       <Row>
-        <Col span={24}>
-          { lpToken?.symbol }
-          { formatBalanceFromWei(lpToken?.balance, lpToken) }
+        <Col span={24} style={{ marginTop: '10px' }}>
+          {
+            !lpToken ? '' :
+            <Card styles={{ borderRadius: '1rem', padding: '5px' }}>
+              { lpToken?.symbol }
+              { formatBalanceFromWei(lpToken?.balance, lpToken) }
+              <Button onClick={() => goToRemoveLiquidity() }>
+                Remove Liquidity
+              </Button>
+            </Card>
+          }
         </Col>
       </Row>
     </div>

@@ -22,6 +22,10 @@ function RemoveLiquidity() {
     setPercentage(value)
   }
 
+  const tryRemoveLiquidity = async() => {
+    
+  }
+
   return (
     <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
       <Row>

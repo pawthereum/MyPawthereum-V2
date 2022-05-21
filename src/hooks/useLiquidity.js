@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { PAWSWAP_FACTORY, PAWSWAP_ROUTER } from "../constants";
 import { useMoralis } from "react-moralis";
 import { notification } from 'antd';
@@ -25,9 +25,19 @@ const useLiquidity = () => {
   const { estimatedSide, trade, outputAmount, inputAmount } = useContext(AppContext)
   const { chainId, Moralis, web3, account } = useMoralis()
   const { wrappedAddress, isNative } = useNative()
+  const [lpTokenRemovalData, setLpTokenRemovalData] = useState(null)
+  const [showRemoveLiquidity, setShowRemoveLiquidity] = useState(false)
 
   const sortTokens = (tokenList) => {
     return tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
+  }
+
+  const updateShowRemoveLiquidity = shouldShow => {
+    setShowRemoveLiquidity(shouldShow)
+  }
+
+  const updateLpTokenRemovalData = data => {
+    setLpTokenRemovalData(data)
   }
 
   const getPawswapPair = (tokenAddr) => {
@@ -103,7 +113,7 @@ const useLiquidity = () => {
     try {
       const removeRequest = await routerContract.removeLiquidityETHSupportingFeeOnTransferTokens(
         token?.address,
-        amountToRemove.raw.toString(),
+        '100',//amountToRemove.raw.toString(),
         0,
         0,
         account,
@@ -220,7 +230,10 @@ const useLiquidity = () => {
     addLiquidity,
     getPawswapPair,
     getPairReserves,
-    getPairTotalSupply
+    getPairTotalSupply,
+    updateLpTokenRemovalData,
+    updateShowRemoveLiquidity,
+    showRemoveLiquidity
   }
 }
 

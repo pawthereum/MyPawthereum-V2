@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Row, Col, Card, Button } from 'antd';
 import Settings from './Settings';
 import AddLiquidity from './AddLiquidity';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import ListLiquidity from './ListLiquidity';
 import RemoveLiquidity from './RemoveLiquidity';
+import useLiquidity from 'hooks/useLiquidity';
 
 const styles = {
   card: {
@@ -21,8 +22,14 @@ const styles = {
 }
 
 function Liquidity () {  
-  const [removeLiquidityIsVisible, setRemoveLiquidityIsVisible] = useState(true)
+  const { showRemoveLiquidity } = useLiquidity()
+  const [removeLiquidityIsVisible, setRemoveLiquidityIsVisible] = useState(false)
   const [addLiquidityIsVisible, setAddLiquidityIsVisible] = useState(false)
+
+  useEffect(() => {
+    console.log('showRemoveLiquidity', showRemoveLiquidity)
+    setRemoveLiquidityIsVisible(showRemoveLiquidity)
+  }, [showRemoveLiquidity])
 
   const showAddLiquidity = () => {
     console.log('showing...')
@@ -34,10 +41,10 @@ function Liquidity () {
     setAddLiquidityIsVisible(false)
   }
 
-  const showRemoveLiquidity = () => {
-    console.log('showing...')
-    setRemoveLiquidityIsVisible(true)
-  }
+  // const showRemoveLiquidity = () => {
+  //   console.log('showing...')
+  //   setRemoveLiquidityIsVisible(true)
+  // }
 
   const hideRemoveLiquidity = () => {
     console.log('hiding...')
@@ -51,7 +58,7 @@ function Liquidity () {
           <Row style={{ display: 'flex', alignItems: 'center' }}>
             <Col span={!addLiquidityIsVisible && !removeLiquidityIsVisible ? 12  : 8 }>
               {
-                !addLiquidityIsVisible && !removeLiquidityIsVisible ? 'Liquidity' :
+                !addLiquidityIsVisible && !removeLiquidityIsVisible ? `Liquidity ${showRemoveLiquidity}` :
                 <ArrowLeftOutlined style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => {
                   hideAddLiquidity()
                   hideRemoveLiquidity()
