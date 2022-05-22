@@ -271,7 +271,7 @@ const App = ({ isServerInfo }) => {
           backgroundColor: 'transparent'
         }}>
           <Text style={{ display: "block" }}>
-            ⭐️ Version 2.0.5
+            ⭐️ Version 2.0.6
           </Text>
 
           <Text style={{ display: "block" }}>
