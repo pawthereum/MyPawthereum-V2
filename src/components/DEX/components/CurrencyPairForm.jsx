@@ -1,6 +1,6 @@
 
 import { useContext, useEffect, useState } from 'react';
-import { Row, Col, Space } from 'antd'
+import { Row, Col, Space, Popover } from 'antd'
 import { COLORS, DEFAULT_SLIPPAGE } from '../../../constants'
 import { useMoralis } from 'react-moralis'
 import AppContext from 'AppContext';
@@ -8,7 +8,7 @@ import { useERC20Balance } from 'hooks/useERC20Balance';
 import useNative from 'hooks/useNative';
 import CurrencyAmountInput from './CurrencyInputAmount';
 import CustomTaxInputAmount from './CustomTaxInputAmount';
-import { PlusOutlined, ArrowDownOutlined, EllipsisOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, PlusOutlined, ArrowDownOutlined, EllipsisOutlined } from '@ant-design/icons';
 
 const styles = {
   inset: {
@@ -31,7 +31,8 @@ function CurrencyPairForm (props) {
     outputCurrency, 
     updateInputCurrency, 
     updateOutputCurrency,
-    trade, 
+    trade,
+    tokenTaxContractFeeDecimal,
     executeSwap, 
     slippage, 
     inputAmount,
@@ -103,6 +104,53 @@ function CurrencyPairForm (props) {
     if (customTax.name === '') return setCustomTaxName(null)
     setCustomTaxName(customTax.name)
   }, [taxes])
+
+  const showSavingsTooltip = () => {
+    if (!trade) return false
+    const currencyWithSavings = trade.side === 'buy' ? outputCurrency : inputCurrency
+    const typicalTaxProp = trade.side === 'buy' ? 'typicalBuyTax' : 'typicalSellTax'
+    const typicalTax = currencyWithSavings[typicalTaxProp]
+    if (!typicalTax) return false
+    return true
+  }
+
+  const SavingsToolTip = () => {
+    const customTax = taxes.find(t => t.isCustom)[trade.side] / 10**tokenTaxContractFeeDecimal
+    const callToActionText = customTax > 0 
+      ? 'You are amazing!' 
+      : 'Would you consider donating a portion to charity?'
+    const totalTax = taxes.reduce((p, t) => {
+      if (!t[trade.side]) return p + 0
+      return p + Number(t[trade.side])
+    }, 0) / 10**tokenTaxContractFeeDecimal
+    const currencyWithSavings = trade.side === 'buy' ? outputCurrency : inputCurrency
+    const typicalTaxProp = trade.side === 'buy' ? 'typicalBuyTax' : 'typicalSellTax'
+    const typicalTax = currencyWithSavings[typicalTaxProp]
+
+    const savings = typicalTax - totalTax
+    const popOverContent = () => (
+      <div style={{ maxWidth: '250px' }}>
+        Other DEX's will typically tax {typicalTax}% for trading {currencyWithSavings.symbol} but PawSwap offers incentives for projects to list with reduced fees!
+      </div>
+    )
+    return (
+      <div>
+        <Row>
+          <Col span={24} style={{ textAlign: 'center' }}>
+            You're saving {savings > 0 ? savings : 0}%! 
+            <Popover content={popOverContent} title={"Trading fees are reduced on PawSwap!"} trigger="hover">
+              <QuestionCircleOutlined style={{ marginLeft: '5px' }}/>
+            </Popover>
+          </Col>
+        </Row>
+        <Row>
+          <Col span={24} style={{ textAlign: 'center' }}>
+            <small>{callToActionText}</small>
+          </Col>
+        </Row>
+      </div>
+    )
+  }
 
   return (
     <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
@@ -184,11 +232,13 @@ function CurrencyPairForm (props) {
         </Col>
       </Row>
       {
-        type !== 'swap' || !customTaxName ? '' :
+        type !== 'swap' || !customTaxName || !trade ? '' :
         <>
           <Row>
             <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
-              <EllipsisOutlined />
+              {
+                showSavingsTooltip() ? <SavingsToolTip /> : <EllipsisOutlined />
+              }
             </Col>
           </Row>
           <Row style={styles.inset}>
