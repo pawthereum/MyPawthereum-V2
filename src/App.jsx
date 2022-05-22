@@ -8,6 +8,7 @@ import TokenPrice from "components/TokenPrice";
 import ERC20Balance from "components/ERC20Balance";
 import ERC20Transfers from "components/ERC20Transfers";
 import DEX from "components/DEX";
+import PawSwap from 'components/DEX/PawSwap';
 import NFTBalance from "components/NFTBalance";
 import Wallet from "components/Wallet";
 import { Grid, Layout, Tabs } from "antd";
@@ -24,19 +25,25 @@ import Vote from 'components/Vote';
 import Flooz from 'components/Flooz';
 import Proposal from 'components/Vote/components/Proposal';
 import MenuItems from "./components/MenuItems";
-import { PAWTH_ADDRESS, COINGECKO_ID } from "./constants";
+import { PAWTH_ADDRESS, COINGECKO_ID, COLORS } from "./constants";
 import { getFirestore, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore'
-import AddLiquidity from "components/DEX/components/AddLiquidity";
+import AddLiquidity from "components/DEX/components/AddLiquiditybu";
 import DexComingSoon from "components/DEX/DexComingSoon";
 import PawSend from "components/PawSend/PawSend"
 import RovingDogs from 'components/RovingDogs'
 import Pool from 'components/Stake'
+import useSwapContext from "hooks/swapContext";
 const CoinGecko = require('coingecko-api')
  
 const { Header, Footer } = Layout;
 const { useBreakpoint } = Grid;
 
 const styles = {
+  layout: {
+    overflow: "auto", 
+    minHeight: '100vh',
+    background: `radial-gradient(ellipse at top, ${COLORS.defaultBg}, transparent 425%),radial-gradient(ellipse at bottom,  ${COLORS.primary}, transparent)`
+  },
   content: {
     display: "flex",
     justifyContent: "center",
@@ -85,9 +92,12 @@ const App = ({ isServerInfo }) => {
     setMultichainEnabled(toggle)
   }
 
+  const swapContext = useSwapContext()
+
   const globalState = {
     multichainEnabled,
-    toggleUseMultichain
+    toggleUseMultichain,
+    ...swapContext
   }
 
   const [logo, setLogo] = useState('https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png')
@@ -149,7 +159,7 @@ const App = ({ isServerInfo }) => {
 
   return (
     <AppContext.Provider value={globalState}>
-      <Layout style={{ overflow: "auto", minHeight: '100vh' }}>
+      <Layout style={styles.layout}>
         <Router>
           <Header style={styles.header}>
             <Logo />
@@ -191,7 +201,10 @@ const App = ({ isServerInfo }) => {
                 <Wallet />
               </Route>
               <Route path="/pawswap">
-                <DexComingSoon />
+                {/* <DexComingSoon /> */}
+                {
+                  chainId === '0x61' || chainId === '0x539' ?  <PawSwap /> : <DexComingSoon/>
+                }
                 {/* <Tabs defaultActiveKey="1" style={{ alignItems: "center" }}>
                   <Tabs.TabPane tab={<span>Ethereum</span>} key="1">
                     <DEX chain="eth" />
@@ -254,7 +267,8 @@ const App = ({ isServerInfo }) => {
         </Router>
         <Footer style={{ 
           textAlign: "center", 
-          paddingBottom: screens.xs ? '74px' : '0px'
+          paddingBottom: screens.xs ? '74px' : '0px',
+          backgroundColor: 'transparent'
         }}>
           <Text style={{ display: "block" }}>
             ⭐️ Version 2.0.5
@@ -297,7 +311,9 @@ const App = ({ isServerInfo }) => {
 
 export const Logo = () => (
   <div style={{ display: "flex" }}>
-    <img alt="logo" src="https://github.com/pawthereum/MyPawthereum/raw/main/src/assets/images/myPawthLogo.png" width="56" />
+    <a href="https://pawthereum.com">
+      <img alt="logo" src="https://github.com/pawthereum/MyPawthereum/raw/main/src/assets/images/myPawthLogo.png" width="56" />
+    </a>
   </div>
 );
 

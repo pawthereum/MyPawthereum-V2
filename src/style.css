@@ -1,3 +1,19 @@
+/* Text color changes */
+*[class^='ant-']{
+  color: rgb(56,58,107);
+}
+
+.current {
+  color: #fff !important;
+}
+
+.ant-menu-horizontal > .ant-menu-item a,
+.ant-typography,
+.ant-list-item-meta-title {
+  color: rgb(56,58,107) !important;
+}
+/* end of text color changes */
+
 .ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-item:hover::after,
 .ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-submenu:hover::after,
 .ant-menu-horizontal:not(.ant-menu-dark) > .ant-menu-item-active::after,
@@ -17,4 +33,12 @@
 .ant-modal-content {
   overflow: auto;
   border-radius: 1rem;
+}
+
+.ant-notification-notice {
+  border-radius: 1rem !important;
+}
+
+.ant-popover-inner {
+  border-radius: 1rem !important;
 }

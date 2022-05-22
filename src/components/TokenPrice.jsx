@@ -3,8 +3,8 @@ import { useTokenPrice } from "react-moralis";
 
 const styles = {
   token: {
-    padding: "0 7px",
-    height: "42px",
+    height: "40px",
+    width: "40px",
     gap: "5px",
     display: "flex",
     justifyContent: "center",

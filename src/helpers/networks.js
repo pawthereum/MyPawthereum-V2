@@ -1,40 +1,46 @@
 export const networkConfigs = {
   "0x1": {
     currencySymbol: "ETH",
+    currencyName: 'Ether',
     blockExplorerUrl: "https://etherscan.io/",
     wrapped: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     network: 'main',
   },
   "eth": {
     currencySymbol: "ETH",
+    currencyName: 'Ether',
     blockExplorerUrl: "https://etherscan.io/",
     wrapped: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     network: 'main',
   },
   "0x3": {
     currencySymbol: "ETH",
+    currencyName: 'Ether',
     blockExplorerUrl: "https://ropsten.etherscan.io/",
     network: 'test',
   },
   "0x4": {
     currencySymbol: "ETH",
+    currencyName: 'Ether',
     blockExplorerUrl: "https://rinkeby.etherscan.io/",
     network: 'test',
   },
   "0x2a": {
     currencySymbol: "ETH",
+    currencyName: 'Ether',
     blockExplorerUrl: "https://kovan.etherscan.io/",
     network: 'test',
   },
   "0x5": {
     currencySymbol: "ETH",
+    currencyName: 'Ether',
     blockExplorerUrl: "https://goerli.etherscan.io/",
     network: 'test',
   },
   "0x539": {
     chainName: "Local Chain",
-    currencyName: "ETH",
     currencySymbol: "ETH",
+    currencyName: 'Ether',
     rpcUrl: "http://127.0.0.1:7545",
     network: 'test',
   },
@@ -105,6 +111,26 @@ export const networkConfigs = {
     rpcUrl: "https://rpc-mumbai.matic.today/",
     blockExplorerUrl: "https://mumbai.polygonscan.com/",
     network: 'test',
+  },
+  "0x539": {
+    chainId: 1337,
+    chainName: "Local",
+    currencyName: "ETH",
+    currencySymbol: "ETH",
+    rpcUrl: "http://127.0.0.1:8545",
+    blockExplorerUrl: "https://google.com/?s=",
+    network: 'test',
+    wrapped: '0x5fbdb2315678afecb367f032d93f642f64180aa3',
+  },
+  "local": {
+    chainId: 1337,
+    chainName: "Local",
+    currencyName: "ETH",
+    currencySymbol: "ETH",
+    rpcUrl: "http://127.0.0.1:8545",
+    blockExplorerUrl: "https://google.com/?s=",
+    network: 'test',
+    wrapped: '0x5fbdb2315678afecb367f032d93f642f64180aa3'
   },
 };
 
