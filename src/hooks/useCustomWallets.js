@@ -5,10 +5,10 @@ import { PAWTH_CHARITY_WALLET } from '../constants'
 const API_ENDPOINT = `https://api.getchange.io/api/v1/nonprofits?public_key=${process.env.REACT_APP_CHANGE_API_KEY}&search_term=`
 
 const useGetCustomWallets = (searchQuery, selectedCategories) => {
-  console.log({
-    searchQuery,
-    selectedCategories
-  })
+  console.log({ selectedCategories })
+  if (selectedCategories.length > 0 && !searchQuery) {
+    searchQuery = ''
+  }
   const [data, setData] = useState(null)
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const useGetCustomWallets = (searchQuery, selectedCategories) => {
             facebook: n.socials.facebook,
             instagram: n.socials.instagram,
             twitter: n.socials.twitter,
-            impact: n.display_impact ? n.display_impact[0] : null
+            stats: n.stats && n.stats.length > 0 ? n.stats : null
           }
           return wallet
         })
@@ -58,7 +58,6 @@ const useGetCustomWallets = (searchQuery, selectedCategories) => {
           twitter: '@pawthereum',
           facebook: 'pawthereum',
           instagram: 'pawthereum',
-          impact: 'Almost half a million dollars donated to animal shelters!',
           isFeatured: true
         }
         wallets.unshift(pawthCharity)

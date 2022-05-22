@@ -1,11 +1,27 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
-import { Space, Avatar, Input, List, Modal, Button } from 'antd'
-import { InstagramOutlined, FacebookOutlined, TwitterOutlined, GlobalOutlined } from '@ant-design/icons';
+import { Space, Avatar, Input, List, Modal, Button, Popover } from 'antd'
+import { QuestionCircleOutlined, InstagramOutlined, FacebookOutlined, TwitterOutlined, GlobalOutlined } from '@ant-design/icons';
 import { CaretDownOutlined } from "@ant-design/icons";
 import AppContext from '../../../AppContext'
-import { networkConfigs } from 'helpers/networks';
+import { COLORS } from '../../../constants'
 import useGetCustomWallets from 'hooks/useCustomWallets';
+
+const styles = {
+  inset: {
+    backgroundColor: COLORS.defaultBg,
+    padding: '14px 5px 5px 5px',
+    borderRadius: '1rem',
+    boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px inset',
+  },
+  categoryOptions: {
+    display: 'flex', 
+    flexWrap: 'wrap', 
+    justifyContent: 'space-around', 
+    marginBottom: '10px', 
+    marginTop: '5px' 
+  }
+}
 
 const IconText = ({ icon, text, link }) => {
   let url
@@ -28,22 +44,43 @@ const IconText = ({ icon, text, link }) => {
   }
   return (
     <Space>
-      <div onClick={() => window.open(url, '_blank')}>
+      <div onClick={(e) => {
+        e.stopPropagation() // do not select the wallet
+        window.open(url, '_blank')
+      }}>
         {React.createElement(icon)}
       </div>
     </Space>
   )
 };
 
-function CustomWalletPicker (props) {
+const PopOverText = ({ stats }) => {
+  const statContent = (
+    <div style={{ maxWidth: '250px' }}>
+      <ul style={{ padding: '10px' }}>
+        {stats.map(s => (
+          <li>{s}</li>
+        ))}
+      </ul>
+    </div>
+  )
+  return (
+    <Space>
+      <Popover title="Donation Impact" content={statContent} trigger="hover">
+        Impact <QuestionCircleOutlined />
+      </Popover>
+    </Space>
+  )
+}
+
+function CustomWalletPicker () {
   const { 
     updateCustomTaxWallet
   } = useContext(AppContext)
-  const { Moralis, chainId, account } = useMoralis()
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [pickedWallet, setPickedWallet] = useState(null);
   const [searchTerm, setSearchTerm] = useState(null);
-  const [selectedCategories, setSelectedCategories] = useState(null)
+  const [selectedCategories, setSelectedCategories] = useState([])
   const [walletOptions, setWalletOptions] = useState(null)
   const [featuredWalletOptions, setFeaturedWalletOptions] = useState(null)
 
@@ -95,7 +132,23 @@ function CustomWalletPicker (props) {
     if (option.facebook) {
       actions.push(<IconText icon={FacebookOutlined} text="facebook" link={option.facebook} />)
     }
+    if (option.stats) {
+      actions.push(<PopOverText stats={option.stats}/>)
+    }
     return actions
+  }
+
+  const categories = [
+    'arts and culture', 'education', 'environment', 'animals', 'healthcare',
+    'human services', 'international affairs', 'public benefit', 'religion',
+    'mutual benefit', 'unclassified'
+  ]
+
+  const toggleCategorySelection = category => {
+    if (selectedCategories.includes(category)) {
+      return setSelectedCategories(selectedCategories.filter(c => c !== category))
+    }
+    setSelectedCategories(selectedCategories.concat([category]))
   }
 
   return (
@@ -117,7 +170,30 @@ function CustomWalletPicker (props) {
         footer={null} 
         onCancel={handleClose}
       >
-        <Input onChange={onSearchInputChange} />
+        <div style={styles.inset}>
+          <Input
+            placeholder="Search for a cause"
+            onChange={onSearchInputChange} 
+            size="large"
+            style={{ borderRadius: '1rem' }}
+          />
+
+          <div style={{ ...styles.categoryOptions }}>
+            {categories.map(category => (
+              <Button 
+                style={{ marginTop: '5px' }}
+                key={category} 
+                type={selectedCategories.includes(category) ? 'primary' : ''}
+                shape="round" 
+                size="small" 
+                onClick={() => toggleCategorySelection(category)
+              }>
+                {category}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         <List
           itemLayout="vertical"
           header={<div>Featured Causes</div>}
@@ -125,8 +201,9 @@ function CustomWalletPicker (props) {
           dataSource={featuredWalletOptions}
           renderItem={walletOption => (
             <List.Item
+              key={walletOption.address}
               style={{ cursor: 'pointer' }}
-              // onClick={() => pickWallet(walletOption.address)}
+              onClick={() => pickWallet(walletOption)}
               actions={getWalletOptionActions(walletOption)}
               extra={
                 <img
@@ -137,7 +214,6 @@ function CustomWalletPicker (props) {
               }
             >
               <List.Item.Meta
-                // avatar={<Avatar src={walletOption.icon} />}
                 title={<span>{walletOption.name}</span>}
                 description={<span>{walletOption.mission}</span>}
               />
@@ -152,37 +228,37 @@ function CustomWalletPicker (props) {
               paddingBottom: '12px'
             }}>Search Results</div>
             <List
-            itemLayout="vertical"
-            style={{ 
-              maxHeight: '500px', 
-              overflowY: 'scroll',
-              boxShadow: 'rgb(74 74 104 / 10%) 0px 1px 0px 0px inset'
-              // borderRadius: '1rem'
-            }}
-            dataSource={walletOptions}
-            renderItem={walletOption => (
-              <List.Item
-                style={{ cursor: 'pointer' }}
-                // onClick={() => pickWallet(walletOption.address)}
-                
-                actions={getWalletOptionActions(walletOption)}
+              itemLayout="vertical"
+              style={{ 
+                maxHeight: '500px', 
+                overflowY: 'scroll',
+                boxShadow: 'rgb(74 74 104 / 10%) 0px 1px 0px 0px inset'
+                // borderRadius: '1rem'
+              }}
+              dataSource={walletOptions}
+              renderItem={walletOption => (
+                <List.Item
+                  key={walletOption.address}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => pickWallet(walletOption)}
+                  
+                  actions={getWalletOptionActions(walletOption)}
 
-                extra={!walletOption.logo ? '' :
-                  <img
-                    width={100}
-                    alt="logo"
-                    src={walletOption.logo}
+                  extra={!walletOption.logo ? '' :
+                    <img
+                      width={100}
+                      alt="logo"
+                      src={walletOption.logo}
+                    />
+                  }
+                >
+                  <List.Item.Meta
+                    title={<span>{walletOption.name}</span>}
+                    description={<span>{walletOption.mission}</span>}
                   />
-                }
-              >
-                <List.Item.Meta
-                  // avatar={<Avatar src={walletOption.icon} />}
-                  title={<span>{walletOption.name}</span>}
-                  description={<span>{walletOption.mission}</span>}
-                />
-              </List.Item>
-            )}
-          />
+                </List.Item>
+              )}
+            />
           </>
         }
       </Modal>

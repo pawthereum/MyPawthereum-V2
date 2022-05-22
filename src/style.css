@@ -38,3 +38,7 @@
 .ant-notification-notice {
   border-radius: 1rem !important;
 }
+
+.ant-popover-inner {
+  border-radius: 1rem !important;
+}
