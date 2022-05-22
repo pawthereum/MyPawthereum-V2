@@ -137,7 +137,7 @@ function CurrencyPairForm (props) {
       <div>
         <Row>
           <Col span={24} style={{ textAlign: 'center' }}>
-            You're saving {savings > 0 ? savings : 0}%! 
+            You're saving {savings > 0 ? savings.toLocaleString([], {maximumFractionDigits: 2}) : 0}%! 
             <Popover content={popOverContent} title={"Trading fees are reduced on PawSwap!"} trigger="hover">
               <QuestionCircleOutlined style={{ marginLeft: '5px' }}/>
             </Popover>

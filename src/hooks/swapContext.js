@@ -176,7 +176,7 @@ const useSwapContext = () => {
 
   const updateCustomTaxPercentage = amount => {
     if (!amount) amount = 0
-    const updatedCustomTaxPercentage = new Percent(amount, 100)
+    const updatedCustomTaxPercentage = new Percent(amount * 10**tokenTaxContractFeeDecimal, 100*10**tokenTaxContractFeeDecimal)
     const replacementCustomTax = amount * 10**tokenTaxContractFeeDecimal
     const updatedTokenTaxStructure = tokenTaxStructureTaxes.map(t => {
       if (t.isCustom) {

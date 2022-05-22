@@ -9,15 +9,29 @@ function CustomTaxInputAmount (props) {
     inputCurrency,
     outputCurrency,
     customTaxPercentage,
-    updateCustomTaxPercentage
+    updateCustomTaxPercentage,
+    taxes,
+    trade,
+    tokenTaxContractFeeDecimal
   } = useContext(AppContext);
   const { Moralis } = useMoralis()
 
   const [value, setValue] = useState(null)
 
   function onInputChange(amount) {
-    console.log('updating to...', amount)
-   updateCustomTaxPercentage(amount)
+    if (amount > maxCustomTax()) amount = maxCustomTax()
+    updateCustomTaxPercentage(amount?.toFixed(2))
+  }
+
+  const totalTax = () => {
+    return taxes.reduce((p, t) => {
+      if (!t[trade.side]) return p + 0
+      return p + Number(t[trade.side])
+    }, 0) / 10**tokenTaxContractFeeDecimal
+  }
+
+  const maxCustomTax = () => {
+    return 99 - totalTax()
   }
 
   useEffect(() => {
@@ -46,7 +60,8 @@ function CustomTaxInputAmount (props) {
         size="large"
         defaultValue={null}
         min={0}
-        precision={0}
+        max={maxCustomTax}
+        precision={2}
         value={value}
         formatter={v => !v ? v : v + '%'}
         onChange={onInputChange}
