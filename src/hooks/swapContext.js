@@ -941,7 +941,7 @@ const useSwapContext = () => {
   }
 
 
-  async function createTrade2 (params) {
+  async function createTrade (params) {
     const ethers = Moralis.web3Library;
     const provider = ethers.getDefaultProvider('http://localhost:8545')
     const ethBalanceBeforeRaw = await provider.getBalance(account)
@@ -982,121 +982,6 @@ const useSwapContext = () => {
       isExactIn
     })
     setTradeIsLoading(false)
-  }
-
-  async function createTrade (params) {
-    setTradeIsLoading(true)
-    console.log({
-      inputToken,
-      outputToken
-    })
-
-    // is this a sell or a buy
-    const side = determineSide(inputCurrency)
-
-    // used to calculate taxes
-    const feeDecimal = tokenTaxContractFeeDecimal
-    const totalTax = tokenTaxStructureTaxes.reduce((p, t) => {
-      return p + Number(t[side])
-    }, 0)
-
-    // dexes usually take a trading fee
-    const tradingFee = dex?.name.toLowerCase() !== 'pawswap' 
-    ? new Percent('30', '10000') // 0.28% -- most other dexs have  0.3% - .25% and pawswap will always take 0.03%
-    : new Percent('20', '10000') // 0.2% trading fee on pawswap
-
-    // calculate the amount that will get taken out before swapping
-    const preSwapTaxAmountProp = side === 'buy' 
-      ? 'preSwapBuyTaxAmount'
-      : 'preSwapSellTaxAmount' 
-    const percentTakenFromInputPreSwap = tokenTaxStructureTaxes.reduce((p, t) => {
-      return p + Number(t[side] * t[preSwapTaxAmountProp])
-    }, 0)
-    const preSwapTaxPercentage = new Percent(percentTakenFromInputPreSwap / 10**feeDecimal, 100)
-
-    // calculate the amount that will get taken out after swapping
-    const postSwapTaxAmountProp = side === 'buy'
-      ? 'postSwapBuyTaxAmount'
-      : 'postSwapSellTaxAmount'
-    const percentTakenFromOutputPostSwap = tokenTaxStructureTaxes.reduce((p, t) => {
-      return p + Number(t[side] * t[postSwapTaxAmountProp])
-    }, 0)
-    const postSwapTaxPercentage = new Percent(percentTakenFromOutputPostSwap / 10**feeDecimal, 100).add(tradingFee)
-
-    const taxPercentage = new Percent(totalTax / 10**feeDecimal, 100).add(tradingFee)
-    const slippagePercentage = new Percent(slippage * 100, 100) // slippage set to 0.02 becomes 2
-
-    // token pair
-    const sortedTokens = await sortTokens([inputToken, outputToken])
-    const tokenPair = new Pair(
-      new TokenAmount(sortedTokens[0], pairReserves[0]), 
-      new TokenAmount(sortedTokens[1], pairReserves[1])
-    )
-
-    // calculated amount (opposite of user input)
-    const amountPreTax = estimatedSide === 'output'
-      ? inputAmount
-      : outputAmount
-    
-    // the amount of taxes to adjust in the trade
-    const taxAmount = estimatedSide === 'output'
-      ? new TokenAmount(inputToken, preSwapTaxPercentage.multiply(amountPreTax.raw).quotient)
-      : new TokenAmount(outputToken, postSwapTaxPercentage.multiply(amountPreTax.raw).quotient)
-      
-    // the amount after tax adjustments
-    const amountPostTax = estimatedSide === 'output'
-      ? amountPreTax.subtract(taxAmount)
-      : amountPreTax.add(taxAmount)
-    
-    // trade route
-    const route = new Route([tokenPair], inputToken)
-
-    console.log({ route, amountPostTax })
-    console.log(route.pairs[0].tokenAmounts[0].toSignificant(6))
-    console.log(route.pairs[0].tokenAmounts[1].toSignificant(6))
-    console.log({ params })
-
-    let trade
-    try {
-      trade = estimatedSide === 'output'
-      ? new Trade(route, amountPostTax, TradeType.EXACT_INPUT)
-      : new Trade(route, amountPostTax, TradeType.EXACT_OUTPUT)
-    } catch (e) {
-      console.log('error creating trade', e)
-      setTradeIsLoading(false)
-      return openNotification({
-        message: "⚠️ Error estimating trade!",
-        description: `${e.message} ${e.data?.message}`
-      });
-    }
-
-    console.log({ trade })
-    console.log(' put in ' + trade.inputAmount.toSignificant(6) + ' BNB')
-    console.log(' get ' + trade.outputAmount.toSignificant(6) + ' PAWTH')
-
-    // slippage amount
-    const slippageAmount = estimatedSide === 'output'
-      ? new TokenAmount(outputToken, slippagePercentage.multiply(trade.outputAmount.raw).quotient)
-      : new TokenAmount(inputToken, slippagePercentage.multiply(trade.inputAmount.raw).quotient)
-
-    console.log({ slippageAmount: slippageAmount.toSignificant(6) })
-
-    // the amount to send to the trade to account for slippage
-    trade.amountSlippage = estimatedSide === 'output'
-      ? trade.outputAmount.subtract(slippageAmount)
-      : trade.inputAmount.add(slippageAmount)
-    
-    setTradeIsLoading(false)
-    // the latest trade in is the latest trade printed on screen
-    if (tradeNonce - 1 !== params.nonce) return false
-    setTrade({
-      inputAmount,
-      outputAmount,
-      swap: trade,
-      side,
-      estimatedSide,
-      taxes: tokenTaxStructureTaxes,
-    })
   }
 
   async function executeSwap (trade) {
@@ -1276,7 +1161,7 @@ const useSwapContext = () => {
     })
     const nonce = tradeNonce
     tradeNonce++
-    createTrade2({
+    createTrade({
       inputAmount,
       outputAmount,
       inputCurrency,
