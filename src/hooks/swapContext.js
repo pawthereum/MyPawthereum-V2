@@ -54,7 +54,12 @@ const useSwapContext = () => {
   const [highPriceImpactIgnored, setHighPriceImpactIgnored] = useState(false)
 
   const sortTokens = async (tokenList) => {
-    return await tokenList.sort((a, b) => a.address > b.address ? 1 : -1)
+    const web3Provider = Moralis.web3Library
+    const BigNumber = web3Provider.BigNumber
+
+    return await tokenList.sort((a, b) => 
+      BigNumber.from(web3Provider.utils.getAddress(a.address)).lt( 
+      BigNumber.from(web3Provider.utils.getAddress(b.address))) ? -1 : 1)
   }
 
   useEffect(() => {
@@ -1242,6 +1247,7 @@ const useSwapContext = () => {
       // fetch details about the pair to estimate trades
       // const dex = await updateDex(inputCurrency, outputCurrency)
       const sortedTokenPair = await sortTokens([inputCurrency, outputCurrency])
+      console.log({ sortedTokenPair })
       const pairAddress = await updatePair(
         sortedTokenPair.map(t => t.address), 
         dexForTrade.factory
