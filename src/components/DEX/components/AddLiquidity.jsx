@@ -89,7 +89,7 @@ function AddLiquidity() {
         pair,
       })
       const sufficientAllowance = await hasAllowance({
-        amount: amount.toSignificant(token.decimals),
+        amount: amount,
         token,
         spender: PAWSWAP_ROUTER[chainId]?.address
       })
