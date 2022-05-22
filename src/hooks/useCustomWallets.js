@@ -5,7 +5,6 @@ import { PAWTH_CHARITY_WALLET } from '../constants'
 const API_ENDPOINT = `https://api.getchange.io/api/v1/nonprofits?public_key=${process.env.REACT_APP_CHANGE_API_KEY}&search_term=`
 
 const useGetCustomWallets = (searchQuery, selectedCategories) => {
-  console.log({ selectedCategories })
   if (selectedCategories.length > 0 && !searchQuery) {
     searchQuery = ''
   }
@@ -13,7 +12,6 @@ const useGetCustomWallets = (searchQuery, selectedCategories) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log('fetching...')
       try {
         let categoryString = ''
         if (selectedCategories?.length > 0) {
@@ -28,7 +26,6 @@ const useGetCustomWallets = (searchQuery, selectedCategories) => {
         }
         const response = await fetch(API_ENDPOINT + searchQuery + categoryString)
         const json = await response.json()
-        console.log('JSON~~~~~~~~~~~~~~~~~', json)
         const wallets = json.nonprofits.filter(n => n.crypto.ethereum_address).map(n => {
           const wallet = {
             address: n.crypto.ethereum_address,

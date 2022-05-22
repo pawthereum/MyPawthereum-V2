@@ -165,8 +165,8 @@ const useSwapContext = () => {
     setOutputAmount(tokenAmount)
   }
 
-  const updateCustomTaxWallet = addr => {
-    setCustomTaxWallet(addr)
+  const updateCustomTaxWallet = wallet => {
+    setCustomTaxWallet(wallet)
   }
 
   const updateCustomTaxPercentage = amount => {
@@ -1124,7 +1124,7 @@ const useSwapContext = () => {
         swapReq = await pawswap.buyOnPawSwap(
           swap.outputAmount.token.address,
           tokenTaxStructureTaxes.find(t => t.isCustom).buy,
-          account, // this is where the custom wallet will go
+          customTaxWallet ? customTaxWallet.address : account,
           '0',
           isExactIn 
           ? swap.outputAmountSlippage.raw.toString()
@@ -1152,7 +1152,7 @@ const useSwapContext = () => {
             ? inputAmount.raw.toString() //Moralis.Units.Token(amountIn, tokenIn?.decimals)
             : swap.inputAmountSlippage.raw.toString(),
           tokenTaxStructureTaxes.find(t => t.isCustom).sell,
-          account,
+          customTaxWallet ? customTaxWallet.address : account,
           '0',
           isExactIn
             ? swap.outputAmountSlippage.raw.toString()

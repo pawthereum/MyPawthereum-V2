@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { useMoralis } from 'react-moralis'
-import { Space, Avatar, Input, List, Modal, Button, Popover } from 'antd'
+import { Space, Input, List, Modal, Button, Popover } from 'antd'
 import { QuestionCircleOutlined, InstagramOutlined, FacebookOutlined, TwitterOutlined, GlobalOutlined } from '@ant-design/icons';
 import { CaretDownOutlined } from "@ant-design/icons";
 import AppContext from '../../../AppContext'
@@ -85,7 +84,6 @@ function CustomWalletPicker () {
   const [featuredWalletOptions, setFeaturedWalletOptions] = useState(null)
 
   const showModal = () => {
-    console.log('showing')
     setIsModalVisible(true);
   };
 
@@ -104,7 +102,6 @@ function CustomWalletPicker () {
 
   const pickWallet = (wallet) => {
     const selection = walletOptions.find(o => o.address.toLowerCase() === wallet.address.toLowerCase())
-    console.log('selection', selection)
     setPickedWallet(selection)
     handleClose()
   }
@@ -114,7 +111,6 @@ function CustomWalletPicker () {
   }, [pickedWallet])
 
   const onSearchInputChange = (e) => {
-    console.log({ e: e.target.value })
     setSearchTerm(e.target.value)
   }
 
