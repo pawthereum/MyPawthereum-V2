@@ -34,9 +34,15 @@ const useGetCustomWallets = (searchQuery, selectedCategories) => {
             address: n.crypto.ethereum_address,
             symbol: n.socials.twitter || n.socials.instagram || n.name.match(/[A-Z]/g).join(''), // fallback to abbr.
             name: n.name,
-            logo: n.icon_url,
+            icon: n.icon_url,
+            logo: n.logo_url,
             mission: n.mission,
-            category: n.category
+            category: n.category,
+            website: n.website,
+            facebook: n.socials.facebook,
+            instagram: n.socials.instagram,
+            twitter: n.socials.twitter,
+            impact: n.display_impact ? n.display_impact[0] : null
           }
           return wallet
         })
@@ -44,9 +50,15 @@ const useGetCustomWallets = (searchQuery, selectedCategories) => {
           address: PAWTH_CHARITY_WALLET,
           symbol: 'PAWTH Charity',
           name: 'Pawthereum Charity Wallet',
-          logo: 'https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png',
+          logo: 'https://pawthereum.github.io/Pancakeswap/images/right-supercat.svg',
+          icon: 'https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png',
           mission: 'Pawthereum is a decentralized, community-run charity cryptocurrency project that gives back to animal shelters and advocates for the well-being of animals in need!',
           category: 'animals',
+          website: 'https://pawthereum.com',
+          twitter: '@pawthereum',
+          facebook: 'pawthereum',
+          instagram: 'pawthereum',
+          impact: 'Almost half a million dollars donated to animal shelters!',
           isFeatured: true
         }
         wallets.unshift(pawthCharity)

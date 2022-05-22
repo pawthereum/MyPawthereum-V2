@@ -1,10 +1,39 @@
-import { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
-import { AutoComplete, Avatar, Input, List, Modal, Button } from 'antd'
+import { Space, Avatar, Input, List, Modal, Button } from 'antd'
+import { InstagramOutlined, FacebookOutlined, TwitterOutlined, GlobalOutlined } from '@ant-design/icons';
 import { CaretDownOutlined } from "@ant-design/icons";
 import AppContext from '../../../AppContext'
 import { networkConfigs } from 'helpers/networks';
 import useGetCustomWallets from 'hooks/useCustomWallets';
+
+const IconText = ({ icon, text, link }) => {
+  let url
+  switch (text) {
+    case 'website':
+      console.log('websit...')
+      url = 'https://' + link
+      break
+    case 'twitter':
+      url = 'https://twitter.com/' + link
+      break
+    case 'facebook':
+      url = 'https://facebook.com/' + link
+      break
+    case 'instagram':
+      url = 'https://instagram.com/' + link
+      break
+    default:
+      url = link
+  }
+  return (
+    <Space>
+      <div onClick={() => window.open(url, '_blank')}>
+        {React.createElement(icon)}
+      </div>
+    </Space>
+  )
+};
 
 function CustomWalletPicker (props) {
   const { 
@@ -52,6 +81,23 @@ function CustomWalletPicker (props) {
     setSearchTerm(e.target.value)
   }
 
+  const getWalletOptionActions = option => {
+    const actions = []
+    if (option.website) {
+      actions.push(<IconText icon={GlobalOutlined} text="website" link={option.website} />)
+    }
+    if (option.twitter) {
+      actions.push(<IconText icon={TwitterOutlined} text="twitter" link={option.twitter} />)
+    }
+    if (option.instagram) {
+      actions.push(<IconText icon={InstagramOutlined} text="instagram" link={option.instagram} />)
+    }
+    if (option.facebook) {
+      actions.push(<IconText icon={FacebookOutlined} text="facebook" link={option.facebook} />)
+    }
+    return actions
+  }
+
   return (
     <div style={{ 
       cursor: 'pointer',
@@ -73,17 +119,25 @@ function CustomWalletPicker (props) {
       >
         <Input onChange={onSearchInputChange} />
         <List
-          itemLayout="horizontal"
+          itemLayout="vertical"
           header={<div>Featured Causes</div>}
           style={{ maxHeight: '500px', overflowY: 'scroll' }}
           dataSource={featuredWalletOptions}
           renderItem={walletOption => (
             <List.Item
               style={{ cursor: 'pointer' }}
-              onClick={() => pickWallet(walletOption.address)}
+              // onClick={() => pickWallet(walletOption.address)}
+              actions={getWalletOptionActions(walletOption)}
+              extra={
+                <img
+                  width={100}
+                  alt="logo"
+                  src={walletOption.logo}
+                />
+              }
             >
               <List.Item.Meta
-                avatar={<Avatar src={walletOption.logo} />}
+                // avatar={<Avatar src={walletOption.icon} />}
                 title={<span>{walletOption.name}</span>}
                 description={<span>{walletOption.mission}</span>}
               />
@@ -98,7 +152,7 @@ function CustomWalletPicker (props) {
               paddingBottom: '12px'
             }}>Search Results</div>
             <List
-            itemLayout="horizontal"
+            itemLayout="vertical"
             style={{ 
               maxHeight: '500px', 
               overflowY: 'scroll',
@@ -109,10 +163,20 @@ function CustomWalletPicker (props) {
             renderItem={walletOption => (
               <List.Item
                 style={{ cursor: 'pointer' }}
-                onClick={() => pickWallet(walletOption.address)}
+                // onClick={() => pickWallet(walletOption.address)}
+                
+                actions={getWalletOptionActions(walletOption)}
+
+                extra={!walletOption.logo ? '' :
+                  <img
+                    width={100}
+                    alt="logo"
+                    src={walletOption.logo}
+                  />
+                }
               >
                 <List.Item.Meta
-                  avatar={<Avatar src={walletOption.logo} />}
+                  // avatar={<Avatar src={walletOption.icon} />}
                   title={<span>{walletOption.name}</span>}
                   description={<span>{walletOption.mission}</span>}
                 />
