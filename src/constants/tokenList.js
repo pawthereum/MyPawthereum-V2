@@ -67,29 +67,29 @@ export const tokenList = {
     //   "typicalSellTax": 0,
     //   "color": "#F4BB0B"
     // },
-    {
-      "name": "Kodi Coin",
-      "symbol": "KODI",
-      "address": "0x71a3406E8A04ec52b7f7aCcE94C93f7a48FBF2C9",
-      "chainId": 97,
-      "decimals": 18,
-      "logoURI": "https://bafybeievtapjdh32pqp3kljnhhymzf6fc2kxkqsajsujac34j5wto3aisy.ipfs.infura-ipfs.io",
-      "dex": "pancakeswap",
-      "typicalBuyTax": 11,
-      "typicalSellTax": 12,
-      "color": "#8751D8"
-    },
-    {
-      "name": "SafeMoon",
-      "symbol": "SFM",
-      "address": "0x44255f8de687371b5f7f8c9398a300e5a7628895",
-      "chainId": 97,
-      "decimals": 9,
-      "logoURI": "https://safemoon.com/img/logo.svg",
-      "dex": "pancakeswap",
-      "typicalBuyTax": 10,
-      "typicalSellTax": 10,
-      "color": "#008A81"
-    }
+    // {
+    //   "name": "Kodi Coin",
+    //   "symbol": "KODI",
+    //   "address": "0x71a3406E8A04ec52b7f7aCcE94C93f7a48FBF2C9",
+    //   "chainId": 97,
+    //   "decimals": 18,
+    //   "logoURI": "https://bafybeievtapjdh32pqp3kljnhhymzf6fc2kxkqsajsujac34j5wto3aisy.ipfs.infura-ipfs.io",
+    //   "dex": "pancakeswap",
+    //   "typicalBuyTax": 11,
+    //   "typicalSellTax": 12,
+    //   "color": "#8751D8"
+    // },
+    // {
+    //   "name": "SafeMoon",
+    //   "symbol": "SFM",
+    //   "address": "0x44255f8de687371b5f7f8c9398a300e5a7628895",
+    //   "chainId": 97,
+    //   "decimals": 9,
+    //   "logoURI": "https://safemoon.com/img/logo.svg",
+    //   "dex": "pancakeswap",
+    //   "typicalBuyTax": 10,
+    //   "typicalSellTax": 10,
+    //   "color": "#008A81"
+    // }
   ]
 }
