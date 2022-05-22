@@ -189,12 +189,12 @@ export const PAWSWAP_FACTORY = {
   'localdevchain': {
     abi: pawswapFactoryAbi,
     address: '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512',
-    initCodeHash: '0xcf3565c3fafd16be9fe1964038a53134ac87ae3781984eb501d0a56a5e0b5edb'
+    initCodeHash: '0x5a4970de7cad726ffd13e65337094b47eb082b11de3136d63b72faf41cd31d0d'
   },
   '0x539': {
     abi: pawswapFactoryAbi,
     address: '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512',
-    initCodeHash: '0xcf3565c3fafd16be9fe1964038a53134ac87ae3781984eb501d0a56a5e0b5edb'
+    initCodeHash: '0x5a4970de7cad726ffd13e65337094b47eb082b11de3136d63b72faf41cd31d0d'
   }
 }
 
