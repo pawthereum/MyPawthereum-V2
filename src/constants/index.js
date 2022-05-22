@@ -45,6 +45,8 @@ export const DISQUS_ID = 'mypawth'
 
 export const DECIMALS = 9
 
+export const MAX_BLOCKS_BEFORE_STALE = 10
+
 export const DEFAULT_SLIPPAGE = 0.02
 
 export const HIGH_PRICE_IMPACT = 5 // 5%

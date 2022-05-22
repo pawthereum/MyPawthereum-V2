@@ -116,6 +116,7 @@ function Swap () {
       checkAllowance()
     }
     async function checkAllowance () {
+      console.log('checking....🌽')
       const sufficientAllowance = await hasAllowance({
         amount: inputAmount,
         token: inputCurrency,

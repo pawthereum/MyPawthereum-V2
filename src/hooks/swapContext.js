@@ -1312,7 +1312,8 @@ const useSwapContext = () => {
     getBuyAmountIn,
     updateCustomTaxPercentage,
     customTaxPercentage,
-    updateCustomTaxWallet
+    updateCustomTaxWallet,
+    currentBlock
   }
 }
 

@@ -1,7 +1,10 @@
+import { useState, useContext } from 'react'
 import { useMoralis } from 'react-moralis'
-import { ERC20ABI } from '../constants'
+import { ERC20ABI, MAX_BLOCKS_BEFORE_STALE } from '../constants'
 import { networkConfigs } from 'helpers/networks';
 import { notification } from 'antd'
+import AppContext from 'AppContext';
+import { JSBI, TokenAmount } from '@uniswap/sdk';
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -16,11 +19,22 @@ const openNotification = ({ message, description, link }) => {
 };
 
 const useAllowances = () => {
-  const { Moralis, account, web3, chainId } = useMoralis(); 
+  const { Moralis, account, web3, chainId } = useMoralis();
+  const { currentBlock } = useContext(AppContext);
+  const [allowances, setAllowances] = useState({})
+
+  const allowanceWasCheckedWithinMaxBlocksBeforeStale = ({ token, spender }) => {
+    if (!allowances[token.address] || !allowances[token.address][spender]) return false
+    return Math.abs(currentBlock - allowances[token.address][spender].lastUpdated) <= MAX_BLOCKS_BEFORE_STALE
+  }
 
   async function hasAllowance (params) {
     if (!chainId) return false
     const { amount, spender, token } = params
+
+    if (allowanceWasCheckedWithinMaxBlocksBeforeStale(params)) {
+      return JSBI.greaterThanOrEqual(allowances[token.address][spender].allowance.raw, amount.raw)
+    }
     
     const web3Provider = Moralis.web3Library;
 
@@ -34,8 +48,17 @@ const useAllowances = () => {
       account,
       spender,
     )
-
-    return Number(amount) <= Moralis.Units.FromWei(tokenAllowance, token.decimals)
+    const allowanceAmount = new TokenAmount(token, tokenAllowance)
+    // save data for future calls
+    if (!allowances[token.address]) {
+      allowances[token.address] = {}
+    }
+    allowances[token.address][spender] = {
+      lastUpdated: currentBlock,
+      allowance: new TokenAmount(token, tokenAllowance)
+    }
+    setAllowances(allowances)
+    return JSBI.greaterThanOrEqual(allowanceAmount.raw, amount.raw)
   }
 
   async function updateAllowance (params) {
@@ -49,11 +72,9 @@ const useAllowances = () => {
     )
 
     try {
-      console.log('amount', amount)
-      console.log(amount.raw)
       const approveReq = await tokenContract.approve(
         spender,
-        Moralis.Units.Token(amount.raw, token?.decimals)
+        amount.raw.toString()
       )
       openNotification({
         message: "🔊 Approval Submitted!",
@@ -61,6 +82,17 @@ const useAllowances = () => {
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + approveReq.hash
       });
       const tx = await approveReq.wait()
+
+      // save data for future calls
+      if (!allowances[token.address]) {
+        allowances[token.address] = {}
+      }
+      allowances[token.address][spender] = {
+        lastUpdated: currentBlock,
+        allowance: amount
+      }
+      setAllowances(allowances)
+
       openNotification({
         message: "🎉 Approval Complete!",
         description: `${tx.transactionHash}`,
