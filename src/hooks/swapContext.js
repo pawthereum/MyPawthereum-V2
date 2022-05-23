@@ -942,10 +942,10 @@ const useSwapContext = () => {
 
 
   async function createTrade (params) {
-    const ethers = Moralis.web3Library;
-    const provider = ethers.getDefaultProvider('http://localhost:8545')
-    const ethBalanceBeforeRaw = await provider.getBalance(account)
-    console.log({ethBalanceBeforeRaw: ethBalanceBeforeRaw.toString()})
+    // const ethers = Moralis.web3Library;
+    // const provider = ethers.getDefaultProvider('http://localhost:8545')
+    // const ethBalanceBeforeRaw = await provider.getBalance(account)
+    // console.log({ethBalanceBeforeRaw: ethBalanceBeforeRaw.toString()})
     if (estimatedSide === 'output' && !inputAmount) return
     if (estimatedSide === 'input' && !outputAmount) return
     setTradeIsLoading(true)
