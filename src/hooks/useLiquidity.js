@@ -46,6 +46,31 @@ const useLiquidity = () => {
     return pairAddress
   }
 
+  const getPairTokenAddresses = async (pairAddress) => {
+    const web3Provider = Moralis.web3Library;
+    const pairContract = new web3Provider.Contract(
+      pairAddress,
+      [
+        "function token0() external view returns (address)",
+        "function token1() external view returns (address)"
+      ],
+      web3.getSigner()
+    )
+    try {
+      const tokens = await Promise.all([
+        pairContract.token0(),
+        pairContract.token1()
+      ])
+      return tokens
+    } catch (e) {
+      console.log('error getting pair token addresses', e)
+      return openNotification({
+        message: "⚠️ Error getting pair token addresses!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
   const getPairTotalSupply = async (pairAddress) => {
     const web3Provider = Moralis.web3Library;
     const pairContract = new web3Provider.Contract(
@@ -235,6 +260,7 @@ const useLiquidity = () => {
     getPawswapPair,
     getPairReserves,
     getPairTotalSupply,
+    getPairTokenAddresses,
   }
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useMoralis } from 'react-moralis';
-import {Button, Input, Row, Col, Card } from 'antd';
+import {Button, Input, Row, Col, Card, Collapse, Skeleton } from 'antd';
 import { useERC20Balance } from 'hooks/useERC20Balance';
 import Web3 from "web3"; 
 import useNative from 'hooks/useNative';
@@ -11,6 +11,9 @@ import AddLiquidity from './AddLiquidity';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import RemoveLiquidity from './RemoveLiquidity';
 import useLiquidity from 'hooks/useLiquidity';
+import { COLORS } from '../../../constants'
+
+const { Panel } = Collapse;
 
 const styles = {
   card: {
@@ -23,6 +26,13 @@ const styles = {
   },
   outset: {
     boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px',
+  },
+  lpTokenDataCard: {
+    backgroundColor: COLORS.defaultBg,
+    border: "1px solid #e7eaf3",
+    boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px inset',
+    borderRadius: "1rem",
+    width: "100%",
   },
   lpTokenCardRow: {
     width: '100%', 
@@ -38,16 +48,17 @@ function Liquidity () {
     getPairReserves, 
     getPairTotalSupply, 
     updateLpTokenRemovalData,
-    lpTokenRemovalData
+    lpTokenRemovalData,
+    getPairTokenAddresses
   } = useLiquidity()
   const { assets } = useERC20Balance()
-  const { getWrappedNativeToken, wrappedAddress } = useNative()
+  const { getWrappedNativeToken, wrappedAddress, isNative } = useNative()
 
   const { Search } = Input
 
   const [removeLiquidityIsVisible, setRemoveLiquidityIsVisible] = useState(false)
   const [addLiquidityIsVisible, setAddLiquidityIsVisible] = useState(false)
-  const [pawLpTokens, setPawLpTokens] = useState([])
+  const [pawLpTokens, setPawLpTokens] = useState(null)
   const [lpToken, setLpToken] = useState(null)
   const [lpTokenData, setLpTokenData] = useState(null)
 
@@ -57,6 +68,29 @@ function Liquidity () {
       minimumFractionDigits: 0,
       maximumFractionDigits: 6
     })
+  }
+
+  const createTokensFromPairedTokens = async (tokensInPair) => {
+    // const tokensInPair = await getPairTokenAddresses(token.token_address)
+    const token0Asset = assets.find(a => a.token_address === tokensInPair[0].toLowerCase())
+    const token0 = !token0Asset ? null 
+      : new Token(
+          chainId, 
+          token0Asset.token_address, 
+          token0Asset.decimals, 
+          token0Asset.symbol, 
+          token0Asset.name
+        )
+    const token1Asset = assets.find(a => a.token_address === tokensInPair[1].toLowerCase())
+    const token1 = !token0Asset ? null 
+      : new Token(
+          chainId, 
+          token1Asset.token_address, 
+          token1Asset.decimals, 
+          token1Asset.symbol, 
+          token1Asset.name
+        )
+    return [token0, token1]
   }
 
   const getLpTokenData = async (lpToken, lpTokenBalance, tokenAddress) => {
@@ -69,9 +103,11 @@ function Liquidity () {
     const pairData = await Promise.all([
       getPairReserves(lpToken?.address),
       getPairTotalSupply(lpToken?.address),
+      getPairTokenAddresses(lpToken?.address)
     ])
     const reserves = pairData[0]
     const totalSupply = pairData[1]
+    const tokensInPair = await createTokensFromPairedTokens(pairData[2])
     
     //TODO: this is for testing only, remove this
     lpTokenBalance = totalSupply
@@ -101,7 +137,7 @@ function Liquidity () {
     console.log(new TokenAmount(lpToken, lpTokenBalance))
     console.log(new TokenAmount(lpToken, lpTokenBalance).toSignificant(18))
 
-    setLpTokenData({
+    return {
       lpToken,
       lpTokenBalance: new TokenAmount(lpToken, lpTokenBalance),
       tokenInPairing: token,
@@ -110,8 +146,9 @@ function Liquidity () {
       tokenAmountInLpShare,
       wethAmountInLpShare,
       totalSupply,
-      shareOfSupply
-    })
+      shareOfSupply,
+      tokensInPair
+    }
   }
 
   const tryAutoSearch = async (e) => {
@@ -138,16 +175,34 @@ function Liquidity () {
         'Pawswap LP Token'
       )
       setLpToken(lpToken)
-      getLpTokenData(lpToken, balance, checkSummedAddress)
+      const lpTokenData = await getLpTokenData(lpToken, balance, checkSummedAddress)
+      setLpTokenData(lpTokenData)
+      // getLpTokenData(lpToken, balance, checkSummedAddress)
     } catch (e) {
       console.log('error', e)
     }
   }
 
+  const getInfoForPawLpTokens = async (tokens) => {
+    const web3js = new Web3(Moralis.provider)
+    const lpTokens = await Promise.all(tokens.map(async token => {
+      const tokenData = await getLpTokenData(
+        new Token(chainId, token.token_address, token.decimals, token.symbol, token.name),
+        token.balance,
+        web3js.utils.toChecksumAddress(token.token_address)
+      )
+      return tokenData
+    }))
+    console.log({ lpTokens })
+    setPawLpTokens(lpTokens)
+  }
+
   useEffect(() => {
     if (!assets) return
-    const pawswapLpTokens = assets.filter(a => a.symbol === 'Paw-LP')
-    setPawLpTokens(pawswapLpTokens)
+    // only take 5 to go easy on the api
+    // TODO: make a load more button for these
+    const pawswapLpTokensInWallet = assets.filter(a => a.symbol === 'Paw-LP').slice(0, 5)
+    getInfoForPawLpTokens(pawswapLpTokensInWallet)
   }, [assets])
 
   const showAddLiquidity = () => {
@@ -169,6 +224,66 @@ function Liquidity () {
     console.log('hiding...')
     setRemoveLiquidityIsVisible(false)
   }
+
+  const LpTokenCard = ({ data }) => (
+    <Card style={styles.lpTokenDataCard}>
+      <Row style={styles.lpTokenCardRow}>
+        <Col>Your Pool Share</Col>
+        <Col>{data?.shareOfSupply?.toSignificant()}%</Col>
+      </Row>
+      <Row style={styles.lpTokenCardRow}>
+        <Col>Pooled {data?.tokensInPair[0].symbol}</Col>
+        <Col>{
+          isNative(data?.tokensInPair[0]?.address)
+            ? data?.wethReservesAmount?.toSignificant(9)
+            : data?.tokenReservesAmount?.toSignificant(9)
+        }</Col>
+      </Row>
+      <Row style={styles.lpTokenCardRow}>
+        <Col>Pooled {data?.tokensInPair[1].symbol}</Col>
+        <Col>{
+          isNative(data?.tokensInPair[1]?.address)
+            ? data?.wethReservesAmount?.toSignificant(9)
+            : data?.tokenReservesAmount?.toSignificant(9)
+        }</Col>
+      </Row>
+      <Row style={styles.lpTokenCardRow}>
+        <Col>Your {data?.tokensInPair[0].symbol} Share</Col>
+        <Col>{
+          isNative(data?.tokensInPair[0]?.address)
+            ? data?.wethAmountInLpShare?.toSignificant(9)
+            : data?.tokenAmountInLpShare?.toSignificant(9)
+        }</Col>
+      </Row>
+      <Row style={styles.lpTokenCardRow}>
+        <Col>Your {data?.tokensInPair[1].symbol} Share</Col>
+        <Col>{
+          isNative(data?.tokensInPair[1]?.address)
+            ? data?.wethAmountInLpShare?.toSignificant(9)
+            : data?.tokenAmountInLpShare?.toSignificant(9)
+        }</Col>
+      </Row>
+      <Row style={{ ...styles.lpTokenCardRow, marginTop: '10px' }}>
+        <Col>
+        <Button type="primary" size="small" style={{ borderRadius: '4px', ...styles.outset }} onClick={() => {
+            showAddLiquidity()
+            hideRemoveLiquidity()
+          }}>
+            Add Liquidity
+          </Button>   
+        </Col>
+        <Col>
+          <Button type="primary" size="small" style={{ borderRadius: '4px', ...styles.outset }} onClick={() => {
+            setLpTokenData(data)
+            showRemoveLiquidity()
+            hideAddLiquidity()
+          }}>
+            Remove Liquidity
+          </Button>       
+        </Col>
+      </Row>
+    </Card>
+  )
 
   return (
     <Row>
@@ -241,6 +356,20 @@ function Liquidity () {
               </Row>
               <Row>
                 <Col span={24}>
+                  { !pawLpTokens ? <Skeleton /> : '' }
+                  <Collapse expandIconPosition="right" ghost>
+                    { !pawLpTokens ? <></> : pawLpTokens.map((tokenData, i) => (
+                        <Panel
+                          defaultActiveKey={['1']} 
+                          header={
+                            <span>{tokenData.tokensInPair[0].symbol} / {tokenData.tokensInPair[1].symbol}</span>} 
+                          key={i}
+                        >
+                          <LpTokenCard data={tokenData} />
+                        </Panel>
+                      ))
+                    }
+                  </Collapse>
                   <Search 
                     size="large"
                     placeholder={`Token Paired with ${networkConfigs[chainId].currencySymbol}`}
