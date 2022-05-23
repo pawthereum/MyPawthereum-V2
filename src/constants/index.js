@@ -21,12 +21,12 @@ export const PAWTH_ADDRESS = {
 }
 
 export const PAWTH_CHARITY_WALLET = {
-  '0x1': '',
-  'eth': '',
-  '0x38': '',
-  'bsc': '',
-  '0x61': '',
-  'bsctest': '',
+  '0x1': '0xf4a22c530e8cc64770c4edb5766d26f8926e20bd',
+  'eth': '0xf4a22c530e8cc64770c4edb5766d26f8926e20bd',
+  '0x38': '0x9e84fe006aa1c290f4cbcd78be32131cbf52cb23',
+  'bsc': '0x9e84fe006aa1c290f4cbcd78be32131cbf52cb23',
+  '0x61': '0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f',
+  'bsctest': '0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f',
   'localdevchain': '0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f',
   '0x539': '0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f'
 }
