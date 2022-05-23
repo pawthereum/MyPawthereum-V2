@@ -1,10 +1,13 @@
 
 import { useEffect, useState } from 'react'
 import { PAWTH_CHARITY_WALLET } from '../constants'
+import { useMoralis } from 'react-moralis'
 
 const API_ENDPOINT = `https://api.getchange.io/api/v1/nonprofits?public_key=${process.env.REACT_APP_CHANGE_API_KEY}&search_term=`
 
 const useGetCustomWallets = (searchQuery, selectedCategories) => {
+  const { chainId } = useMoralis()
+  
   if (selectedCategories.length > 0 && !searchQuery) {
     searchQuery = ''
   }
@@ -44,7 +47,7 @@ const useGetCustomWallets = (searchQuery, selectedCategories) => {
           return wallet
         })
         const pawthCharity = {
-          address: PAWTH_CHARITY_WALLET,
+          address: PAWTH_CHARITY_WALLET[chainId],
           symbol: 'PAWTH Charity',
           name: 'Pawthereum Charity Wallet',
           logo: 'https://pawthereum.github.io/Pancakeswap/images/right-supercat.svg',
