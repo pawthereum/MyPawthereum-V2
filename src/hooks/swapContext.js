@@ -995,21 +995,21 @@ const useSwapContext = () => {
     )
     let swapReq
 
-    const ethers = Moralis.web3Library;
-    const provider = ethers.getDefaultProvider('http://localhost:8545')
-    const ethBalanceBeforeRaw = await provider.getBalance(account)
-    let ethBalanceBefore, tokenBalanceBefore, token
+    // const ethers = Moralis.web3Library;
+    // const provider = ethers.getDefaultProvider('http://localhost:8545')
+    // const ethBalanceBeforeRaw = await provider.getBalance(account)
+    // let ethBalanceBefore, tokenBalanceBefore, token
 
     try {
       if (side === 'buy') {
-        token = await new web3Provider.Contract(
-          outputCurrency.address,
-          ERC20ABI,
-          web3.getSigner()
-        )
-        const tokenBalanceBeforeRaw = await token.balanceOf(account)
-        tokenBalanceBefore = new TokenAmount(outputToken, tokenBalanceBeforeRaw)
-        ethBalanceBefore = new TokenAmount(inputToken, ethBalanceBeforeRaw)
+        // token = await new web3Provider.Contract(
+        //   outputCurrency.address,
+        //   ERC20ABI,
+        //   web3.getSigner()
+        // )
+        // const tokenBalanceBeforeRaw = await token.balanceOf(account)
+        // tokenBalanceBefore = new TokenAmount(outputToken, tokenBalanceBeforeRaw)
+        // ethBalanceBefore = new TokenAmount(inputToken, ethBalanceBeforeRaw)
 
         swapReq = await pawswap.buyOnPawSwap(
           swap.outputAmount.token.address,
@@ -1027,14 +1027,14 @@ const useSwapContext = () => {
           }
         )
       } else {
-        token = await new web3Provider.Contract(
-          inputCurrency.address,
-          ERC20ABI,
-          web3.getSigner()
-        )
-        const tokenBalanceBeforeRaw = await token.balanceOf(account)
-        tokenBalanceBefore = new TokenAmount(inputToken, tokenBalanceBeforeRaw)
-        ethBalanceBefore = new TokenAmount(outputToken, ethBalanceBeforeRaw)
+        // token = await new web3Provider.Contract(
+        //   inputCurrency.address,
+        //   ERC20ABI,
+        //   web3.getSigner()
+        // )
+        // const tokenBalanceBeforeRaw = await token.balanceOf(account)
+        // tokenBalanceBefore = new TokenAmount(inputToken, tokenBalanceBeforeRaw)
+        // ethBalanceBefore = new TokenAmount(outputToken, ethBalanceBeforeRaw)
 
         swapReq = await pawswap.sellOnPawSwap(
           swap.inputAmount.token.address,
@@ -1073,10 +1073,10 @@ const useSwapContext = () => {
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       })
       console.log('🌈🌈🌈🌈🌈🌈🌈')
-      const tokenBalanceAfterRaw = await token.balanceOf(account)
-      const tokenBalanceAfter = new TokenAmount(side === 'buy' ? outputToken : inputToken, tokenBalanceAfterRaw)
-      const ethBalanceAfterRaw = await provider.getBalance(account)
-      const ethBalanceAfter = new TokenAmount(side === 'buy' ? inputToken : outputToken, ethBalanceAfterRaw)
+      // const tokenBalanceAfterRaw = await token.balanceOf(account)
+      // const tokenBalanceAfter = new TokenAmount(side === 'buy' ? outputToken : inputToken, tokenBalanceAfterRaw)
+      // const ethBalanceAfterRaw = await provider.getBalance(account)
+      // const ethBalanceAfter = new TokenAmount(side === 'buy' ? inputToken : outputToken, ethBalanceAfterRaw)
 
       // const tokenBalanceDiff = tokenBalanceAfter > tokenBalanceBefore
       //   ? tokenBalanceAfter.subtract(tokenBalanceBefore).toSignificant(18)
@@ -1085,13 +1085,6 @@ const useSwapContext = () => {
       // const ethBalanceDiff = ethBalanceAfter > ethBalanceBefore
       //   ? ethBalanceAfter.subtract(ethBalanceBefore).toSignificant(18)
       //   : ethBalanceBefore.subtract(ethBalanceAfter).toSignificant(18)
-
-      console.log({
-        tokenBalanceBefore: tokenBalanceBefore.toSignificant(18),
-        tokenBalanceAfter: tokenBalanceAfter.toSignificant(18),
-        ethBalanceBefore: ethBalanceBefore.toSignificant(18),
-        ethBalanceAfter: ethBalanceAfter.toSignificant(18)
-      })
 
       return tx
     } catch (e) {
