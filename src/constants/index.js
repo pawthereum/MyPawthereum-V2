@@ -110,11 +110,11 @@ export const PAWSWAP = {
   },
   '0x61': {
     abi: pawswapAbi,
-    address: '0xaFdEA0C63f50Ae31f23C2bB771c4836681fCeAFE',
+    address: '0xdF1193ceC86eb04394697BaA31f592644A2BD0e0',
   },
   'bsctest': {
     abi: pawswapAbi,
-    address: '0xaFdEA0C63f50Ae31f23C2bB771c4836681fCeAFE',
+    address: '0xdF1193ceC86eb04394697BaA31f592644A2BD0e0',
   },
   '0x539': {
     abi: pawswapAbi,
