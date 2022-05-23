@@ -91,7 +91,7 @@ const menuItems = [
 ]
 .filter(c => {
   return process.env.NODE_ENV !== 'production' ? true :
-  c.value === 'Ethereum' || c.value === 'Binance' || c.value === 'Multichain'
+  c.value === 'Ethereum' || c.value === 'Binance' || c.value === 'Multichain' || c.value === 'Smart Chain Testnet'
 });
 
 function Chains() {
