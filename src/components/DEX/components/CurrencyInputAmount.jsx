@@ -77,13 +77,16 @@ function CurrencyAmountInput (props) {
         defaultValue={null}
         min="0"
         precision={precision}
-        formatter={v => v.toString()}
+        formatter={v => v > 0 ? Number(v).toLocaleString([], {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 18
+        }) : v}
+        parser={value => value.replace(/\$\s?|(,*)/g, '')}
         value={value}
         onChange={onInputChange}
         controls={false}
         keyboard={false}
         stringMode
-        type="number"
       />
       <CurrencyPicker side={props.side} />
     </div>
