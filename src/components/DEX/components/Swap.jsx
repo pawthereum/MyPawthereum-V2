@@ -59,9 +59,9 @@ function Swap () {
     setApprovalText('Approving')
 
     await updateAllowance({
-      amount: inputAmount,
+      amount: trade.swap.inputAmountSlippage,
       spender: PAWSWAP[chainId]?.address,
-      token: inputCurrency
+      token: trade.swap.inputAmount.token
     })
 
     setApprovalIsLoading(false)
@@ -107,25 +107,21 @@ function Swap () {
   }, [tradeIsLoading, estimatedSide])
 
   useEffect(() => {
-    if (!inputCurrency) return
-    if (
-      !isNative(inputCurrency?.address) &&
-      inputAmount && 
-      inputAmount.toSignificant(inputCurrency.decimals) > 0
-    ) {
-      checkAllowance()
-    }
+    console.log('🌽🌽🌽🌽🌽🌽🌽🌽🌽',  trade)
+    if (!trade?.swap?.inputAmountSlippage || !trade?.swap?.inputAmount?.token) return
+    if (trade.side === 'buy') return
+    checkAllowance()
     async function checkAllowance () {
       console.log('checking....🌽')
       const sufficientAllowance = await hasAllowance({
-        amount: inputAmount,
-        token: inputCurrency,
+        amount: trade?.swap?.inputAmountSlippage,
+        token: trade?.swap?.inputAmount?.token,
         spender: PAWSWAP[chainId]?.address
       })
       // show approve btn if there isnt a sufficient allowance
       setShowApproveBtn(!sufficientAllowance)
     }
-  }, [inputCurrency, inputAmount])
+  }, [trade])
 
   return (
     <div>

@@ -31,6 +31,7 @@ const useAllowances = () => {
   async function hasAllowance (params) {
     if (!chainId) return false
     const { amount, spender, token } = params
+    console.log(params)
 
     if (allowanceWasCheckedWithinMaxBlocksBeforeStale(params)) {
       return JSBI.greaterThanOrEqual(allowances[token.address][spender].allowance.raw, amount.raw)
