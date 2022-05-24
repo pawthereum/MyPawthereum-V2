@@ -4,6 +4,7 @@ import { ERC20ABI, PAWSWAP } from '../constants'
 import { useMoralis } from 'react-moralis'
 import Web3 from 'web3'
 import { tokenList } from 'constants/tokenList'
+import { useERC20Balance } from './useERC20Balance'
 
 const API_ENDPOINT = `https://api.coingecko.com/api/v3/coins/binance-smart-chain/contract/`
 
@@ -13,6 +14,7 @@ const pawswapListing = (address) => {
 
 const useSearchToken = (searchQuery) => {
   const { Moralis, chainId, web3 } = useMoralis()
+  const { assets } = useERC20Balance()
   
   if (!searchQuery) {
     searchQuery = ''
@@ -40,6 +42,12 @@ const useSearchToken = (searchQuery) => {
       return taxStruct !== '0x0000000000000000000000000000000000000000'
     }
 
+    const getUserBalance = (tokenAddr) => {
+      const asset = assets.find(a => a.token_address === tokenAddr.toLowerCase())
+      if (!asset) return '0'
+      return Moralis.Units.FromWei(asset.balance, asset.decimals)
+    }
+
     const fetchData = async () => {
       // gets some data such as name, symbol, decimals with web3 api
       // this handles tokens that are not listed on coingecko
@@ -57,6 +65,8 @@ const useSearchToken = (searchQuery) => {
       const tokenIsListed = await isListed(checkSummedAddress)
       // checks if there is a hardcoded listing in the UI
       const listing = pawswapListing(checkSummedAddress)
+      const userBalance = getUserBalance(checkSummedAddress)
+      console.log({ userBalance })
       const tokenData = {
         name: web3TokenData[0],
         symbol: web3TokenData[1],
@@ -67,7 +77,8 @@ const useSearchToken = (searchQuery) => {
         typicalBuyTax: listing?.typicalBuyTax || 0,
         typicalSellTax: listing?.typicalSellTax || 0,
         color: listing?.color || null,
-        isListed: tokenIsListed
+        isListed: tokenIsListed,
+        userBalance
       }
       let coinGeckoTokenData = null
       try {

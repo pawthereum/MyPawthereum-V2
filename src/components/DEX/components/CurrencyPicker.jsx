@@ -200,7 +200,7 @@ function CurrencyPicker (props) {
               paddingBottom: '12px'
             }}>Search Results</div>
             <List
-              itemLayout="vertical"
+              itemLayout="horizontal"
               style={{ 
                 maxHeight: '500px', 
                 overflowY: 'scroll',
@@ -213,7 +213,10 @@ function CurrencyPicker (props) {
                   key={token?.address}
                   style={{ cursor: token.isListed ? 'pointer' : '' }}
                   onClick={() => token.isListed ? pickCurrency(token.address) : ''}
-                  // actions={getWalletOptionActions(walletOption)}
+                  actions={[<span>{Number(token?.userBalance).toLocaleString([], {
+                    maximumFractionDigits: 4,
+                    minimumFractionDigits: 0
+                  })}</span>]}
                 >
                   <List.Item.Meta
                     avatar={<Avatar src={token?.logoURI} />}
