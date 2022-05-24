@@ -211,9 +211,8 @@ function CurrencyPicker (props) {
               renderItem={token => (
                 <List.Item
                   key={token?.address}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => pickCurrency(token.address)}
-                  
+                  style={{ cursor: token.isListed ? 'pointer' : '' }}
+                  onClick={() => token.isListed ? pickCurrency(token.address) : ''}
                   // actions={getWalletOptionActions(walletOption)}
                 >
                   <List.Item.Meta
