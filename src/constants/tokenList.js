@@ -79,17 +79,17 @@ export const tokenList = {
     //   "typicalSellTax": 12,
     //   "color": "#8751D8"
     // },
-    // {
-    //   "name": "SafeMoon",
-    //   "symbol": "SFM",
-    //   "address": "0x44255f8de687371b5f7f8c9398a300e5a7628895",
-    //   "chainId": 97,
-    //   "decimals": 9,
-    //   "logoURI": "https://safemoon.com/img/logo.svg",
-    //   "dex": "pancakeswap",
-    //   "typicalBuyTax": 10,
-    //   "typicalSellTax": 10,
-    //   "color": "#008A81"
-    // }
+    {
+      "name": "SafeMoon",
+      "symbol": "SFM",
+      "address": "0x44255F8De687371B5f7F8c9398A300e5a7628895",
+      "chainId": 97,
+      "decimals": 9,
+      "logoURI": "https://safemoon.com/img/logo.svg",
+      "dex": "pancakeswap",
+      "typicalBuyTax": 10,
+      "typicalSellTax": 10,
+      "color": "#008A81"
+    }
   ]
 }
