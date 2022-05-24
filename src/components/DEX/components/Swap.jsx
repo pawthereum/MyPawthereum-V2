@@ -108,13 +108,13 @@ function Swap () {
 
   useEffect(() => {
     console.log('🌽🌽🌽🌽🌽🌽🌽🌽🌽',  trade)
-    if (!trade?.swap?.inputAmountSlippage || !trade?.swap?.inputAmount?.token) return
+    if (!trade?.swap?.inputAmountSlippage && !trade?.swap?.inputAmount?.token) return
     if (trade.side === 'buy') return
     checkAllowance()
     async function checkAllowance () {
       console.log('checking....🌽')
       const sufficientAllowance = await hasAllowance({
-        amount: trade?.swap?.inputAmountSlippage,
+        amount: trade?.swap?.inputAmountSlippage || trade?.swap?.inputAmount,
         token: trade?.swap?.inputAmount?.token,
         spender: PAWSWAP[chainId]?.address
       })
