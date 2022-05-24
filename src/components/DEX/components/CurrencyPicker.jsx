@@ -1,11 +1,13 @@
 import { useContext, useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { useERC20Balance } from '../../../hooks/useERC20Balance'
-import { AutoComplete, Avatar, Input, List, Modal, Button } from 'antd'
+import { AutoComplete, Avatar, Input, List, Modal, Button, Tag, Skeleton } from 'antd'
 import { CaretDownOutlined } from "@ant-design/icons";
 import AppContext from '../../../AppContext'
 import useNative from 'hooks/useNative';
 import { networkConfigs } from 'helpers/networks';
+import { COLORS } from '../../../constants'
+import useSearchToken from 'hooks/useTokenSearch';
 
 function CurrencyPicker (props) {
   const { 
@@ -25,6 +27,10 @@ function CurrencyPicker (props) {
   const [nativeCurrency, setNativeCurrency] = useState(null);
   const [omittedSelectionAddresses, setOmittedSelectionAddresses] = useState([])
   const [options, setOptions] = useState([])
+  const [searchTerm, setSearchTerm] = useState('');
+  const [tokenSearchResult, setTokenSearchResult] = useState(null)
+
+  const MIN_ADDR_LENGTH = 42
 
   const setTokenBalances = async () => {
     const tList = await Promise.all(tokenList.map(async(t) => {
@@ -141,6 +147,18 @@ function CurrencyPicker (props) {
     handleClose()
   }
 
+  const onSearchInputChange = (e) => {
+    setTokenSearchResult(null)
+    setSearchTerm(e.target.value)
+  }
+
+  const tokenData = useSearchToken(searchTerm)
+
+  useEffect(() => {
+    if (!tokenData) return
+    setTokenSearchResult(tokenData)
+  }, [tokenData])
+
   return (
     <div style={{ 
       cursor: 'pointer',
@@ -155,15 +173,67 @@ function CurrencyPicker (props) {
         }</span> <CaretDownOutlined />
       </Button>
       <Modal title="Select a token" visible={isModalVisible} footer={null} onCancel={handleClose}>
-        <AutoComplete
-          dropdownClassName="certain-category-search-dropdown"
-          dropdownMatchSelectWidth={500}
-          style={{ width: '100%' }}
-          options={options}
-          onSelect={pickCurrency}
-        >
-          <Input.Search size="large" placeholder="Search name or paste address" />
-        </AutoComplete>
+        <div style={{ paddingBottom: '12px' }}>
+          <Input
+            placeholder="Search for a token"
+            onChange={onSearchInputChange} 
+            size="large"
+            style={{ borderRadius: '1rem' }}
+          />
+        </div>
+        {
+          // Loading state for search results
+          !tokenSearchResult && searchTerm.length === MIN_ADDR_LENGTH ?
+          <>
+            <div style={{ 
+              paddingTop: '12px',
+              paddingBottom: '12px'
+            }}>Search Results</div>
+            <Skeleton />
+          </> : ''
+        }
+        {
+          !tokenSearchResult ? '' :
+          <>
+            <div style={{ 
+              paddingTop: '12px',
+              paddingBottom: '12px'
+            }}>Search Results</div>
+            <List
+              itemLayout="vertical"
+              style={{ 
+                maxHeight: '500px', 
+                overflowY: 'scroll',
+                boxShadow: 'rgb(74 74 104 / 10%) 0px 1px 0px 0px inset'
+                // borderRadius: '1rem'
+              }}
+              dataSource={[tokenSearchResult]}
+              renderItem={token => (
+                <List.Item
+                  key={token?.address}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => pickCurrency(token.address)}
+                  
+                  // actions={getWalletOptionActions(walletOption)}
+                >
+                  <List.Item.Meta
+                    avatar={<Avatar src={token?.logoURI} />}
+                    title={
+                      <div style={{ display: 'flex', alignItems: 'center'}}>
+                        {token?.name}
+                        {
+                          token.isListed ? '' : 
+                          <Tag style={{marginLeft: '5px'}} color="processing">Not listed on PawSwap</Tag>
+                        }
+                      </div>}
+                    description={<span>{token.symbol}</span>}
+                    // description={<span>{token?.coinGeckoTokenData?.description?.en}</span>}
+                  />
+                </List.Item>
+              )}
+            />
+          </>
+        }
         <List
           itemLayout="horizontal"
           header={<div>Featured Tokens</div>}
