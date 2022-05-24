@@ -225,7 +225,7 @@ function CurrencyPicker (props) {
                         {token?.name}
                         {
                           token.isListed ? '' : 
-                          <Tag style={{marginLeft: '5px'}} color="processing">Not listed on PawSwap</Tag>
+                          <Tag style={{marginLeft: '5px'}} color="processing">Not listed</Tag>
                         }
                       </div>}
                     description={<span>{token.symbol}</span>}
