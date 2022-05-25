@@ -188,7 +188,7 @@ function Swap () {
                       {maxApprovalIsLoading ? 'Approving' :
                         <span>
                           Approve Maximum
-                          <Popover content={maxApprovePopOverContent} trigger="hover">
+                          <Popover content={maxApprovePopOverContent} trigger="hover" onClick={e => e.stopPropagation()}>
                             <QuestionCircleOutlined style={{ marginLeft: '5px' }}/>
                           </Popover>
                         </span>
@@ -217,7 +217,7 @@ function Swap () {
                       {approvalIsLoading ? 'Approving' :
                         <span>
                           Approve Transaction
-                          <Popover content={txApprovePopOverContent} trigger="hover">
+                          <Popover content={txApprovePopOverContent} trigger="hover" onClick={e => e.stopPropagation()}>
                             <QuestionCircleOutlined style={{ marginLeft: '5px' }}/>
                           </Popover>
                         </span>
