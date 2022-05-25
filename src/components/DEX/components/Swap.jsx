@@ -59,7 +59,7 @@ function Swap () {
     setApprovalText('Approving')
 
     await updateAllowance({
-      amount: trade.swap.inputAmountSlippage,
+      amount: trade.swap.inputAmountSlippage || inputAmount,
       spender: PAWSWAP[chainId]?.address,
       token: trade.swap.inputAmount.token
     })
@@ -112,9 +112,8 @@ function Swap () {
     if (trade.side === 'buy') return
     checkAllowance()
     async function checkAllowance () {
-      console.log('checking....🌽')
       const sufficientAllowance = await hasAllowance({
-        amount: trade?.swap?.inputAmountSlippage || trade?.swap?.inputAmount,
+        amount: trade?.swap?.inputAmountSlippage || inputAmount,
         token: trade?.swap?.inputAmount?.token,
         spender: PAWSWAP[chainId]?.address
       })

@@ -71,6 +71,8 @@ const useAllowances = () => {
       ERC20ABI, 
       web3.getSigner()
     )
+    console.log(params)
+    console.log(amount.raw.toString())
 
     try {
       const approveReq = await tokenContract.approve(
