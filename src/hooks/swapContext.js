@@ -626,7 +626,7 @@ const useSwapContext = () => {
       amountOut = new TokenAmount(
         outputToken,
         Moralis.Units.Token(
-          amountIn.divide(amountOutPercentageOfTradingFee).toFixed(outputCurrency.decimals),
+          amountOut.divide(amountOutPercentageOfTradingFee).toFixed(outputCurrency.decimals),
           outputCurrency.decimals
         )
       )
