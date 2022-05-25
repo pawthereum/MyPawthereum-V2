@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
-import { Button, Row, Col, Card } from 'antd'
+import { Button, Row, Col, Card, Popover } from 'antd'
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import AppContext from 'AppContext'
 import { useMoralis } from 'react-moralis'
 import TradeCard from './TradeCard';
@@ -31,6 +32,23 @@ const styles = {
   }
 }
 
+const maxApprovePopOverContent = () => (
+  <div style={{ maxWidth: '250px' }}>
+    Approving the maximum amount is the default for most DEX's. 
+    This means that you'll approve more tokens than necessary 
+    but you won't need to make future approval transactions for 
+    subsequent sells of this token.
+  </div>
+)
+
+const txApprovePopOverContent = () => (
+  <div style={{ maxWidth: '250px' }}>
+    Approving the specified amount for this transaction is a more secure practice  
+    compared to the maximum approval however, you will need to make more approval 
+    transactions for future sells of this token.
+  </div>
+)
+
 function Swap () {
   const { chainId } = useMoralis()
   const { 
@@ -50,24 +68,22 @@ function Swap () {
   const [outputIsLoading, setOutputIsLoading] = useState(false)
   const [showApproveBtn, setShowApproveBtn] = useState(false)
   const [approvalIsLoading, setApprovalIsLoading] = useState(false)
-  const [approvalText, setApprovalText] = useState('Approve')
+  const [maxApprovalIsLoading, setMaxApprovalIsLoading] = useState(false)
   const [highPriceImpact, setHighPriceImpact] = useState(false)
   const [exceedsMaxPriceImpact, setExceedsMaxPriceImpact] = useState(false)
 
-  const approveInputAmount = async () => {
-    setApprovalIsLoading(true)
-    setApprovalText('Approving')
-
+  const approveInputAmount = async ({ isMax }) => {
+    isMax ? setMaxApprovalIsLoading(true) : setApprovalIsLoading(true)
     await updateAllowance({
-      amount: trade.swap.inputAmountSlippage || inputAmount,
+      amount: trade?.isExactIn ? inputAmount : trade?.swap?.inputAmountSlippage,
       spender: PAWSWAP[chainId]?.address,
-      token: trade.swap.inputAmount.token
+      token: trade.swap.inputAmount.token,
+      isMax,
     })
 
-    setApprovalIsLoading(false)
-    setShowApproveBtn(false)
-    setApprovalText('Approve')
-
+     // check the allowance even if we've already checked it recently
+    checkAllowance({ forceCheck: true })
+    isMax ? setMaxApprovalIsLoading(false) : setApprovalIsLoading(false)
     return true
   }
 
@@ -106,20 +122,23 @@ function Swap () {
     return setOutputIsLoading(true)
   }, [tradeIsLoading, estimatedSide])
 
+  async function checkAllowance (params) {
+    const sufficientAllowance = await hasAllowance({
+      amount: trade?.isExactIn ? inputAmount : trade?.swap?.inputAmountSlippage,
+      token: trade?.swap?.inputAmount?.token,
+      spender: PAWSWAP[chainId]?.address,
+      forceCheck: params?.forceCheck,
+    })
+    // show approve btn if there isnt a sufficient allowance
+    setShowApproveBtn(!sufficientAllowance)
+  }
+
   useEffect(() => {
-    console.log('🌽🌽🌽🌽🌽🌽🌽🌽🌽',  trade)
-    if (!trade?.swap?.inputAmountSlippage && !trade?.swap?.inputAmount?.token) return
+    if (trade?.isExactIn && !inputAmount) return
+    if (!trade?.isExactIn && !trade?.swap?.inputAmountSlippage) return
+    // if (!trade?.swap?.inputAmountSlippage && !trade?.swap?.inputAmount?.token) return
     if (trade.side === 'buy') return
     checkAllowance()
-    async function checkAllowance () {
-      const sufficientAllowance = await hasAllowance({
-        amount: trade?.swap?.inputAmountSlippage || inputAmount,
-        token: trade?.swap?.inputAmount?.token,
-        spender: PAWSWAP[chainId]?.address
-      })
-      // show approve btn if there isnt a sufficient allowance
-      setShowApproveBtn(!sufficientAllowance)
-    }
   }, [trade])
 
   return (
@@ -146,6 +165,7 @@ function Swap () {
             }}>
               {
                 !showApproveBtn ? '' :
+                <>
                 <Col span={12}>
                   <Button
                     type="primary"
@@ -154,17 +174,60 @@ function Swap () {
                       width: "100%",
                       // marginTop: "15px",
                       borderRadius: "0.6rem",
-                      height: "50px",
+                      // height: "50px",
+                      whiteSpace: "normal",
+                      height:'65px',
+                      marginBottom:'10px',
                       ...styles.outset,
                     }}
-                    onClick={() => approveInputAmount()}
-                    loading={approvalIsLoading}
+                    onClick={() => approveInputAmount({ isMax: true })}
+                    disabled={approvalIsLoading}
+                    loading={maxApprovalIsLoading}
                   >
-                    {approvalText}
+                    <span>
+                      {maxApprovalIsLoading ? 'Approving' :
+                        <span>
+                          Approve Maximum
+                          <Popover content={maxApprovePopOverContent} trigger="hover">
+                            <QuestionCircleOutlined style={{ marginLeft: '5px' }}/>
+                          </Popover>
+                        </span>
+                      }
+                    </span>
                   </Button>
                 </Col>
+                <Col span={12}>
+                  <Button
+                    size="large"
+                    style={{
+                      width: "100%",
+                      // marginTop: "15px",
+                      borderRadius: "0.6rem",
+                      // height: "50px",
+                      ...styles.outset,
+                      whiteSpace: "normal",
+                      height:'65px',
+                      marginBottom:'10px'
+                    }}
+                    onClick={() => approveInputAmount({ isMax: false })}
+                    disabled={maxApprovalIsLoading}
+                    loading={approvalIsLoading}
+                  >
+                    <span>
+                      {approvalIsLoading ? 'Approving' :
+                        <span>
+                          Approve Transaction
+                          <Popover content={txApprovePopOverContent} trigger="hover">
+                            <QuestionCircleOutlined style={{ marginLeft: '5px' }}/>
+                          </Popover>
+                        </span>
+                      }
+                    </span>
+                  </Button>
+                </Col>
+                </>
               }
-              <Col span={showApproveBtn ? 12 : 24}>
+              <Col span={showApproveBtn ? 0 : 24}>
                 {/* <ConfirmSwapModal /> */}
                 <Button
                   type="primary"

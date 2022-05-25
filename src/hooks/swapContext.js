@@ -993,6 +993,10 @@ const useSwapContext = () => {
       PAWSWAP[chainId]?.abi,
       web3.getSigner()
     )
+    console.log("PAWSWAP IS " + PAWSWAP[chainId]?.address)
+    console.log("AMOUNT IS " + isExactIn
+    ? inputAmount.raw.toString() //Moralis.Units.Token(amountIn, tokenIn?.decimals)
+    : swap.inputAmountSlippage.raw.toString())
     let swapReq
 
     // const ethers = Moralis.web3Library;

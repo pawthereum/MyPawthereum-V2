@@ -23,6 +23,8 @@ const useAllowances = () => {
   const { currentBlock } = useContext(AppContext);
   const [allowances, setAllowances] = useState({})
 
+  const MAX_APPROVAL = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+
   const allowanceWasCheckedWithinMaxBlocksBeforeStale = ({ token, spender }) => {
     if (!allowances[token.address] || !allowances[token.address][spender]) return false
     return Math.abs(currentBlock - allowances[token.address][spender].lastUpdated) <= MAX_BLOCKS_BEFORE_STALE
@@ -30,10 +32,8 @@ const useAllowances = () => {
 
   async function hasAllowance (params) {
     if (!chainId) return false
-    const { amount, spender, token } = params
-    console.log(params)
-
-    if (allowanceWasCheckedWithinMaxBlocksBeforeStale(params)) {
+    const { amount, spender, token, forceCheck } = params
+    if (allowanceWasCheckedWithinMaxBlocksBeforeStale(params) && !forceCheck) {
       return JSBI.greaterThanOrEqual(allowances[token.address][spender].allowance.raw, amount.raw)
     }
     
@@ -63,7 +63,7 @@ const useAllowances = () => {
   }
 
   async function updateAllowance (params) {
-    const { amount, spender, token } = params
+    const { amount, spender, token, isMax } = params
     const web3Provider = Moralis.web3Library;
 
     const tokenContract = new web3Provider.Contract(
@@ -71,13 +71,11 @@ const useAllowances = () => {
       ERC20ABI, 
       web3.getSigner()
     )
-    console.log(params)
-    console.log(amount.raw.toString())
 
     try {
       const approveReq = await tokenContract.approve(
         spender,
-        amount.raw.toString()
+        isMax ? MAX_APPROVAL : amount.raw.toString()
       )
       openNotification({
         message: "🔊 Approval Submitted!",
@@ -101,11 +99,15 @@ const useAllowances = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+
+      return tx
     } catch (e) {
       openNotification({
         message: "⚠️ Approval Error!",
         description: `${e.message}`
       });
+
+      return e
     }
   }
 
