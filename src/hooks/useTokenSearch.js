@@ -57,11 +57,16 @@ const useSearchToken = (searchQuery) => {
         ERC20ABI,
         web3.getSigner()
       )
-      const web3TokenData = await Promise.all([
-        tokenContract.name(),
-        tokenContract.symbol(),
-        tokenContract.decimals()
-      ])
+      let web3TokenData
+      try {
+        web3TokenData = await Promise.all([
+          tokenContract.name(),
+          tokenContract.symbol(),
+          tokenContract.decimals()
+        ])
+      } catch (e) {
+        return setData({ error: e })
+      }
       // checks if there is a token tax contract
       const tokenIsListed = await isListed(checkSummedAddress)
       // checks if there is a hardcoded listing in the UI

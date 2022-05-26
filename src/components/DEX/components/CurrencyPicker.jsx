@@ -1,13 +1,14 @@
 import { useContext, useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { useERC20Balance } from '../../../hooks/useERC20Balance'
-import { AutoComplete, Avatar, Input, List, Modal, Button, Tag, Skeleton } from 'antd'
+import { AutoComplete, Avatar, Input, List, Modal, Button, Tag, Skeleton, Result } from 'antd'
 import { CaretDownOutlined } from "@ant-design/icons";
 import AppContext from '../../../AppContext'
 import useNative from 'hooks/useNative';
 import { networkConfigs } from 'helpers/networks';
 import { COLORS } from '../../../constants'
 import useSearchToken from 'hooks/useTokenSearch';
+import paws from '../../../assets/images/paws.png'
 
 function CurrencyPicker (props) {
   const { 
@@ -163,6 +164,7 @@ function CurrencyPicker (props) {
   const tokenData = useSearchToken(searchTerm)
 
   useEffect(() => {
+    console.log('resultssssss', tokenData)
     if (!tokenData) return
     setTokenSearchResult(tokenData)
   }, [tokenData])
@@ -190,8 +192,21 @@ function CurrencyPicker (props) {
           />
         </div>
         {
+          !tokenSearchResult?.error ? '' :
+          <Result
+            icon={<img src={paws}/>}
+            title="We couldn't find a token with that address"
+            subtitle="Try searching for another token"
+            extra={
+              <span>
+                Try searching for a different address and ensure you're connected with the correct chain.
+              </span>
+            }
+          />
+        }
+        {
           // Loading state for search results
-          !tokenSearchResult && searchTerm.length === MIN_ADDR_LENGTH ?
+          !tokenSearchResult && !tokenSearchResult?.error && searchTerm.length === MIN_ADDR_LENGTH ?
           <>
             <div style={{ 
               paddingTop: '12px',
@@ -201,7 +216,7 @@ function CurrencyPicker (props) {
           </> : ''
         }
         {
-          !tokenSearchResult ? '' :
+          !tokenSearchResult || tokenSearchResult?.error ? '' :
           <>
             <div style={{ 
               paddingTop: '12px',
