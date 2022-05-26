@@ -7,6 +7,7 @@ import Web3 from "web3";
 const useNative = () => {
   const { Moralis, chainId, account } = useMoralis()
   const Web3Api = useMoralisWeb3Api();
+  const [nativeSymbol, setNativeSymbol] = useState()
   const [wrappedAddress, setWrappedAddress] = useState(null)
   const nativeAddress = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
   const unsupportedChains = ['0x539']
@@ -38,6 +39,7 @@ const useNative = () => {
   }
   
   const getWrappedNativeToken = () => {
+    if (!chainId) return null
     const web3Provider = Moralis.web3Library;
     return new Token(
       chainId,
@@ -47,8 +49,14 @@ const useNative = () => {
       'Wrapped' + networkConfigs[chainId]?.currencyName
     )
   }
+
+  useEffect(() => {
+    if (!chainId) setNativeSymbol(null)
+    setNativeSymbol(networkConfigs[chainId]?.currencySymbol)
+  }, [chainId])
   
   return {
+    nativeSymbol,
     getNativeBalance,
     getWrappedNativeToken,
     isNative,

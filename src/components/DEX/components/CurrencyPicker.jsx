@@ -14,6 +14,8 @@ function CurrencyPicker (props) {
     tokenList, 
     updateInputCurrency, 
     updateOutputCurrency,
+    listCurrency,
+    updateListCurrency,
     inputCurrency,
     outputCurrency,
     estimatedSide
@@ -96,6 +98,11 @@ function CurrencyPicker (props) {
   });
 
   useEffect(() => {
+    if (props.side === 'list' && listCurrency) {
+      console.log('~~~~~~~~~~~~~~')
+      console.log({ listCurrency })
+      updateListCurrency(listCurrency)
+    }
     if (props.side === 'input' && inputCurrency) {
       if (inputCurrency?.address.toLowerCase() === outputCurrency?.address.toLowerCase()) {
         updateOutputCurrency(null)
@@ -116,7 +123,7 @@ function CurrencyPicker (props) {
       }
     }
 
-  }, [props.side, estimatedSide, inputCurrency, outputCurrency])
+  }, [props.side, estimatedSide, inputCurrency, outputCurrency, listCurrency])
 
   useEffect(() => {
     if (tokenListWithBalances) {
@@ -137,7 +144,8 @@ function CurrencyPicker (props) {
 
 
   const pickCurrency = (currency) => {
-    const selection = tokenList.find(t => t.address === currency)
+    console.log({currency, tokenList})
+    const selection = tokenList.find(t => t.address.toLowerCase() === currency.toLowerCase())
     if (isNative(selection.address)) {
       selection.address = networkConfigs[chainId]?.wrapped
     }
@@ -236,27 +244,30 @@ function CurrencyPicker (props) {
             />
           </>
         }
-        <List
-          itemLayout="horizontal"
-          header={<div>Featured Tokens</div>}
-          dataSource={tokenListWithBalances.filter(t => !omittedSelectionAddresses.includes(t?.address?.toLowerCase()))}
-          renderItem={token => (
-            <List.Item
-              style={{ cursor: 'pointer' }}
-              onClick={() => pickCurrency(token.address)}
-              actions={[<span>{Number(token.userBalance).toLocaleString([], {
-                maximumFractionDigits: 4,
-                minimumFractionDigits: 0
-              })}</span>]}
-            >
-              <List.Item.Meta
-                avatar={<Avatar src={token.logoURI} />}
-                title={<span>{token.name}</span>}
-                description={<span>{token.symbol}</span>}
-              />
-            </List.Item>
-          )}
-        />
+        {
+          props.hideFeatured ? '' :
+          <List
+            itemLayout="horizontal"
+            header={<div>Featured Tokens</div>}
+            dataSource={tokenListWithBalances.filter(t => !omittedSelectionAddresses.includes(t?.address?.toLowerCase()))}
+            renderItem={token => (
+              <List.Item
+                style={{ cursor: 'pointer' }}
+                onClick={() => pickCurrency(token.address)}
+                actions={[<span>{Number(token.userBalance).toLocaleString([], {
+                  maximumFractionDigits: 4,
+                  minimumFractionDigits: 0
+                })}</span>]}
+              >
+                <List.Item.Meta
+                  avatar={<Avatar src={token.logoURI} />}
+                  title={<span>{token.name}</span>}
+                  description={<span>{token.symbol}</span>}
+                />
+              </List.Item>
+            )}
+          />
+        }
       </Modal>
     </div>
   )

@@ -31,6 +31,8 @@ const useSwapContext = () => {
   const { isNative } = useNative()
   const { getDexByRouterAddress } = useDexs()
   const [estimatedSide, setEstimatedSide] = useState(null)
+  const [listCurrency, setListCurrency] = useState(null)
+  const [listToken, setListToken] = useState(null)
   const [inputCurrency, setInputCurrency] = useState(null)
   const [inputAmount, setInputAmount] = useState(null)
   const [inputToken, setInputToken] = useState(null)
@@ -125,6 +127,12 @@ const useSwapContext = () => {
         description: `${e.message} ${e.data?.message}`
       });
     }
+  }
+
+  const updateListCurrency = async (currency) => {
+    const token = new Token(chainId, currency?.address, currency?.decimals, currency?.symbol, currency?.name)
+    setListCurrency(currency)
+    setListToken(token)
   }
 
   const updateInputCurrency = async (currency) => {
@@ -1172,6 +1180,9 @@ const useSwapContext = () => {
   return { 
     updateEstimatedSide, 
     estimatedSide,
+    updateListCurrency,
+    listCurrency,
+    listToken,
     updateInputCurrency,
     updateInputAmount,
     updateOutputCurrency,

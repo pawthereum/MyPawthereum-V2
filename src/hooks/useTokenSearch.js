@@ -43,6 +43,7 @@ const useSearchToken = (searchQuery) => {
     }
 
     const getUserBalance = (tokenAddr) => {
+      if (!assets) return '0'
       const asset = assets.find(a => a.token_address === tokenAddr.toLowerCase())
       if (!asset) return '0'
       return Moralis.Units.FromWei(asset.balance, asset.decimals)
