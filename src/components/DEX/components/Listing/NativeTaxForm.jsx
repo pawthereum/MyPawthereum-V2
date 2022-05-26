@@ -21,25 +21,33 @@ function NativeTaxForm () {
   const [tax1Name, setTax1Name] = useState(null)
   const [tax1Buy, setTax1Buy] = useState(null)
   const [tax1Sell, setTax1Sell] = useState(null)
+  const [tax1Address, setTax1Address] = useState(null)
   const [tax2Name, setTax2Name] = useState(null)
   const [tax2Buy, setTax2Buy] = useState(null)
   const [tax2Sell, setTax2Sell] = useState(null)
+  const [tax2Address, setTax2Address] = useState(null)
   const [tax3Name, setTax3Name] = useState(null)
   const [tax3Buy, setTax3Buy] = useState(null)
   const [tax3Sell, setTax3Sell] = useState(null)
+  const [tax3Address, setTax3Address] = useState(null)
   const [tax4Name, setTax4Name] = useState(null)
   const [tax4Buy, setTax4Buy] = useState(null)
   const [tax4Sell, setTax4Sell] = useState(null)
+  const [tax4Address, setTax4Address] = useState(null)
 
   const nativeTaxes = [
-    { name: tax1Name || 'Tax 1', setName: setTax1Name, setBuy: setTax1Buy, setSell: setTax1Sell, buy: tax1Buy, sell: tax1Sell },
-    { name: tax2Name || 'Tax 2', setName: setTax2Name, setBuy: setTax2Buy, setSell: setTax2Sell, buy: tax2Buy, sell: tax2Sell },
-    { name: tax3Name || 'Tax 3', setName: setTax3Name, setBuy: setTax3Buy, setSell: setTax3Sell, buy: tax3Buy, sell: tax3Sell },
-    { name: tax4Name || 'Tax 4', setName: setTax4Name, setBuy: setTax4Buy, setSell: setTax4Sell, buy: tax4Buy, sell: tax4Sell },
+    { name: tax1Name || 'Tax 1', setName: setTax1Name, setBuy: setTax1Buy, setSell: setTax1Sell, buy: tax1Buy, sell: tax1Sell, address: tax1Address, setAddress: setTax1Address },
+    { name: tax2Name || 'Tax 2', setName: setTax2Name, setBuy: setTax2Buy, setSell: setTax2Sell, buy: tax2Buy, sell: tax2Sell, address: tax2Address, setAddress: setTax2Address },
+    { name: tax3Name || 'Tax 3', setName: setTax3Name, setBuy: setTax3Buy, setSell: setTax3Sell, buy: tax3Buy, sell: tax3Sell, address: tax3Address, setAddress: setTax3Address },
+    { name: tax4Name || 'Tax 4', setName: setTax4Name, setBuy: setTax4Buy, setSell: setTax4Sell, buy: tax4Buy, sell: tax4Sell, address: tax4Address, setAddress: setTax4Address },
   ]
 
   const onNameInputChange = (e, nativeTax) => {
     nativeTax.setName(e.target.value)
+  }
+
+  const onAddressInputChange = (e, tax) => {
+    tax.setAddress(e.target.value)
   }
 
   const onBuyInputChange = (e, nativeTax) => {
@@ -48,6 +56,12 @@ function NativeTaxForm () {
 
   const onSellInputChange = (e, nativeTax) => {
     nativeTax.setSell(e.target.value)
+  }
+
+  const truncateAddress = (addr) => {
+    const MIN_ADDR_LENGTH = 42
+    if (!addr || addr.length !== MIN_ADDR_LENGTH) return null
+    return addr.slice(0, 5) + '...' + addr.substring(addr.length - 4)
   }
 
   const PanelHeader = (props) => (
@@ -79,6 +93,21 @@ function NativeTaxForm () {
                         <Input
                           placeholder="Tax name"
                           onChange={(e) => onNameInputChange(e, t)}
+                          size="large"
+                          style={{ borderRadius: '1rem' }}
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col span={24}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                          <label>{t.name} Address</label>
+                          <label>{truncateAddress(t.address)}</label>
+                        </div>
+                        <Input
+                          placeholder={`Address that receives ${nativeSymbol}`}
+                          value={t.address}
+                          onChange={(e) => onAddressInputChange(e, t)}
                           size="large"
                           style={{ borderRadius: '1rem' }}
                         />
