@@ -1,8 +1,7 @@
 import CurrencyPicker from '../components/CurrencyPicker'
-import { Divider, Row, Col, Space, Card, Alert, Collapse } from 'antd'
-import useNative from 'hooks/useNative';
-
-const { Panel } = Collapse;
+import { Row, Col, Space, Card, Alert } from 'antd'
+import NativeTaxForm from './Listing/NativeTaxForm'
+import TokenTaxForm from './Listing/TokenTaxForm'
 
 const styles = {
   card: {
@@ -15,12 +14,10 @@ const styles = {
   },
   outset: {
     boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px',
-  },
+  }
 }
 
 function ListToken () {
-  const { nativeSymbol } = useNative()
-
   return (
     <div>
       <Row>
@@ -36,42 +33,8 @@ function ListToken () {
                   <CurrencyPicker side="list" hideFeatured={true} />
                 </Col>
               </Row>
-              <Divider>
-                {nativeSymbol} Taxes
-              </Divider>
-              <Row>
-                <Col span={24}>
-                  <Collapse ghost expandIconPosition="right">
-                    <Panel header="Tax 1" key="1">
-                      <p>Tax 1</p>
-                    </Panel>
-                    <Panel header="Tax 2" key="2">
-                      <p>Tax 2</p>
-                    </Panel>
-                    <Panel header="Tax 3" key="3">
-                      <p>Tax 3</p>
-                    </Panel>
-                  </Collapse>
-                </Col>
-              </Row>
-              <Divider>
-                Token Taxes
-              </Divider>
-              <Row>
-                <Col span={24}>
-                  <Collapse ghost expandIconPosition="right">
-                    <Panel header="Tax 1" key="1">
-                      <p>Tax 1</p>
-                    </Panel>
-                    <Panel header="Tax 2" key="2">
-                      <p>Tax 2</p>
-                    </Panel>
-                    <Panel header="Tax 3" key="3">
-                      <p>Tax 3</p>
-                    </Panel>
-                  </Collapse>
-                </Col>
-              </Row>
+              <NativeTaxForm />
+              <TokenTaxForm />
             </Space>
           </Card>
         </Col>
