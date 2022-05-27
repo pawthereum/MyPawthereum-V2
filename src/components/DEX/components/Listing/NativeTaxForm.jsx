@@ -1,5 +1,6 @@
 
-import { useState } from 'react'
+import { useState, useContext } from 'react'
+import AppContext from 'AppContext'
 import { Divider, Row, Col, Space, Collapse, Input, Tag } from 'antd'
 import useNative from 'hooks/useNative';
 import { COLORS } from '../../../../constants';
@@ -16,6 +17,25 @@ const styles = {
 }
 
 function NativeTaxForm () {
+  const { 
+    listTaxStructFeeDecimal,
+    listTaxStructTax1Name,
+    listTaxStructTax1Address,
+    listTaxStructTax1Buy,
+    listTaxStructTax1Sell,
+    listTaxStructTax2Name,
+    listTaxStructTax2Address,
+    listTaxStructTax2Buy,
+    listTaxStructTax2Sell,
+    listTaxStructTax3Name,
+    listTaxStructTax3Address,
+    listTaxStructTax3Buy,
+    listTaxStructTax3Sell,
+    listTaxStructTax4Name,
+    listTaxStructTax4Address,
+    listTaxStructTax4Buy,
+    listTaxStructTax4Sell,
+  } = useContext(AppContext)
   const { nativeSymbol } = useNative()
 
   const [tax1Name, setTax1Name] = useState(null)
@@ -35,11 +55,52 @@ function NativeTaxForm () {
   const [tax4Sell, setTax4Sell] = useState(null)
   const [tax4Address, setTax4Address] = useState(null)
 
+  const formatTaxForViewing = (tax) => {
+    if (!tax) return null
+    return Number(tax.toString()) / 10**listTaxStructFeeDecimal
+  }
+
   const nativeTaxes = [
-    { name: tax1Name || 'Tax 1', setName: setTax1Name, setBuy: setTax1Buy, setSell: setTax1Sell, buy: tax1Buy, sell: tax1Sell, address: tax1Address, setAddress: setTax1Address },
-    { name: tax2Name || 'Tax 2', setName: setTax2Name, setBuy: setTax2Buy, setSell: setTax2Sell, buy: tax2Buy, sell: tax2Sell, address: tax2Address, setAddress: setTax2Address },
-    { name: tax3Name || 'Tax 3', setName: setTax3Name, setBuy: setTax3Buy, setSell: setTax3Sell, buy: tax3Buy, sell: tax3Sell, address: tax3Address, setAddress: setTax3Address },
-    { name: tax4Name || 'Tax 4', setName: setTax4Name, setBuy: setTax4Buy, setSell: setTax4Sell, buy: tax4Buy, sell: tax4Sell, address: tax4Address, setAddress: setTax4Address },
+    { 
+      name: tax1Name || listTaxStructTax1Name || 'Tax 1', 
+      setName: setTax1Name, 
+      setBuy: setTax1Buy, 
+      setSell: setTax1Sell, 
+      buy: tax1Buy !== null ? tax1Buy : formatTaxForViewing(listTaxStructTax1Buy), 
+      sell: tax1Sell !== null ? tax1Sell : formatTaxForViewing(listTaxStructTax1Sell), 
+      address: tax1Address || listTaxStructTax1Address,
+      setAddress: setTax1Address
+    },
+    { 
+      name: tax2Name || listTaxStructTax2Name || 'Tax 2', 
+      setName: setTax2Name, 
+      setBuy: setTax2Buy, 
+      setSell: setTax2Sell, 
+      buy: tax2Buy !== null ? tax2Buy : formatTaxForViewing(listTaxStructTax2Buy), 
+      sell: tax2Sell !== null ? tax2Sell : formatTaxForViewing(listTaxStructTax2Sell), 
+      address: tax2Address || listTaxStructTax2Address,
+      setAddress: setTax2Address 
+    },
+    { 
+      name: tax3Name || listTaxStructTax3Name || 'Tax 3', 
+      setName: setTax3Name, 
+      setBuy: setTax3Buy, 
+      setSell: setTax3Sell, 
+      buy: tax3Buy !== null ? tax3Buy : formatTaxForViewing(listTaxStructTax3Buy), 
+      sell: tax3Sell !== null ? tax3Sell : formatTaxForViewing(listTaxStructTax3Sell), 
+      address: tax3Address || listTaxStructTax3Address, 
+      setAddress: setTax3Address 
+    },
+    { 
+      name: tax4Name || listTaxStructTax4Name || 'Tax 4', 
+      setName: setTax4Name, 
+      setBuy: setTax4Buy, 
+      setSell: setTax4Sell, 
+      buy: tax4Buy !== null ? tax4Buy : formatTaxForViewing(listTaxStructTax4Buy), 
+      sell: tax4Sell !== null ? tax4Sell : formatTaxForViewing(listTaxStructTax4Sell), 
+      address: tax4Address || listTaxStructTax4Address, 
+      setAddress: setTax4Address 
+    },
   ]
 
   const onNameInputChange = (e, nativeTax) => {
@@ -68,8 +129,8 @@ function NativeTaxForm () {
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
       <div>{props.nativeTax.name}</div>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        { props.nativeTax.buy ? <Tag color="success">{props.nativeTax.buy}</Tag> : '' }
-        { props.nativeTax.sell ? <Tag color="error">{props.nativeTax.sell}</Tag> : '' }
+        { props.nativeTax.buy ? <Tag color="success">{props.nativeTax.buy}%</Tag> : '' }
+        { props.nativeTax.sell ? <Tag color="error">{props.nativeTax.sell}%</Tag> : '' }
         { !props.nativeTax.buy && !props.nativeTax.sell ? <Tag>disabled</Tag> : '' }
       </div>
     </div>
@@ -92,6 +153,7 @@ function NativeTaxForm () {
                         <label>Tax Name</label>
                         <Input
                           placeholder="Tax name"
+                          value={t.name}
                           onChange={(e) => onNameInputChange(e, t)}
                           size="large"
                           style={{ borderRadius: '1rem' }}
@@ -117,7 +179,8 @@ function NativeTaxForm () {
                       <Col span={24}>
                         <label>Buy Tax Percentage</label>
                         <Input
-                          onChange={(e) => onBuyInputChange(e, t)} 
+                          onChange={(e) => onBuyInputChange(e, t)}
+                          value={t.buy}
                           size="large"
                           style={{ borderRadius: '1rem' }}
                         />
@@ -129,6 +192,7 @@ function NativeTaxForm () {
                         <Input
                           onChange={(e) => onSellInputChange(e, t)} 
                           size="large"
+                          value={t.sell}
                           style={{ borderRadius: '1rem' }}
                         />
                       </Col>

@@ -152,7 +152,20 @@ function CurrencyPicker (props) {
     }
     console.log('selection', selection)
     setPickedCurrency(selection)
-    props.side === "input" ? updateInputCurrency(selection) : updateOutputCurrency(selection)
+    switch(props.side) {
+      case 'input':
+        updateInputCurrency(selection)
+        break
+      case 'output':
+        updateOutputCurrency(selection)
+        break
+      case 'list':
+        updateListCurrency(selection)
+        break
+      default:
+        console.log('unhandled currency selection')
+    }
+    // props.side === "input" ? updateInputCurrency(selection) : updateOutputCurrency(selection)
     handleClose()
   }
 
@@ -194,7 +207,7 @@ function CurrencyPicker (props) {
         {
           !tokenSearchResult?.error ? '' :
           <Result
-            icon={<img src={paws}/>}
+            icon={<div style={{display: 'flex', justifyContent: 'center'}}><img src={paws} height="100px"/></div>}
             title="We couldn't find a token with that address"
             subtitle="Try searching for another token"
             extra={

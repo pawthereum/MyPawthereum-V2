@@ -10,6 +10,7 @@ import useDexs from './useDexs'
 import { pack, keccak256 } from '@ethersproject/solidity'
 import { getCreate2Address } from '@ethersproject/address'
 import { Token, TokenAmount, Pair, TradeType, Trade, Route, Percent } from '@uniswap/sdk'
+import { getTaxStructure } from 'helpers/taxStructureFetcher'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -31,8 +32,6 @@ const useSwapContext = () => {
   const { isNative } = useNative()
   const { getDexByRouterAddress } = useDexs()
   const [estimatedSide, setEstimatedSide] = useState(null)
-  const [listCurrency, setListCurrency] = useState(null)
-  const [listToken, setListToken] = useState(null)
   const [inputCurrency, setInputCurrency] = useState(null)
   const [inputAmount, setInputAmount] = useState(null)
   const [inputToken, setInputToken] = useState(null)
@@ -127,12 +126,6 @@ const useSwapContext = () => {
         description: `${e.message} ${e.data?.message}`
       });
     }
-  }
-
-  const updateListCurrency = async (currency) => {
-    const token = new Token(chainId, currency?.address, currency?.decimals, currency?.symbol, currency?.name)
-    setListCurrency(currency)
-    setListToken(token)
   }
 
   const updateInputCurrency = async (currency) => {
@@ -247,119 +240,18 @@ const useSwapContext = () => {
   }
 
   const getTaxes = async (taxStructContract) => {
-    console.log({ taxStructContract })
-    let taxList = []
+    let taxStructure
     try {
-      taxList = await Promise.all([
-        taxStructContract.burnTaxBuyAmount(account),
-        taxStructContract.burnTaxSellAmount(account),
-        taxStructContract.liquidityTaxBuyAmount(account),
-        taxStructContract.liquidityTaxSellAmount(account),
-        taxStructContract.tokenTaxName(),
-        taxStructContract.tokenTaxBuyAmount(account),
-        taxStructContract.tokenTaxSellAmount(account),
-        taxStructContract.tax1Name(),
-        taxStructContract.tax1BuyAmount(account),
-        taxStructContract.tax1SellAmount(account),
-        taxStructContract.tax2Name(),
-        taxStructContract.tax2BuyAmount(account),
-        taxStructContract.tax2SellAmount(account),
-        taxStructContract.tax3Name(),
-        taxStructContract.tax3BuyAmount(account),
-        taxStructContract.tax3SellAmount(account),
-        taxStructContract.tax4Name(),
-        taxStructContract.tax4BuyAmount(account),
-        taxStructContract.tax4SellAmount(account),
-        taxStructContract.customTaxName(),
-        taxStructContract.feeDecimal(),
-      ])
-    } catch (e) {
-      console.log('error getting tax list', e)
+      taxStructure = await getTaxStructure({ taxStructContract, account })
+    } catch (e)  {
       setTradeIsLoading(false)
       return openNotification({
         message: "⚠️ Error getting taxes for token!",
         description: `${e.message} ${e.data?.message}`
       });
     }
-    const taxes = [
-      {
-        name: 'Burn Tax',
-        buy: taxList[0],
-        sell: taxList[1],
-        isBurn: true,
-        preSwapSellTaxAmount: 1,
-        preSwapBuyTaxAmount: 0,
-        postSwapSellTaxAmount: 0,
-        postSwapBuyTaxAmount: 1,
-      },
-      {
-        name: 'Liquidity Tax',
-        buy: taxList[2],
-        sell: taxList[3],
-        isLiquidity: true,
-        preSwapSellTaxAmount: 0.5,
-        preSwapBuyTaxAmount: 0.5,
-        postSwapSellTaxAmount: 0.5,
-        postSwapBuyTaxAmount: 0.5,
-      },
-      {
-        name: taxList[4],
-        buy: taxList[5],
-        sell: taxList[6],
-        preSwapSellTaxAmount: 1,
-        preSwapBuyTaxAmount: 0,
-        postSwapSellTaxAmount: 0,
-        postSwapBuyTaxAmount: 1,
-      },
-      {
-        name: taxList[7],
-        buy: taxList[8],
-        sell: taxList[9],
-        preSwapSellTaxAmount: 0,
-        preSwapBuyTaxAmount: 1,
-        postSwapSellTaxAmount: 1,
-        postSwapBuyTaxAmount: 0,
-      },
-      {
-        name: taxList[10],
-        buy: taxList[11],
-        sell: taxList[12],
-        preSwapSellTaxAmount: 0,
-        preSwapBuyTaxAmount: 1,
-        postSwapSellTaxAmount: 1,
-        postSwapBuyTaxAmount: 0,
-      },
-      {
-        name: taxList[13],
-        buy: taxList[14],
-        sell: taxList[15],
-        preSwapSellTaxAmount: 0,
-        preSwapBuyTaxAmount: 1,
-        postSwapSellTaxAmount: 1,
-        postSwapBuyTaxAmount: 0,
-      },
-      {
-        name: taxList[16],
-        buy: taxList[17],
-        sell: taxList[18],
-        preSwapSellTaxAmount: 0,
-        preSwapBuyTaxAmount: 1,
-        postSwapSellTaxAmount: 1,
-        postSwapBuyTaxAmount: 0,
-      },
-      {
-        name: taxList[19],
-        buy: 0,
-        sell: 0,
-        isCustom: true,
-        preSwapSellTaxAmount: 0,
-        preSwapBuyTaxAmount: 1,
-        postSwapSellTaxAmount: 1,
-        postSwapBuyTaxAmount: 0,
-      }
-    ]
-    setTokenTaxContractFeeDecimal(taxList[20])
-    return taxes
+    setTokenTaxContractFeeDecimal(taxStructure.feeDecimal)
+    return taxStructure.taxes
   }
 
   const getDex = async (taxStructureContract) => {
@@ -1180,9 +1072,6 @@ const useSwapContext = () => {
   return { 
     updateEstimatedSide, 
     estimatedSide,
-    updateListCurrency,
-    listCurrency,
-    listToken,
     updateInputCurrency,
     updateInputAmount,
     updateOutputCurrency,

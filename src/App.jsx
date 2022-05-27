@@ -33,6 +33,7 @@ import PawSend from "components/PawSend/PawSend"
 import RovingDogs from 'components/RovingDogs'
 import Pool from 'components/Stake'
 import useSwapContext from "hooks/swapContext";
+import useListingContext from "hooks/listingContext"
 const CoinGecko = require('coingecko-api')
  
 const { Header, Footer } = Layout;
@@ -93,11 +94,13 @@ const App = ({ isServerInfo }) => {
   }
 
   const swapContext = useSwapContext()
+  const listingContext = useListingContext()
 
   const globalState = {
     multichainEnabled,
     toggleUseMultichain,
-    ...swapContext
+    ...swapContext,
+    ...listingContext,
   }
 
   const [logo, setLogo] = useState('https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png')

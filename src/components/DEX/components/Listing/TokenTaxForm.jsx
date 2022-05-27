@@ -1,6 +1,7 @@
 
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { Divider, Row, Col, Space, Collapse, Input, Tag } from 'antd'
+import AppContext from 'AppContext';
 import { COLORS } from '../../../../constants';
 
 const { Panel } = Collapse;
@@ -14,8 +15,22 @@ const styles = {
   }
 }
 
+const DEFAULT_BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD'
+
 function TokenTaxForm () {
-  const DEFAULT_BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD'
+  const { 
+    listTaxStructFeeDecimal,
+    listTaxStructTokenTaxName,
+    listTaxStructTokenTaxAddress,
+    listTaxStructTokenTaxBuy,
+    listTaxStructTokenTaxSell,
+    listTaxStructBurnTaxAddress,
+    listTaxStructBurnTaxBuy,
+    listTaxStructBurnTaxSell,
+    listTaxStructLpTokenReceiver,
+    listTaxStructLiquidityTaxBuy,
+    listTaxStructLiquidityTaxSell,
+  } = useContext(AppContext)
 
   const [tokenTaxName, setTokenTaxName] = useState(null)
   const [tokenTaxAddress, setTokenTaxAddresss] = useState(null)
@@ -28,19 +43,41 @@ function TokenTaxForm () {
   const [liquidityTaxBuy, setLiquidityTaxBuy] = useState(null)
   const [liquidityTaxSell, setLiquidityTaxSell] = useState(null)
 
+  const formatTaxForViewing = (tax) => {
+    if (!tax) return null
+    return Number(tax.toString()) / 10**listTaxStructFeeDecimal
+  }
+
   const tokenTaxes = [
-    { name: tokenTaxName || 'Token Tax', setName: setTokenTaxName, address: tokenTaxAddress, setAddress: setTokenTaxAddresss, setBuy: setTokenTaxBuy, setSell: setTokenTaxSell, buy: tokenTaxBuy, sell: tokenTaxSell },
-    { name: 'Burn Tax', address: burnTaxAddress, setAddress: setBurnTaxAddress, setBuy: setBurnTaxBuy, setSell: setBurnTaxSell, buy: burnTaxBuy, sell: burnTaxSell },
+    { 
+      name: tokenTaxName || listTaxStructTokenTaxName || 'Token Tax', 
+      setName: setTokenTaxName, 
+      address: tokenTaxAddress || listTaxStructTokenTaxAddress, 
+      setAddress: setTokenTaxAddresss, 
+      setBuy: setTokenTaxBuy, 
+      setSell: setTokenTaxSell, 
+      buy: tokenTaxBuy !== null ? tokenTaxBuy : formatTaxForViewing(listTaxStructTokenTaxBuy), 
+      sell: tokenTaxSell !== null ? tokenTaxSell : formatTaxForViewing(listTaxStructTokenTaxSell)
+    },
+    { 
+      name: 'Burn Tax',
+      address: burnTaxAddress || listTaxStructBurnTaxAddress, 
+      setAddress: setBurnTaxAddress, 
+      setBuy: setBurnTaxBuy, 
+      setSell: setBurnTaxSell, 
+      buy: burnTaxBuy !== null ? burnTaxBuy : formatTaxForViewing(listTaxStructBurnTaxBuy), 
+      sell: burnTaxSell !== null ? burnTaxSell : formatTaxForViewing(listTaxStructBurnTaxSell)
+    },
   ]
 
   const liquidityTax =  { 
     name: 'Liquidity Tax', 
-    address: liquidityTaxAddress, 
+    address: liquidityTaxAddress || listTaxStructLpTokenReceiver, 
     setAddress: setLiquidityTaxAddress, 
     setBuy: setLiquidityTaxBuy, 
     setSell: setLiquidityTaxSell, 
-    buy: liquidityTaxBuy, 
-    sell: liquidityTaxSell
+    buy: liquidityTaxBuy !== null ? liquidityTaxBuy : formatTaxForViewing(listTaxStructLiquidityTaxBuy), 
+    sell: liquidityTaxSell !== null ? liquidityTaxSell : formatTaxForViewing(listTaxStructLiquidityTaxSell)
   }
 
   const onNameInputChange = (e, tax) => {
@@ -69,8 +106,8 @@ function TokenTaxForm () {
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
       <div>{props.tax.name}</div>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        { props.tax.buy ? <Tag color="success">{props.tax.buy}</Tag> : '' }
-        { props.tax.sell ? <Tag color="error">{props.tax.sell}</Tag> : '' }
+        { props.tax.buy ? <Tag color="success">{props.tax.buy}%</Tag> : '' }
+        { props.tax.sell ? <Tag color="error">{props.tax.sell}%</Tag> : '' }
         { !props.tax.buy && !props.tax.sell ? <Tag>disabled</Tag> : '' }
       </div>
     </div>
@@ -142,6 +179,7 @@ function TokenTaxForm () {
                         <label>Buy Tax Percentage</label>
                         <Input
                           onChange={(e) => onBuyInputChange(e, t)} 
+                          value={t.buy}
                           size="large"
                           style={{ borderRadius: '1rem' }}
                         />
@@ -152,6 +190,7 @@ function TokenTaxForm () {
                         <label>Sell Tax Percentage</label>
                         <Input
                           onChange={(e) => onSellInputChange(e, t)} 
+                          value={t.sell}
                           size="large"
                           style={{ borderRadius: '1rem' }}
                         />
@@ -192,6 +231,7 @@ function TokenTaxForm () {
                   <label>Buy Tax Percentage</label>
                   <Input
                     onChange={(e) => onBuyInputChange(e, liquidityTax)} 
+                    value={liquidityTax.buy}
                     size="large"
                     style={{ borderRadius: '1rem' }}
                   />
@@ -202,6 +242,7 @@ function TokenTaxForm () {
                   <label>Sell Tax Percentage</label>
                   <Input
                     onChange={(e) => onSellInputChange(e, liquidityTax)} 
+                    value={liquidityTax.sell}
                     size="large"
                     style={{ borderRadius: '1rem' }}
                   />

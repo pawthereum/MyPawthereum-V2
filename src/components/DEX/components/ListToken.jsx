@@ -30,7 +30,7 @@ function ListToken () {
                   Token
                 </Col>
                 <Col>
-                  <CurrencyPicker side="list" hideFeatured={true} />
+                  <CurrencyPicker side="list" hideFeatured={false} />
                 </Col>
               </Row>
               <NativeTaxForm />
