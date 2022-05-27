@@ -25,6 +25,7 @@ const styles = {
 
 function TaxManagementForm () {
   const { 
+    updateTaxSetting,
     listTaxStructFeeDecimal,
     // native taxes
     listTaxStructTax1Name,
@@ -56,6 +57,8 @@ function TaxManagementForm () {
     listTaxStructLiquidityTaxSell,
   } = useContext(AppContext)
   const { nativeSymbol } = useNative()
+
+  const [updateLoading, setUpdateLoading] = useState(false)
 
   // native taxes
   const [tax1Name, setTax1Name] = useState(null)
@@ -99,6 +102,7 @@ function TaxManagementForm () {
       setName: setTax1Name, 
       setBuy: setTax1Buy, 
       setSell: setTax1Sell, 
+      isTax1: true,
       buy: tax1Buy !== null ? tax1Buy : formatTaxForViewing(listTaxStructTax1Buy), 
       storedBuy: formatTaxForViewing(listTaxStructTax1Buy),
       sell: tax1Sell !== null ? tax1Sell : formatTaxForViewing(listTaxStructTax1Sell), 
@@ -113,6 +117,7 @@ function TaxManagementForm () {
       setName: setTax2Name, 
       setBuy: setTax2Buy, 
       setSell: setTax2Sell, 
+      isTax2: true,
       buy: tax2Buy !== null ? tax2Buy : formatTaxForViewing(listTaxStructTax2Buy), 
       storedBuy: formatTaxForViewing(listTaxStructTax2Buy),
       sell: tax2Sell !== null ? tax2Sell : formatTaxForViewing(listTaxStructTax2Sell), 
@@ -127,6 +132,7 @@ function TaxManagementForm () {
       setName: setTax3Name, 
       setBuy: setTax3Buy, 
       setSell: setTax3Sell, 
+      isTax3: true,
       buy: tax3Buy !== null ? tax3Buy : formatTaxForViewing(listTaxStructTax3Buy), 
       storedBuy: formatTaxForViewing(listTaxStructTax3Buy),
       sell: tax3Sell !== null ? tax3Sell : formatTaxForViewing(listTaxStructTax3Sell), 
@@ -141,6 +147,7 @@ function TaxManagementForm () {
       setName: setTax4Name, 
       setBuy: setTax4Buy, 
       setSell: setTax4Sell, 
+      isTax4: true,
       buy: tax4Buy !== null ? tax4Buy : formatTaxForViewing(listTaxStructTax4Buy), 
       storedBuy: formatTaxForViewing(listTaxStructTax4Buy),
       sell: tax4Sell !== null ? tax4Sell : formatTaxForViewing(listTaxStructTax4Sell), 
@@ -156,6 +163,7 @@ function TaxManagementForm () {
       name: tokenTaxName || listTaxStructTokenTaxName || 'Token Tax', 
       storedName: listTaxStructTokenTaxName,
       setName: setTokenTaxName, 
+      isTokenTax: true,
       address: tokenTaxAddress || listTaxStructTokenTaxAddress, 
       storedAddress: listTaxStructTokenTaxAddress,
       setAddress: setTokenTaxAddresss, 
@@ -169,6 +177,7 @@ function TaxManagementForm () {
     { 
       name: 'Burn Tax',
       storedName: 'Burn Tax',
+      isBurn: true,
       address: burnTaxAddress || listTaxStructBurnTaxAddress, 
       storedAddress: listTaxStructBurnTaxAddress,
       setAddress: setBurnTaxAddress, 
@@ -184,6 +193,7 @@ function TaxManagementForm () {
   const liquidityTax =  { 
     name: 'Liquidity Tax', 
     storedName: 'Liquidity Tax',
+    isLiquidity: true,
     address: liquidityTaxAddress || listTaxStructLpTokenReceiver, 
     storedAddress: listTaxStructLpTokenReceiver,
     setAddress: setLiquidityTaxAddress, 
@@ -248,6 +258,13 @@ function TaxManagementForm () {
       </div>
     </div>  
   )
+
+  const updateTaxes = async (tax) => {
+    console.log('updating', tax)
+    setUpdateLoading(true)
+    await updateTaxSetting(tax)
+    setUpdateLoading(false)
+  }
 
   return (
     <>
@@ -318,6 +335,8 @@ function TaxManagementForm () {
                             type="primary" 
                             size="large" 
                             style={styles.button}
+                            loading={updateLoading}
+                            onClick={() => updateTaxSetting(t)}
                           >Update</Button>
                         </Col>
                       </Row>
@@ -418,6 +437,8 @@ function TaxManagementForm () {
                             type="primary" 
                             size="large" 
                             style={styles.button}
+                            loading={updateLoading}
+                            onClick={() => updateTaxSetting(t)}
                           >Update</Button>
                         </Col>
                       </Row>
@@ -482,6 +503,8 @@ function TaxManagementForm () {
                       type="primary" 
                       size="large" 
                       style={styles.button}
+                      onClick={() => updateTaxes(liquidityTax)}
+                      loading={updateLoading}
                     >Update</Button>
                   </Col>
                 </Row>

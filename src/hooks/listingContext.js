@@ -5,6 +5,22 @@ import { Token } from '@uniswap/sdk'
 import { PAWSWAP } from '../constants'
 import { taxStructureAbi } from 'constants/abis/taxStructure'
 import { getTaxStructure } from 'helpers/taxStructureFetcher'
+import { notification } from 'antd'
+import { networkConfigs } from 'helpers/networks'
+
+const openNotification = ({ message, description, link }) => {
+  notification.open({
+    message,
+    description,
+    onClick: () => {
+      if (!link) return
+      window.location.href = link
+    },
+    placement: 'topRight',
+    duration: 10,
+  });
+};
+
 
 const useListingContext = () => {
   const { chainId, Moralis, web3, account } = useMoralis()
@@ -122,8 +138,214 @@ const useListingContext = () => {
     }
   }
 
+  const setLiquidityTax = async (tax) => {
+    try {
+      const updateReq = await listTaxStructContract.setLiquidityTax(
+        tax.address,
+        Number(tax.buy) * 10**listTaxStructFeeDecimal,
+        Number(tax.sell) * 10**listTaxStructFeeDecimal
+      )
+      openNotification({
+        message: `🔊 Liquidity Tax update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: "🎉 Liquidity Tax updated!",
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      console.log('error setting liquidity tax', e)
+      return openNotification({
+        message: "⚠️ Error setting liquidity tax!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  const setBurnTax = async (tax) => {
+    try {
+      const updateReq = await listTaxStructContract.setBurnTax(
+        tax.address,
+        Number(tax.buy) * 10**listTaxStructFeeDecimal,
+        Number(tax.sell) * 10**listTaxStructFeeDecimal
+      )
+      openNotification({
+        message: `🔊 Burn Tax update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: "🎉 Burn Tax updated!",
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      console.log('error setting burn tax', e)
+      return openNotification({
+        message: "⚠️ Error setting burn tax!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  const setTokenTax = async (tax) => {
+    try {
+      const updateReq = await listTaxStructContract.setTokenTax(
+        tax.name,
+        tax.address,
+        Number(tax.buy) * 10**listTaxStructFeeDecimal,
+        Number(tax.sell) * 10**listTaxStructFeeDecimal
+      )
+      openNotification({
+        message: `🔊 ${tax.name} update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: `🎉 ${tax.name} updated!`,
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      console.log('error setting token tax', e)
+      return openNotification({
+        message: "⚠️ Error setting token tax!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  const setTax1 = async (tax) => {
+    try {
+      const updateReq = await listTaxStructContract.setTax1(
+        tax.name,
+        tax.address,
+        Number(tax.buy) * 10**listTaxStructFeeDecimal,
+        Number(tax.sell) * 10**listTaxStructFeeDecimal
+      )
+      openNotification({
+        message: `🔊 ${tax.name} update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: `🎉 ${tax.name} updated!`,
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      console.log('error setting tax 1', e)
+      return openNotification({
+        message: `⚠️ Error setting ${tax.name}!`,
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  const setTax2 = async (tax) => {
+    try {
+      const updateReq = await listTaxStructContract.setTax2(
+        tax.name,
+        tax.address,
+        Number(tax.buy) * 10**listTaxStructFeeDecimal,
+        Number(tax.sell) * 10**listTaxStructFeeDecimal
+      )
+      openNotification({
+        message: `🔊 ${tax.name} update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: `🎉 ${tax.name} updated!`,
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      console.log('error setting tax 2', e)
+      return openNotification({
+        message: `⚠️ Error setting ${tax.name}!`,
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  const setTax3 = async (tax) => {
+    try {
+      const updateReq = await listTaxStructContract.setTax3(
+        tax.name,
+        tax.address,
+        Number(tax.buy) * 10**listTaxStructFeeDecimal,
+        Number(tax.sell) * 10**listTaxStructFeeDecimal
+      )
+      openNotification({
+        message: `🔊 ${tax.name} update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: `🎉 ${tax.name} updated!`,
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      console.log('error setting tax 3', e)
+      return openNotification({
+        message: `⚠️ Error setting ${tax.name}!`,
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  const setTax4 = async (tax) => {
+    try {
+      const updateReq = await listTaxStructContract.setTax3(
+        tax.name,
+        tax.address,
+        Number(tax.buy) * 10**listTaxStructFeeDecimal,
+        Number(tax.sell) * 10**listTaxStructFeeDecimal
+      )
+      openNotification({
+        message: `🔊 ${tax.name} update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: `🎉 ${tax.name} updated!`,
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+    } catch (e) {
+      console.log('error setting tax 4', e)
+      return openNotification({
+        message: `⚠️ Error setting ${tax.name}!`,
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
+  const updateTaxSetting = async (tax) => {
+    if (tax.isLiquidity) await setLiquidityTax(tax)
+    if (tax.isBurn) await setBurnTax(tax)
+    if (tax.isTokenTax) await setTokenTax(tax)
+    if (tax.isTax1) await setTax1(tax)
+    if (tax.isTax2) await setTax2(tax)
+    if (tax.isTax3) await setTax3(tax)
+    if (tax.isTax4) await setTax4(tax)
+    fetchAndSetTaxStructTaxes(listTaxStructContract)
+  }
+
   return {
     updateListCurrency,
+    updateTaxSetting,
     listCurrency,
     listToken,
     listTaxStructContract,
