@@ -156,6 +156,7 @@ const useListingContext = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+      return tx
     } catch (e) {
       console.log('error setting liquidity tax', e)
       return openNotification({
@@ -183,6 +184,7 @@ const useListingContext = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+      return tx
     } catch (e) {
       console.log('error setting burn tax', e)
       return openNotification({
@@ -211,6 +213,7 @@ const useListingContext = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+      return tx
     } catch (e) {
       console.log('error setting token tax', e)
       return openNotification({
@@ -239,6 +242,7 @@ const useListingContext = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+      return tx
     } catch (e) {
       console.log('error setting tax 1', e)
       return openNotification({
@@ -267,6 +271,7 @@ const useListingContext = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+      return tx
     } catch (e) {
       console.log('error setting tax 2', e)
       return openNotification({
@@ -295,6 +300,7 @@ const useListingContext = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+      return tx
     } catch (e) {
       console.log('error setting tax 3', e)
       return openNotification({
@@ -323,6 +329,7 @@ const useListingContext = () => {
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+      return tx
     } catch (e) {
       console.log('error setting tax 4', e)
       return openNotification({
@@ -340,7 +347,8 @@ const useListingContext = () => {
     if (tax.isTax2) await setTax2(tax)
     if (tax.isTax3) await setTax3(tax)
     if (tax.isTax4) await setTax4(tax)
-    fetchAndSetTaxStructTaxes(listTaxStructContract)
+    await fetchAndSetTaxStructTaxes(listTaxStructContract)
+    return
   }
 
   return {

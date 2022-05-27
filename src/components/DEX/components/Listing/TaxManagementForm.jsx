@@ -264,6 +264,7 @@ function TaxManagementForm () {
     setUpdateLoading(true)
     await updateTaxSetting(tax)
     setUpdateLoading(false)
+    console.log('were done here')
   }
 
   return (
@@ -336,7 +337,7 @@ function TaxManagementForm () {
                             size="large" 
                             style={styles.button}
                             loading={updateLoading}
-                            onClick={() => updateTaxSetting(t)}
+                            onClick={() => updateTaxes(t)}
                           >Update</Button>
                         </Col>
                       </Row>
@@ -438,7 +439,7 @@ function TaxManagementForm () {
                             size="large" 
                             style={styles.button}
                             loading={updateLoading}
-                            onClick={() => updateTaxSetting(t)}
+                            onClick={() => updateTaxes(t)}
                           >Update</Button>
                         </Col>
                       </Row>
