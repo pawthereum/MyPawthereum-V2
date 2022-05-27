@@ -1,7 +1,6 @@
 import CurrencyPicker from '../components/CurrencyPicker'
 import { Row, Col, Space, Card, Alert } from 'antd'
-import NativeTaxForm from './Listing/NativeTaxForm'
-import TokenTaxForm from './Listing/TokenTaxForm'
+import TaxManagementForm from './Listing/TaxManagementForm'
 
 const styles = {
   card: {
@@ -33,8 +32,7 @@ function ListToken () {
                   <CurrencyPicker side="list" hideFeatured={false} />
                 </Col>
               </Row>
-              <NativeTaxForm />
-              <TokenTaxForm />
+              <TaxManagementForm />
             </Space>
           </Card>
         </Col>

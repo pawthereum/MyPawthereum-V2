@@ -1,0 +1,498 @@
+
+import { useState, useContext } from 'react'
+import AppContext from 'AppContext'
+import { Badge, Divider, Row, Col, Space, Collapse, Input, Tag, Button } from 'antd'
+import useNative from 'hooks/useNative';
+import { COLORS } from '../../../../constants';
+
+const { Panel } = Collapse;
+const DEFAULT_BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD'
+
+const styles = {
+  inset: {
+    backgroundColor: COLORS.defaultBg,
+    padding: '14px',
+    borderRadius: '1rem',
+    boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px inset',
+  },
+  button: {
+    boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px',
+    width: "100%",
+    borderRadius: "0.6rem",
+    height: "50px"
+  }
+}
+
+function TaxManagementForm () {
+  const { 
+    listTaxStructFeeDecimal,
+    // native taxes
+    listTaxStructTax1Name,
+    listTaxStructTax1Address,
+    listTaxStructTax1Buy,
+    listTaxStructTax1Sell,
+    listTaxStructTax2Name,
+    listTaxStructTax2Address,
+    listTaxStructTax2Buy,
+    listTaxStructTax2Sell,
+    listTaxStructTax3Name,
+    listTaxStructTax3Address,
+    listTaxStructTax3Buy,
+    listTaxStructTax3Sell,
+    listTaxStructTax4Name,
+    listTaxStructTax4Address,
+    listTaxStructTax4Buy,
+    listTaxStructTax4Sell,
+    // token taxes
+    listTaxStructTokenTaxName,
+    listTaxStructTokenTaxAddress,
+    listTaxStructTokenTaxBuy,
+    listTaxStructTokenTaxSell,
+    listTaxStructBurnTaxAddress,
+    listTaxStructBurnTaxBuy,
+    listTaxStructBurnTaxSell,
+    listTaxStructLpTokenReceiver,
+    listTaxStructLiquidityTaxBuy,
+    listTaxStructLiquidityTaxSell,
+  } = useContext(AppContext)
+  const { nativeSymbol } = useNative()
+
+  // native taxes
+  const [tax1Name, setTax1Name] = useState(null)
+  const [tax1Buy, setTax1Buy] = useState(null)
+  const [tax1Sell, setTax1Sell] = useState(null)
+  const [tax1Address, setTax1Address] = useState(null)
+  const [tax2Name, setTax2Name] = useState(null)
+  const [tax2Buy, setTax2Buy] = useState(null)
+  const [tax2Sell, setTax2Sell] = useState(null)
+  const [tax2Address, setTax2Address] = useState(null)
+  const [tax3Name, setTax3Name] = useState(null)
+  const [tax3Buy, setTax3Buy] = useState(null)
+  const [tax3Sell, setTax3Sell] = useState(null)
+  const [tax3Address, setTax3Address] = useState(null)
+  const [tax4Name, setTax4Name] = useState(null)
+  const [tax4Buy, setTax4Buy] = useState(null)
+  const [tax4Sell, setTax4Sell] = useState(null)
+  const [tax4Address, setTax4Address] = useState(null)
+
+  // token taxes
+  const [tokenTaxName, setTokenTaxName] = useState(null)
+  const [tokenTaxAddress, setTokenTaxAddresss] = useState(null)
+  const [tokenTaxBuy, setTokenTaxBuy] = useState(null)
+  const [tokenTaxSell, setTokenTaxSell] = useState(null)
+  const [burnTaxAddress, setBurnTaxAddress] = useState(DEFAULT_BURN_ADDRESS)
+  const [burnTaxBuy, setBurnTaxBuy] = useState(null)
+  const [burnTaxSell, setBurnTaxSell] = useState(null)
+  const [liquidityTaxAddress, setLiquidityTaxAddress] = useState(null)
+  const [liquidityTaxBuy, setLiquidityTaxBuy] = useState(null)
+  const [liquidityTaxSell, setLiquidityTaxSell] = useState(null)
+
+  const formatTaxForViewing = (tax) => {
+    if (!tax) return null
+    return Number(tax.toString()) / 10**listTaxStructFeeDecimal
+  }
+
+  const nativeTaxes = [
+    { 
+      name: tax1Name || listTaxStructTax1Name || 'Tax 1', 
+      storedName: listTaxStructTax1Name,
+      setName: setTax1Name, 
+      setBuy: setTax1Buy, 
+      setSell: setTax1Sell, 
+      buy: tax1Buy !== null ? tax1Buy : formatTaxForViewing(listTaxStructTax1Buy), 
+      storedBuy: formatTaxForViewing(listTaxStructTax1Buy),
+      sell: tax1Sell !== null ? tax1Sell : formatTaxForViewing(listTaxStructTax1Sell), 
+      storedSell: formatTaxForViewing(listTaxStructTax1Sell),
+      address: tax1Address || listTaxStructTax1Address,
+      storedAddress: listTaxStructTax1Address,
+      setAddress: setTax1Address
+    },
+    { 
+      name: tax2Name || listTaxStructTax2Name || 'Tax 2', 
+      storedName: listTaxStructTax2Name,
+      setName: setTax2Name, 
+      setBuy: setTax2Buy, 
+      setSell: setTax2Sell, 
+      buy: tax2Buy !== null ? tax2Buy : formatTaxForViewing(listTaxStructTax2Buy), 
+      storedBuy: formatTaxForViewing(listTaxStructTax2Buy),
+      sell: tax2Sell !== null ? tax2Sell : formatTaxForViewing(listTaxStructTax2Sell), 
+      storedSell: formatTaxForViewing(listTaxStructTax2Sell),
+      address: tax2Address || listTaxStructTax2Address,
+      storedAddress: listTaxStructTax2Address,
+      setAddress: setTax2Address 
+    },
+    { 
+      name: tax3Name || listTaxStructTax3Name || 'Tax 3', 
+      storedName: listTaxStructTax3Name,
+      setName: setTax3Name, 
+      setBuy: setTax3Buy, 
+      setSell: setTax3Sell, 
+      buy: tax3Buy !== null ? tax3Buy : formatTaxForViewing(listTaxStructTax3Buy), 
+      storedBuy: formatTaxForViewing(listTaxStructTax3Buy),
+      sell: tax3Sell !== null ? tax3Sell : formatTaxForViewing(listTaxStructTax3Sell), 
+      storedSell: formatTaxForViewing(listTaxStructTax3Sell),
+      address: tax3Address || listTaxStructTax3Address, 
+      storedAddress: listTaxStructTax3Address,
+      setAddress: setTax3Address 
+    },
+    { 
+      name: tax4Name || listTaxStructTax4Name || 'Tax 4', 
+      storedName: listTaxStructTax4Name,
+      setName: setTax4Name, 
+      setBuy: setTax4Buy, 
+      setSell: setTax4Sell, 
+      buy: tax4Buy !== null ? tax4Buy : formatTaxForViewing(listTaxStructTax4Buy), 
+      storedBuy: formatTaxForViewing(listTaxStructTax4Buy),
+      sell: tax4Sell !== null ? tax4Sell : formatTaxForViewing(listTaxStructTax4Sell), 
+      storedSell: formatTaxForViewing(listTaxStructTax4Sell),
+      address: tax4Address || listTaxStructTax4Address, 
+      storedAddress: listTaxStructTax4Address,
+      setAddress: setTax4Address 
+    },
+  ]
+
+  const tokenTaxes = [
+    { 
+      name: tokenTaxName || listTaxStructTokenTaxName || 'Token Tax', 
+      storedName: listTaxStructTokenTaxName,
+      setName: setTokenTaxName, 
+      address: tokenTaxAddress || listTaxStructTokenTaxAddress, 
+      storedAddress: listTaxStructTokenTaxAddress,
+      setAddress: setTokenTaxAddresss, 
+      setBuy: setTokenTaxBuy, 
+      setSell: setTokenTaxSell, 
+      buy: tokenTaxBuy !== null ? tokenTaxBuy : formatTaxForViewing(listTaxStructTokenTaxBuy), 
+      storedBuy: formatTaxForViewing(listTaxStructTokenTaxBuy),
+      sell: tokenTaxSell !== null ? tokenTaxSell : formatTaxForViewing(listTaxStructTokenTaxSell),
+      storedSell: formatTaxForViewing(listTaxStructTokenTaxSell)
+    },
+    { 
+      name: 'Burn Tax',
+      storedName: 'Burn Tax',
+      address: burnTaxAddress || listTaxStructBurnTaxAddress, 
+      storedAddress: listTaxStructBurnTaxAddress,
+      setAddress: setBurnTaxAddress, 
+      setBuy: setBurnTaxBuy, 
+      setSell: setBurnTaxSell, 
+      buy: burnTaxBuy !== null ? burnTaxBuy : formatTaxForViewing(listTaxStructBurnTaxBuy), 
+      storedBuy: formatTaxForViewing(listTaxStructBurnTaxBuy),
+      sell: burnTaxSell !== null ? burnTaxSell : formatTaxForViewing(listTaxStructBurnTaxSell),
+      storedSell: formatTaxForViewing(listTaxStructBurnTaxSell),
+    },
+  ]
+
+  const liquidityTax =  { 
+    name: 'Liquidity Tax', 
+    storedName: 'Liquidity Tax',
+    address: liquidityTaxAddress || listTaxStructLpTokenReceiver, 
+    storedAddress: listTaxStructLpTokenReceiver,
+    setAddress: setLiquidityTaxAddress, 
+    setBuy: setLiquidityTaxBuy, 
+    setSell: setLiquidityTaxSell, 
+    buy: liquidityTaxBuy !== null ? liquidityTaxBuy : formatTaxForViewing(listTaxStructLiquidityTaxBuy), 
+    storedBuy: formatTaxForViewing(listTaxStructLiquidityTaxBuy),
+    sell: liquidityTaxSell !== null ? liquidityTaxSell : formatTaxForViewing(listTaxStructLiquidityTaxSell),
+    storedSell: formatTaxForViewing(listTaxStructLiquidityTaxSell),
+  }
+
+  const onNameInputChange = (e, tax) => {
+    tax.setName(e.target.value)
+  }
+
+  const onAddressInputChange = (e, tax) => {
+    tax.setAddress(e.target.value)
+  }
+
+  const onBuyInputChange = (e, tax) => {
+    tax.setBuy(e.target.value)
+  }
+
+  const onSellInputChange = (e, tax) => {
+    tax.setSell(e.target.value)
+  }
+
+  const truncateAddress = (addr) => {
+    const MIN_ADDR_LENGTH = 42
+    if (!addr || addr.length !== MIN_ADDR_LENGTH) return null
+    return addr.slice(0, 5) + '...' + addr.substring(addr.length - 4)
+  }
+
+  const notDefaultName = (name) => 
+    name !== 'Tax 1' &&
+    name !== 'Tax 2' &&
+    name !== 'Tax 3' &&
+    name !== 'Tax 4' &&
+    name !== 'Token Tax' &&
+    name !== 'Burn Tax'
+
+  const showUpdateButton = (tax) => {
+    if (!listTaxStructFeeDecimal) return false
+    if (tax.name !== tax.storedName && notDefaultName(tax.name)) return true
+    if (tax.buy?.toString() !== tax.storedBuy?.toString()) return true
+    if (tax.sell?.toString() !== tax.storedSell?.toString()) return true
+    if (tax.address !== tax.storedAddress ) return true
+    return false
+  }
+
+  const PanelHeader = (props) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <div>
+        <Badge dot={showUpdateButton(props.tax)} offset={[5, 0]}>
+          {props.tax.name}
+        </Badge>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        { Number(props.tax.buy) ? <Tag color="success">{props.tax.buy}%</Tag> : '' }
+        { Number(props.tax.sell) ? <Tag color="error">{props.tax.sell}%</Tag> : '' }
+        { !Number(props.tax.buy) && !Number(props.tax.sell) ? <Tag>disabled</Tag> : '' }
+      </div>
+    </div>  
+  )
+
+  return (
+    <>
+      <Divider>
+        {nativeSymbol} Taxes
+      </Divider>
+      <Row>
+        <Col span={24}>
+          <Collapse ghost expandIconPosition="right">
+            {
+              nativeTaxes.map((t, i) => (
+                <Panel header={<PanelHeader tax={t}/>} key={i}>
+                  <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
+                    <Row>
+                      <Col span={24}>
+                        <label>Tax Name</label>
+                        <Input
+                          placeholder="Tax name"
+                          value={t.name}
+                          onChange={(e) => onNameInputChange(e, t)}
+                          size="large"
+                          style={{ borderRadius: '1rem' }}
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col span={24}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                          <label>{t.name} Address</label>
+                          <label>{truncateAddress(t.address)}</label>
+                        </div>
+                        <Input
+                          placeholder={`Address that receives ${nativeSymbol}`}
+                          value={t.address}
+                          onChange={(e) => onAddressInputChange(e, t)}
+                          size="large"
+                          style={{ borderRadius: '1rem' }}
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col span={24}>
+                        <label>Buy Tax Percentage</label>
+                        <Input
+                          onChange={(e) => onBuyInputChange(e, t)}
+                          value={t.buy}
+                          size="large"
+                          style={{ borderRadius: '1rem' }}
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col span={24}>
+                        <label>Sell Tax Percentage</label>
+                        <Input
+                          onChange={(e) => onSellInputChange(e, t)} 
+                          size="large"
+                          value={t.sell}
+                          style={{ borderRadius: '1rem' }}
+                        />
+                      </Col>
+                    </Row>
+                    {
+                      !showUpdateButton(t) ? '' :
+                      <Row>
+                        <Col span={24}>
+                          <Button 
+                            type="primary" 
+                            size="large" 
+                            style={styles.button}
+                          >Update</Button>
+                        </Col>
+                      </Row>
+                    }
+                  </Space>
+                </Panel>
+              ))
+            }
+          </Collapse>
+        </Col>
+      </Row>
+      <Divider>
+        Token Taxes
+      </Divider>
+      <Row>
+        <Col span={24}>
+          <Collapse ghost expandIconPosition="right">
+            {
+              tokenTaxes.map((t, i) => (
+                <Panel header={<PanelHeader tax={t}/>} key={i}>
+                  <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
+                    {
+                      t.name === 'Burn Tax'
+                        ?
+                          <Row>
+                            <Col span={24}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                                <label>Burn Tax Address</label>
+                                <label>{truncateAddress(t.address)}</label>
+                              </div>
+                              <Input
+                                placeholder={DEFAULT_BURN_ADDRESS}
+                                value={t.address}
+                                onChange={(e) => onAddressInputChange(e, t)}
+                                size="large"
+                                style={{ borderRadius: '1rem' }}
+                              />
+                            </Col>
+                          </Row>
+                        :
+                          <>
+                            <Row>
+                              <Col span={24}>
+                                <label>Tax Name</label>
+                                <Input
+                                  placeholder="Tax name"
+                                  value={t.name}
+                                  onChange={(e) => onNameInputChange(e, t)}
+                                  size="large"
+                                  style={{ borderRadius: '1rem' }}
+                                />
+                              </Col>
+                            </Row>
+                            <Row>
+                              <Col span={24}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                                  <label>{t.name} Address</label>
+                                  <label>{truncateAddress(t.address)}</label>
+                                </div>
+                                <Input
+                                  placeholder="Address that receives tokens"
+                                  value={t.address}
+                                  onChange={(e) => onAddressInputChange(e, t)}
+                                  size="large"
+                                  style={{ borderRadius: '1rem' }}
+                                />
+                              </Col>
+                            </Row>
+                          </>
+                        }
+                    <Row>
+                      <Col span={24}>
+                        <label>Buy Tax Percentage</label>
+                        <Input
+                          onChange={(e) => onBuyInputChange(e, t)} 
+                          value={t.buy}
+                          size="large"
+                          style={{ borderRadius: '1rem' }}
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col span={24}>
+                        <label>Sell Tax Percentage</label>
+                        <Input
+                          onChange={(e) => onSellInputChange(e, t)} 
+                          value={t.sell}
+                          size="large"
+                          style={{ borderRadius: '1rem' }}
+                        />
+                      </Col>
+                    </Row>
+                    {
+                      !showUpdateButton(t) ? '' :
+                      <Row>
+                        <Col span={24}>
+                          <Button 
+                            type="primary" 
+                            size="large" 
+                            style={styles.button}
+                          >Update</Button>
+                        </Col>
+                      </Row>
+                    }
+                  </Space>
+                </Panel>
+              ))
+            }
+          </Collapse>
+        </Col>
+      </Row>
+      <Divider>
+        Liquidity Tax
+      </Divider>
+      <Row>
+        <Col span={24}>
+          <Collapse ghost expandIconPosition="right">
+          <Panel header={<PanelHeader tax={liquidityTax}/>}>
+            <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
+              <Row>
+                <Col span={24}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                    <label>LP Token Receiver Address</label>
+                    <label>{truncateAddress(liquidityTax.address)}</label>
+                  </div>
+                  <Input
+                    placeholder="Address that receives LP tokens"
+                    value={liquidityTax.address}
+                    onChange={(e) => onAddressInputChange(e, liquidityTax)}
+                    size="large"
+                    style={{ borderRadius: '1rem' }}
+                  />
+                </Col>
+              </Row>
+              <Row>
+                <Col span={24}>
+                  <label>Buy Tax Percentage</label>
+                  <Input
+                    onChange={(e) => onBuyInputChange(e, liquidityTax)} 
+                    value={liquidityTax.buy}
+                    size="large"
+                    style={{ borderRadius: '1rem' }}
+                  />
+                </Col>
+              </Row>
+              <Row>
+                <Col span={24}>
+                  <label>Sell Tax Percentage</label>
+                  <Input
+                    onChange={(e) => onSellInputChange(e, liquidityTax)} 
+                    value={liquidityTax.sell}
+                    size="large"
+                    style={{ borderRadius: '1rem' }}
+                  />
+                </Col>
+              </Row>
+              {
+                !showUpdateButton(liquidityTax) ? '' :
+                <Row>
+                  <Col span={24}>
+                    <Button 
+                      type="primary" 
+                      size="large" 
+                      style={styles.button}
+                    >Update</Button>
+                  </Col>
+                </Row>
+              }
+            </Space>
+          </Panel>
+          </Collapse>
+        </Col>
+      </Row>
+    </>
+  )
+}
+
+export default TaxManagementForm
