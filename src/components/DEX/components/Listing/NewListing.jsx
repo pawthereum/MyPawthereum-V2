@@ -5,7 +5,6 @@ import TaxManagementForm from './TaxManagementForm';
 import { useMoralis } from 'react-moralis'
 import CurrencyPicker from '../CurrencyPicker';
 import { COLORS, PAWSWAP } from '../../../../constants';
-import ListToken from '../ListToken';
 
 const { Step } = Steps
 const { Paragraph, Text } = Typography;
@@ -225,8 +224,6 @@ function NewListing () {
             </Row>
             <Row>
               <Col span={24}>
-                {listTaxStructContract?.address}
-                {listCurrency?.address}
                 <Button
                   type="primary"
                   size="large"
