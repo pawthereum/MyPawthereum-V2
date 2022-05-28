@@ -82,6 +82,18 @@ export const tokenList = {
     {
       "name": "SafeMoon",
       "symbol": "SFM",
+      "address": "0xa513e6e4b8f2a923d98304ec87f64353c4d5c853",
+      "chainId": 1337,
+      "decimals": 9,
+      "logoURI": "https://safemoon.com/img/logo.svg",
+      "dex": "pancakeswap",
+      "typicalBuyTax": 10,
+      "typicalSellTax": 10,
+      "color": "#008A81"
+    },
+    {
+      "name": "SafeMoon",
+      "symbol": "SFM",
       "address": "0x44255F8De687371B5f7F8c9398A300e5a7628895",
       "chainId": 97,
       "decimals": 9,

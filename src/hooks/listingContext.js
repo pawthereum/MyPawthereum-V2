@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useMoralis } from 'react-moralis'
 import { Token } from '@uniswap/sdk'
-import { PAWSWAP } from '../constants'
+import { PAWSWAP, PAWSWAP_TAX_STRUCTURE_FACTORY, PANCAKESWAP_ROUTER } from '../constants'
 import { taxStructureAbi } from 'constants/abis/taxStructure'
 import { getTaxStructure } from 'helpers/taxStructureFetcher'
 import { notification } from 'antd'
@@ -66,7 +66,7 @@ const useListingContext = () => {
     { isLiquidity: true, setName: ()=>{}, setAddress: setListTaxStructLpTokenReceiver, setBuy: setListTaxStructLiquidityTaxBuy, setSell: setListTaxStructLiquidityTaxSell },
   ]
 
-  const updateListCurrency = async (currency) => {
+  const updateListCurrency = async (currency, preventTaxStructFetch) => {
     if (!currency) {
       setListCurrency(null)
       setListToken(null)
@@ -74,7 +74,11 @@ const useListingContext = () => {
       return
     }
     const token = new Token(chainId, currency?.address, currency?.decimals, currency?.symbol, currency?.name)
-    fetchTaxStructure(token?.address)
+    console.log('preventing', preventTaxStructFetch)
+    if (!preventTaxStructFetch) {
+      console.log('we SHOULD NOT be here')
+      fetchTaxStructure(token?.address)
+    }
     setListCurrency(currency)
     setListToken(token)
   }
@@ -127,6 +131,20 @@ const useListingContext = () => {
     )
     try {
       const taxStructAddr = await pawswap.tokenTaxContracts(tokenAddr)
+      const newStruct = new web3Provider.Contract(
+        taxStructAddr,
+        taxStructureAbi,
+        web3.getSigner()
+      )
+      setListTaxStructContract(newStruct)
+    } catch (e) {
+      setListTaxStructContract({ error: e })
+    }
+  }
+
+  const updateTaxStructureByAddress = async (taxStructAddr) => {
+    const web3Provider = Moralis.web3Library;
+    try {
       const newStruct = new web3Provider.Contract(
         taxStructAddr,
         taxStructureAbi,
@@ -351,9 +369,81 @@ const useListingContext = () => {
     return
   }
 
+  const deployTaxStructure = async () => {
+    const web3Provider = Moralis.web3Library;
+    const taxStructFactory = new web3Provider.Contract(
+      PAWSWAP_TAX_STRUCTURE_FACTORY[chainId]?.address,
+      PAWSWAP_TAX_STRUCTURE_FACTORY[chainId]?.abi,
+      web3.getSigner()
+    )
+    try {
+      console.log({ router: PANCAKESWAP_ROUTER[chainId]?.address })
+      const taxStructDeploy = await taxStructFactory.deployTaxStructure(
+        parseInt(new Date().getTime() / 1000), // pseudo-random number for salt
+        PANCAKESWAP_ROUTER[chainId]?.address // default to pancakeswap
+      )
+      const tx = await taxStructDeploy.wait()
+      const event = tx.events.find(event => event.event === 'Deploy');
+      const [addr] = event.args
+      const newStruct = new web3Provider.Contract(
+        addr,
+        taxStructureAbi,
+        web3.getSigner()
+      )
+      console.log({ newStruct })
+      setListTaxStructContract(newStruct)
+    } catch (e) {
+      console.log('error deploying tax struct from factory', e)
+      return openNotification({
+        message: `⚠️ Error deploying tax structure contract!`,
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+  
+  const createListing = async () => {
+    const web3Provider = Moralis.web3Library;
+    const pawswap = new web3Provider.Contract(
+      PAWSWAP[chainId]?.address,
+      PAWSWAP[chainId]?.abi,
+      web3.getSigner()
+    )
+    try {
+      //TESTING
+      const existing = await pawswap.tokenTaxContracts(listToken.address)
+      console.log({ existing, listing: listToken.address, newTx: listTaxStructContract.address })
+      //ENDOFTESTING
+      const listingReq = await pawswap.setTokenTaxContract(
+        listToken.address,
+        listTaxStructContract.address
+      )
+      openNotification({
+        message: `🔊 Listing submitted!`,
+        description: `${listingReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + listingReq.hash
+      });
+      const tx = await listingReq.wait()
+      openNotification({
+        message: `🎉 Listing complete!`,
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+      return tx
+    } catch (e) {
+      console.log('error listing token', e)
+      return openNotification({
+        message: `⚠️ Error listing token!`,
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
   return {
     updateListCurrency,
     updateTaxSetting,
+    deployTaxStructure,
+    updateTaxStructureByAddress,
+    createListing,
     listCurrency,
     listToken,
     listTaxStructContract,
@@ -383,7 +473,7 @@ const useListingContext = () => {
     listTaxStructBurnTaxSell,
     listTaxStructLpTokenReceiver,
     listTaxStructLiquidityTaxBuy,
-    listTaxStructLiquidityTaxSell
+    listTaxStructLiquidityTaxSell,
   }
 }
 

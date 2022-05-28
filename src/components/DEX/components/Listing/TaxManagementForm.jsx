@@ -1,9 +1,11 @@
 
 import { useState, useContext } from 'react'
 import AppContext from 'AppContext'
-import { Badge, Divider, Row, Col, Space, Collapse, Input, Tag, Button } from 'antd'
+import { Alert, Badge, Divider, Row, Col, Space, Collapse, Input, Tag, Button } from 'antd'
 import useNative from 'hooks/useNative';
 import { COLORS } from '../../../../constants';
+import CurrencyPicker from '../../components/CurrencyPicker'
+
 
 const { Panel } = Collapse;
 const DEFAULT_BURN_ADDRESS = '0x000000000000000000000000000000000000dEaD'
@@ -23,7 +25,7 @@ const styles = {
   }
 }
 
-function TaxManagementForm () {
+function TaxManagementForm (props) {
   const { 
     updateTaxSetting,
     listTaxStructFeeDecimal,
@@ -269,136 +271,120 @@ function TaxManagementForm () {
 
   return (
     <>
-      <Divider>
-        {nativeSymbol} Taxes
-      </Divider>
-      <Row>
-        <Col span={24}>
-          <Collapse ghost expandIconPosition="right">
-            {
-              nativeTaxes.map((t, i) => (
-                <Panel header={<PanelHeader tax={t}/>} key={i}>
-                  <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
-                    <Row>
-                      <Col span={24}>
-                        <label>Tax Name</label>
-                        <Input
-                          placeholder="Tax name"
-                          value={t.name}
-                          onChange={(e) => onNameInputChange(e, t)}
-                          size="large"
-                          style={{ borderRadius: '1rem' }}
-                        />
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col span={24}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
-                          <label>{t.name} Address</label>
-                          <label>{truncateAddress(t.address)}</label>
-                        </div>
-                        <Input
-                          placeholder={`Address that receives ${nativeSymbol}`}
-                          value={t.address}
-                          onChange={(e) => onAddressInputChange(e, t)}
-                          size="large"
-                          style={{ borderRadius: '1rem' }}
-                        />
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col span={24}>
-                        <label>Buy Tax Percentage</label>
-                        <Input
-                          onChange={(e) => onBuyInputChange(e, t)}
-                          value={t.buy}
-                          size="large"
-                          style={{ borderRadius: '1rem' }}
-                        />
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col span={24}>
-                        <label>Sell Tax Percentage</label>
-                        <Input
-                          onChange={(e) => onSellInputChange(e, t)} 
-                          size="large"
-                          value={t.sell}
-                          style={{ borderRadius: '1rem' }}
-                        />
-                      </Col>
-                    </Row>
-                    {
-                      !showUpdateButton(t) ? '' :
+      <Alert style={{ borderRadius: '24px', marginBottom: '20px' }} message="You must have contract owner permissions to list or manage your token on PawSwap" type="info" closable />
+      <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+        {
+          props.hideTokenSelector ? '' :
+          <Row style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Col>
+              Token
+            </Col>
+            <Col>
+              <CurrencyPicker side="list" hideFeatured={false} />
+            </Col>
+          </Row>
+        }
+        <Divider>
+          {nativeSymbol} Taxes
+        </Divider>
+        <Row>
+          <Col span={24}>
+            <Collapse ghost expandIconPosition="right">
+              {
+                nativeTaxes.map((t, i) => (
+                  <Panel header={<PanelHeader tax={t}/>} key={i}>
+                    <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
                       <Row>
                         <Col span={24}>
-                          <Button 
-                            type="primary" 
-                            size="large" 
-                            style={styles.button}
-                            loading={updateLoading}
-                            onClick={() => updateTaxes(t)}
-                          >Update</Button>
+                          <label>Tax Name</label>
+                          <Input
+                            placeholder="Tax name"
+                            value={t.name}
+                            onChange={(e) => onNameInputChange(e, t)}
+                            size="large"
+                            style={{ borderRadius: '1rem' }}
+                          />
                         </Col>
                       </Row>
-                    }
-                  </Space>
-                </Panel>
-              ))
-            }
-          </Collapse>
-        </Col>
-      </Row>
-      <Divider>
-        Token Taxes
-      </Divider>
-      <Row>
-        <Col span={24}>
-          <Collapse ghost expandIconPosition="right">
-            {
-              tokenTaxes.map((t, i) => (
-                <Panel header={<PanelHeader tax={t}/>} key={i}>
-                  <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
-                    {
-                      t.name === 'Burn Tax'
-                        ?
-                          <Row>
-                            <Col span={24}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
-                                <label>Burn Tax Address</label>
-                                <label>{truncateAddress(t.address)}</label>
-                              </div>
-                              <Input
-                                placeholder={DEFAULT_BURN_ADDRESS}
-                                value={t.address}
-                                onChange={(e) => onAddressInputChange(e, t)}
-                                size="large"
-                                style={{ borderRadius: '1rem' }}
-                              />
-                            </Col>
-                          </Row>
-                        :
-                          <>
-                            <Row>
-                              <Col span={24}>
-                                <label>Tax Name</label>
-                                <Input
-                                  placeholder="Tax name"
-                                  value={t.name}
-                                  onChange={(e) => onNameInputChange(e, t)}
-                                  size="large"
-                                  style={{ borderRadius: '1rem' }}
-                                />
-                              </Col>
-                            </Row>
+                      <Row>
+                        <Col span={24}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                            <label>{t.name} Address</label>
+                            <label>{truncateAddress(t.address)}</label>
+                          </div>
+                          <Input
+                            placeholder={`Address that receives ${nativeSymbol}`}
+                            value={t.address}
+                            onChange={(e) => onAddressInputChange(e, t)}
+                            size="large"
+                            style={{ borderRadius: '1rem' }}
+                          />
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col span={24}>
+                          <label>Buy Tax Percentage</label>
+                          <Input
+                            onChange={(e) => onBuyInputChange(e, t)}
+                            value={t.buy}
+                            size="large"
+                            style={{ borderRadius: '1rem' }}
+                          />
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col span={24}>
+                          <label>Sell Tax Percentage</label>
+                          <Input
+                            onChange={(e) => onSellInputChange(e, t)} 
+                            size="large"
+                            value={t.sell}
+                            style={{ borderRadius: '1rem' }}
+                          />
+                        </Col>
+                      </Row>
+                      {
+                        !showUpdateButton(t) ? '' :
+                        <Row>
+                          <Col span={24}>
+                            <Button 
+                              type="primary" 
+                              size="large" 
+                              style={styles.button}
+                              loading={updateLoading}
+                              onClick={() => updateTaxes(t)}
+                            >Update</Button>
+                          </Col>
+                        </Row>
+                      }
+                    </Space>
+                  </Panel>
+                ))
+              }
+            </Collapse>
+          </Col>
+        </Row>
+        <Divider>
+          Token Taxes
+        </Divider>
+        <Row>
+          <Col span={24}>
+            <Collapse ghost expandIconPosition="right">
+              {
+                tokenTaxes.map((t, i) => (
+                  <Panel header={<PanelHeader tax={t}/>} key={i}>
+                    <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
+                      {
+                        t.name === 'Burn Tax'
+                          ?
                             <Row>
                               <Col span={24}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
-                                  <label>{t.name} Address</label>
+                                  <label>Burn Tax Address</label>
                                   <label>{truncateAddress(t.address)}</label>
                                 </div>
                                 <Input
-                                  placeholder="Address that receives tokens"
+                                  placeholder={DEFAULT_BURN_ADDRESS}
                                   value={t.address}
                                   onChange={(e) => onAddressInputChange(e, t)}
                                   size="large"
@@ -406,115 +392,145 @@ function TaxManagementForm () {
                                 />
                               </Col>
                             </Row>
-                          </>
-                        }
-                    <Row>
-                      <Col span={24}>
-                        <label>Buy Tax Percentage</label>
-                        <Input
-                          onChange={(e) => onBuyInputChange(e, t)} 
-                          value={t.buy}
-                          size="large"
-                          style={{ borderRadius: '1rem' }}
-                        />
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col span={24}>
-                        <label>Sell Tax Percentage</label>
-                        <Input
-                          onChange={(e) => onSellInputChange(e, t)} 
-                          value={t.sell}
-                          size="large"
-                          style={{ borderRadius: '1rem' }}
-                        />
-                      </Col>
-                    </Row>
-                    {
-                      !showUpdateButton(t) ? '' :
+                          :
+                            <>
+                              <Row>
+                                <Col span={24}>
+                                  <label>Tax Name</label>
+                                  <Input
+                                    placeholder="Tax name"
+                                    value={t.name}
+                                    onChange={(e) => onNameInputChange(e, t)}
+                                    size="large"
+                                    style={{ borderRadius: '1rem' }}
+                                  />
+                                </Col>
+                              </Row>
+                              <Row>
+                                <Col span={24}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                                    <label>{t.name} Address</label>
+                                    <label>{truncateAddress(t.address)}</label>
+                                  </div>
+                                  <Input
+                                    placeholder="Address that receives tokens"
+                                    value={t.address}
+                                    onChange={(e) => onAddressInputChange(e, t)}
+                                    size="large"
+                                    style={{ borderRadius: '1rem' }}
+                                  />
+                                </Col>
+                              </Row>
+                            </>
+                          }
                       <Row>
                         <Col span={24}>
-                          <Button 
-                            type="primary" 
-                            size="large" 
-                            style={styles.button}
-                            loading={updateLoading}
-                            onClick={() => updateTaxes(t)}
-                          >Update</Button>
+                          <label>Buy Tax Percentage</label>
+                          <Input
+                            onChange={(e) => onBuyInputChange(e, t)} 
+                            value={t.buy}
+                            size="large"
+                            style={{ borderRadius: '1rem' }}
+                          />
                         </Col>
                       </Row>
-                    }
-                  </Space>
-                </Panel>
-              ))
-            }
-          </Collapse>
-        </Col>
-      </Row>
-      <Divider>
-        Liquidity Tax
-      </Divider>
-      <Row>
-        <Col span={24}>
-          <Collapse ghost expandIconPosition="right">
-          <Panel header={<PanelHeader tax={liquidityTax}/>}>
-            <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
-              <Row>
-                <Col span={24}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
-                    <label>LP Token Receiver Address</label>
-                    <label>{truncateAddress(liquidityTax.address)}</label>
-                  </div>
-                  <Input
-                    placeholder="Address that receives LP tokens"
-                    value={liquidityTax.address}
-                    onChange={(e) => onAddressInputChange(e, liquidityTax)}
-                    size="large"
-                    style={{ borderRadius: '1rem' }}
-                  />
-                </Col>
-              </Row>
-              <Row>
-                <Col span={24}>
-                  <label>Buy Tax Percentage</label>
-                  <Input
-                    onChange={(e) => onBuyInputChange(e, liquidityTax)} 
-                    value={liquidityTax.buy}
-                    size="large"
-                    style={{ borderRadius: '1rem' }}
-                  />
-                </Col>
-              </Row>
-              <Row>
-                <Col span={24}>
-                  <label>Sell Tax Percentage</label>
-                  <Input
-                    onChange={(e) => onSellInputChange(e, liquidityTax)} 
-                    value={liquidityTax.sell}
-                    size="large"
-                    style={{ borderRadius: '1rem' }}
-                  />
-                </Col>
-              </Row>
-              {
-                !showUpdateButton(liquidityTax) ? '' :
+                      <Row>
+                        <Col span={24}>
+                          <label>Sell Tax Percentage</label>
+                          <Input
+                            onChange={(e) => onSellInputChange(e, t)} 
+                            value={t.sell}
+                            size="large"
+                            style={{ borderRadius: '1rem' }}
+                          />
+                        </Col>
+                      </Row>
+                      {
+                        !showUpdateButton(t) ? '' :
+                        <Row>
+                          <Col span={24}>
+                            <Button 
+                              type="primary" 
+                              size="large" 
+                              style={styles.button}
+                              loading={updateLoading}
+                              onClick={() => updateTaxes(t)}
+                            >Update</Button>
+                          </Col>
+                        </Row>
+                      }
+                    </Space>
+                  </Panel>
+                ))
+              }
+            </Collapse>
+          </Col>
+        </Row>
+        <Divider>
+          Liquidity Tax
+        </Divider>
+        <Row>
+          <Col span={24}>
+            <Collapse ghost expandIconPosition="right">
+            <Panel header={<PanelHeader tax={liquidityTax}/>}>
+              <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
                 <Row>
                   <Col span={24}>
-                    <Button 
-                      type="primary" 
-                      size="large" 
-                      style={styles.button}
-                      onClick={() => updateTaxes(liquidityTax)}
-                      loading={updateLoading}
-                    >Update</Button>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                      <label>LP Token Receiver Address</label>
+                      <label>{truncateAddress(liquidityTax.address)}</label>
+                    </div>
+                    <Input
+                      placeholder="Address that receives LP tokens"
+                      value={liquidityTax.address}
+                      onChange={(e) => onAddressInputChange(e, liquidityTax)}
+                      size="large"
+                      style={{ borderRadius: '1rem' }}
+                    />
                   </Col>
                 </Row>
-              }
-            </Space>
-          </Panel>
-          </Collapse>
-        </Col>
-      </Row>
+                <Row>
+                  <Col span={24}>
+                    <label>Buy Tax Percentage</label>
+                    <Input
+                      onChange={(e) => onBuyInputChange(e, liquidityTax)} 
+                      value={liquidityTax.buy}
+                      size="large"
+                      style={{ borderRadius: '1rem' }}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col span={24}>
+                    <label>Sell Tax Percentage</label>
+                    <Input
+                      onChange={(e) => onSellInputChange(e, liquidityTax)} 
+                      value={liquidityTax.sell}
+                      size="large"
+                      style={{ borderRadius: '1rem' }}
+                    />
+                  </Col>
+                </Row>
+                {
+                  !showUpdateButton(liquidityTax) ? '' :
+                  <Row>
+                    <Col span={24}>
+                      <Button 
+                        type="primary" 
+                        size="large" 
+                        style={styles.button}
+                        onClick={() => updateTaxes(liquidityTax)}
+                        loading={updateLoading}
+                      >Update</Button>
+                    </Col>
+                  </Row>
+                }
+              </Space>
+            </Panel>
+            </Collapse>
+          </Col>
+        </Row>
+      </Space>
     </>
   )
 }

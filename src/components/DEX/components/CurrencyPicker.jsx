@@ -101,8 +101,8 @@ function CurrencyPicker (props) {
   useEffect(() => {
     if (props.side === 'list' && listCurrency) {
       console.log('~~~~~~~~~~~~~~')
-      console.log({ listCurrency })
-      updateListCurrency(listCurrency)
+      console.log({ listCurrency, props })
+      updateListCurrency(listCurrency, props.preventTaxStructFetch)
     }
     if (props.side === 'input' && inputCurrency) {
       if (inputCurrency?.address.toLowerCase() === outputCurrency?.address.toLowerCase()) {
@@ -154,13 +154,13 @@ function CurrencyPicker (props) {
     setPickedCurrency(selection)
     switch(props.side) {
       case 'input':
-        updateInputCurrency(selection)
+        updateInputCurrency(selection, props.preventTaxStructFetch)
         break
       case 'output':
-        updateOutputCurrency(selection)
+        updateOutputCurrency(selection, props.preventTaxStructFetch)
         break
       case 'list':
-        updateListCurrency(selection)
+        updateListCurrency(selection, props.preventTaxStructFetch)
         break
       default:
         console.log('unhandled currency selection')

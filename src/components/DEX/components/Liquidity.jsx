@@ -285,37 +285,39 @@ function Liquidity () {
     </Card>
   )
 
+  const CardHeader = () => (
+    <Row style={{ display: 'flex', alignItems: 'center' }}>
+      <Col span={!addLiquidityIsVisible && !removeLiquidityIsVisible ? 12  : 8 }>
+        {
+          !addLiquidityIsVisible && !removeLiquidityIsVisible ? `Liquidity` :
+          <ArrowLeftOutlined style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => {
+            hideAddLiquidity()
+            hideRemoveLiquidity()
+          }} />
+        }
+      </Col>
+      {
+        !addLiquidityIsVisible ? '' :
+        <Col span={8}>
+          Add Liquidity
+        </Col>
+      }
+      {
+        !removeLiquidityIsVisible ? '' :
+        <Col span={8}>
+          Remove Liquidity
+        </Col>
+      }
+      <Col span={!addLiquidityIsVisible && !removeLiquidityIsVisible ? 12  : 8 } style={{ display: 'flex', justifyContent: 'end' }}>
+        <Settings />
+      </Col>
+    </Row>
+  )
+
   return (
     <Row>
       <Col>
-        <Card style={styles.card} title={
-          <Row style={{ display: 'flex', alignItems: 'center' }}>
-            <Col span={!addLiquidityIsVisible && !removeLiquidityIsVisible ? 12  : 8 }>
-              {
-                !addLiquidityIsVisible && !removeLiquidityIsVisible ? `Liquidity` :
-                <ArrowLeftOutlined style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => {
-                  hideAddLiquidity()
-                  hideRemoveLiquidity()
-                }} />
-              }
-            </Col>
-            {
-              !addLiquidityIsVisible ? '' :
-              <Col span={8}>
-                Add Liquidity
-              </Col>
-            }
-            {
-              !removeLiquidityIsVisible ? '' :
-              <Col span={8}>
-                Remove Liquidity
-              </Col>
-            }
-            <Col span={!addLiquidityIsVisible && !removeLiquidityIsVisible ? 12  : 8 } style={{ display: 'flex', justifyContent: 'end' }}>
-              <Settings />
-            </Col>
-          </Row>
-        }>
+        <Card style={styles.card} title={<CardHeader />}>
           {
             !removeLiquidityIsVisible ? '' : 
             <RemoveLiquidity lpTokenData={lpTokenData} />
