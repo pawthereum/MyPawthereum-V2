@@ -57,6 +57,7 @@ function TaxManagementForm (props) {
     listTaxStructLpTokenReceiver,
     listTaxStructLiquidityTaxBuy,
     listTaxStructLiquidityTaxSell,
+    listTaxStructCustomTaxName,
   } = useContext(AppContext)
   const { nativeSymbol } = useNative()
 
@@ -79,6 +80,7 @@ function TaxManagementForm (props) {
   const [tax4Buy, setTax4Buy] = useState(null)
   const [tax4Sell, setTax4Sell] = useState(null)
   const [tax4Address, setTax4Address] = useState(null)
+  const [customTaxName, setCustomTaxName] = useState(null)
 
   // token taxes
   const [tokenTaxName, setTokenTaxName] = useState(null)
@@ -159,6 +161,22 @@ function TaxManagementForm (props) {
       setAddress: setTax4Address 
     },
   ]
+
+  const customTax = { 
+    name: customTaxName || listTaxStructCustomTaxName || 'Custom Tax', 
+    storedName: listTaxStructTax4Name,
+    setName: setCustomTaxName, 
+    setBuy: ()=>{}, 
+    setSell: ()=>{}, 
+    isCustom: true,
+    buy: null, 
+    storedBuy: null,
+    sell: null, 
+    storedSell: null,
+    address: null,
+    storedAddress: null,
+    setAddress: ()=>{} 
+  }
 
   const tokenTaxes = [
     { 
@@ -361,6 +379,37 @@ function TaxManagementForm (props) {
                   </Panel>
                 ))
               }
+              {/*/ TODO this needs to be treated specially so it doesnt look disabled /*/ }
+              <Panel header={<PanelHeader tax={customTax}/>}>
+                <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
+                  <Row>
+                    <Col span={24}>
+                      <label>Tax Name</label>
+                      <Input
+                        placeholder="Tax name"
+                        value={customTax.name}
+                        onChange={(e) => onNameInputChange(e, customTax)}
+                        size="large"
+                        style={{ borderRadius: '1rem' }}
+                      />
+                    </Col>
+                  </Row>
+                  {
+                    !showUpdateButton(customTax) ? '' :
+                    <Row>
+                      <Col span={24}>
+                        <Button 
+                          type="primary" 
+                          size="large" 
+                          style={styles.button}
+                          onClick={() => updateTaxes(customTax)}
+                          loading={updateLoading}
+                        >Update</Button>
+                      </Col>
+                    </Row>
+                  }
+                </Space>
+              </Panel>
             </Collapse>
           </Col>
         </Row>

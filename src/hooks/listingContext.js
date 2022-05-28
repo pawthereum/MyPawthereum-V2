@@ -55,6 +55,8 @@ const useListingContext = () => {
   const [listTaxStructLpTokenReceiver, setListTaxStructLpTokenReceiver] = useState(null)
   const [listTaxStructLiquidityTaxBuy, setListTaxStructLiquidityTaxBuy] = useState(null)
   const [listTaxStructLiquidityTaxSell, setListTaxStructLiquidityTaxSell] = useState(null)
+  const [listTaxStructCustomTaxName, setListTaxStructCustomTaxName] = useState(null)
+
 
   const taxes = [
     { isTax1: true, setName: setListTaxStructTax1Name, setAddress: setListTaxStructTax1Address, setBuy: setListTaxStructTax1Buy, setSell: setListTaxStructTax1Sell },
@@ -64,6 +66,7 @@ const useListingContext = () => {
     { isTokenTax: true, setName: setListTaxStructTokenTaxName, setAddress: setListTaxStructTokenTaxAddress, setBuy: setListTaxStructTokenTaxBuy, setSell: setListTaxStructTokenTaxSell },
     { isBurn: true, setName: ()=>{}, setAddress: setListTaxStructBurnTaxAddress, setBuy: setListTaxStructBurnTaxBuy, setSell: seListTaxStructBurnTaxSell },
     { isLiquidity: true, setName: ()=>{}, setAddress: setListTaxStructLpTokenReceiver, setBuy: setListTaxStructLiquidityTaxBuy, setSell: setListTaxStructLiquidityTaxSell },
+    { isCustom: true, setName: setListTaxStructCustomTaxName, setAddress: ()=>{}, setBuy: ()=>{}, setSell: ()=>{} }
   ]
 
   const updateListCurrency = async (currency, preventTaxStructFetch) => {
@@ -241,6 +244,32 @@ const useListingContext = () => {
     }
   }
 
+  const setCustomTax = async (tax) => {
+    try {
+      const updateReq = await listTaxStructContract.setCustomTaxName(
+        tax.name
+      )
+      openNotification({
+        message: `🔊 ${tax.name} update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: `🎉 ${tax.name} updated!`,
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+      return tx
+    } catch (e) {
+      console.log('error setting token tax', e)
+      return openNotification({
+        message: "⚠️ Error setting token tax!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
   const setTax1 = async (tax) => {
     try {
       const updateReq = await listTaxStructContract.setTax1(
@@ -365,6 +394,7 @@ const useListingContext = () => {
     if (tax.isTax2) await setTax2(tax)
     if (tax.isTax3) await setTax3(tax)
     if (tax.isTax4) await setTax4(tax)
+    if (tax.isCustom) await setCustomTax(tax)
     await fetchAndSetTaxStructTaxes(listTaxStructContract)
     return
   }
@@ -474,6 +504,7 @@ const useListingContext = () => {
     listTaxStructLpTokenReceiver,
     listTaxStructLiquidityTaxBuy,
     listTaxStructLiquidityTaxSell,
+    listTaxStructCustomTaxName,
   }
 }
 
