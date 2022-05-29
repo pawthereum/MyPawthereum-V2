@@ -42,3 +42,7 @@
 .ant-popover-inner {
   border-radius: 1rem !important;
 }
+
+.ant-layout {
+  background-color: none transparent !important;
+}

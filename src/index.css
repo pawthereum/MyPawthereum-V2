@@ -28,12 +28,16 @@ dd {
   margin: 0;
 }
 
+html {
+  background: none transparent !important;
+}
+
 body {
   min-height: 100vh;
   scroll-behavior: smooth;
   text-rendering: optimizeSpeed;
   line-height: 1.5;
-  background-color: white;
+  background: none transparent !important;
   font-family: 'Comfortaa', cursive !important;
 }
 

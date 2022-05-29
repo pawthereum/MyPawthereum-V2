@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { BrowserRouter as Router } from "react-router-dom";
 import App from "./App";
 import { MoralisProvider } from "react-moralis";
 import "./index.css";
@@ -57,7 +58,9 @@ const Application = () => {
     return (
       <MoralisProvider appId={APP_ID} serverUrl={SERVER_URL}>
         <ConfigProvider>
-          <App isServerInfo />
+          <Router>
+            <App isServerInfo />
+          </Router>
         </ConfigProvider>
       </MoralisProvider>
     );
