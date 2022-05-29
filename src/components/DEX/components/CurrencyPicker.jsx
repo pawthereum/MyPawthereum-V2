@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
+import { useSearchParams } from "react-router-dom";
 import { useMoralis } from 'react-moralis'
 import { useERC20Balance } from '../../../hooks/useERC20Balance'
 import { AutoComplete, Avatar, Input, List, Modal, Button, Tag, Skeleton, Result } from 'antd'
@@ -24,6 +25,8 @@ function CurrencyPicker (props) {
   const { assets } = useERC20Balance()
   const { Moralis, chainId, account } = useMoralis()
   const { isNative, getNativeBalance } = useNative()
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [tokenListWithBalances, setTokenListWithBalances] = useState([])
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [pickedCurrency, setPickedCurrency] = useState(null);
@@ -168,6 +171,24 @@ function CurrencyPicker (props) {
     // props.side === "input" ? updateInputCurrency(selection) : updateOutputCurrency(selection)
     handleClose()
   }
+
+  // url params can set the currency selections
+  const inputParam = searchParams.get("input_currency")
+  const outputParam = searchParams.get("output_currency")
+
+  useEffect(() => {
+    if (tokenList.length === 0 || !networkConfigs) return false
+    if (inputParam && props.side === 'input') {
+      pickCurrency(inputParam)
+    }
+  }, [inputParam, tokenList, networkConfigs])
+
+  useEffect(() => {
+    if (tokenList.length === 0 || !networkConfigs) return false
+    if (outputParam && props.side === 'output') {
+      pickCurrency(outputParam)
+    }
+  }, [outputParam, tokenList, networkConfigs])
 
   const onSearchInputChange = (e) => {
     setTokenSearchResult(null)
