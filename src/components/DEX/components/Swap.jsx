@@ -3,7 +3,7 @@ import { Button, Row, Col, Card, Popover } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import AppContext from 'AppContext'
 import Account from 'components/Account/Account';
-import { useMoralis } from 'react-moralis'
+import { useMoralis, useChain} from 'react-moralis'
 import TradeCard from './TradeCard';
 import Settings from './Settings'
 import { PAWSWAP, DEFAULT_SLIPPAGE, COLORS, HIGH_PRICE_IMPACT, MAXMIMUM_PRICE_IMPACT } from '../../../constants'
@@ -51,6 +51,7 @@ const txApprovePopOverContent = () => (
 )
 
 function Swap (props) {
+  const { switchNetwork } = useChain();
   const { chainId, account } = useMoralis()
   const { 
     estimatedSide, 
@@ -107,11 +108,13 @@ function Swap (props) {
 
   const swapButtonIsDisabled = () => {
     if (!account) return true
+    if (props.showSwitchNetwork) return true
     return showApproveBtn || exceedsMaxPriceImpact
   }
 
   const swapButtonText = () => {
     if (!account) return 'Connect Wallet'
+    if (props.showSwitchNetwork) return 'Switch Network'
     return exceedsMaxPriceImpact && !showApproveBtn ? 'Price Impact Too High' : 'Swap 🔁'
   }
 
@@ -144,6 +147,16 @@ function Swap (props) {
     checkAllowance()
   }, [trade])
 
+  const SwitchNetwork = () => (
+    <Button 
+      onClick={() => switchNetwork(props.switchNetworkTo)} 
+      type="primary" 
+      style={{ borderRadius: "0.6rem" }}
+    >
+      Switch Network
+    </Button>
+  )
+
   return (
     <div>
       <Row>
@@ -154,6 +167,7 @@ function Swap (props) {
                 PawSwap
               </Col>
               <Col span={12} style={{ display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
+                { props.showSwitchNetwork ? <span style={{ marginRight: '10px' }}><SwitchNetwork /></span> : '' }
                 { props.showAccount ? <span style={{ marginRight: '10px' }}><Account/></span> : '' }
                 <Settings />
               </Col>
