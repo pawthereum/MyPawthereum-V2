@@ -14,7 +14,7 @@ const styles = {
 function PawSwapWidget() {
   return (
     <div style={styles.widget}>
-      <Swap />
+      <Swap showAccount={true} />
     </div>
   )
 }

@@ -100,7 +100,7 @@ function Account() {
         <div
           onClick={() => setIsAuthModalVisible(true)}
         >
-          <Button type="primary">
+          <Button style={{ borderRadius: "0.6rem", }} type="primary">
             Connect
           </Button>
         </div>

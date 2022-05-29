@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Button, Row, Col, Card, Popover } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import AppContext from 'AppContext'
+import Account from 'components/Account/Account';
 import { useMoralis } from 'react-moralis'
 import TradeCard from './TradeCard';
 import Settings from './Settings'
@@ -49,8 +50,8 @@ const txApprovePopOverContent = () => (
   </div>
 )
 
-function Swap () {
-  const { chainId } = useMoralis()
+function Swap (props) {
+  const { chainId, account } = useMoralis()
   const { 
     estimatedSide, 
     inputCurrency, 
@@ -105,10 +106,12 @@ function Swap () {
   }, [trade, highPriceImpactIgnored])
 
   const swapButtonIsDisabled = () => {
+    if (!account) return true
     return showApproveBtn || exceedsMaxPriceImpact
   }
 
   const swapButtonText = () => {
+    if (!account) return 'Connect Wallet'
     return exceedsMaxPriceImpact && !showApproveBtn ? 'Price Impact Too High' : 'Swap 🔁'
   }
 
@@ -150,7 +153,8 @@ function Swap () {
               <Col span={12}>
                 PawSwap
               </Col>
-              <Col span={12} style={{ display: 'flex', justifyContent: 'end' }}>
+              <Col span={12} style={{ display: 'flex', justifyContent: 'end', alignItems: 'center' }}>
+                { props.showAccount ? <span style={{ marginRight: '10px' }}><Account/></span> : '' }
                 <Settings />
               </Col>
             </Row>

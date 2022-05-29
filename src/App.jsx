@@ -41,13 +41,6 @@ const { Header, Footer } = Layout;
 const { useBreakpoint } = Grid;
 
 const styles = {
-  content: {
-    display: "flex",
-    justifyContent: "center",
-    color: "#041836",
-    marginTop: "130px",
-    padding: "10px",
-  },
   header: {
     position: "fixed",
     zIndex: 1,
@@ -95,6 +88,13 @@ const App = ({ isServerInfo }) => {
       minHeight: '100vh',
       backgroundColor: bg || `radial-gradient(ellipse at top, ${COLORS.defaultBg}, transparent 425%),radial-gradient(ellipse at bottom,  ${COLORS.primary}, transparent)`,
       background: bg || `radial-gradient(ellipse at top, ${COLORS.defaultBg}, transparent 425%),radial-gradient(ellipse at bottom,  ${COLORS.primary}, transparent)`
+    },
+    content: {
+      display: "flex",
+      justifyContent: "center",
+      color: "#041836",
+      marginTop: hideHeader ? "0px" : "130px",
+      padding: "10px",
     }
   }
 
@@ -198,7 +198,7 @@ const App = ({ isServerInfo }) => {
           </Header>
         }
 
-        <div style={styles.content}>
+        <div style={dynamicStyles.content}>
           <Routes>
             <Route exact path="/quickstart" element={<QuickStart isServerInfo={isServerInfo} />}/>
             <Route path="/stats" element={<Stats />}/>
