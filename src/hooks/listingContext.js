@@ -275,7 +275,7 @@ const useListingContext = () => {
 
   const setRouterAddress = async (router) => {
     try {
-      const updateReq = await listTaxStructContract.setRouter(
+      const updateReq = await listTaxStructContract.setRouterAddress(
         router.address
       )
       openNotification({
