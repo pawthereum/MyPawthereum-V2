@@ -56,6 +56,7 @@ const useListingContext = () => {
   const [listTaxStructLiquidityTaxBuy, setListTaxStructLiquidityTaxBuy] = useState(null)
   const [listTaxStructLiquidityTaxSell, setListTaxStructLiquidityTaxSell] = useState(null)
   const [listTaxStructCustomTaxName, setListTaxStructCustomTaxName] = useState(null)
+  const [listTaxStructRouterAddress, setListTaxStructRouterAddress] = useState(null)
 
 
   const taxes = [
@@ -101,7 +102,8 @@ const useListingContext = () => {
       const taxStructure = await getTaxStructure({
         taxStructContract, 
         account,
-        includeWallets: true
+        includeWallets: true,
+        includeRouterAddress: true
       })
       const taxChecks = ['isTax1', 'isTax2', 'isTax3', 'isTax4', 'isTokenTax', 'isBurn', 'isLiquidity']
       taxChecks.map(mapping => {
@@ -114,6 +116,7 @@ const useListingContext = () => {
         tax.setSell(taxStruct.sell)
         return mapping
       })
+      setListTaxStructRouterAddress(taxStructure.routerAddress)
       setListTaxStructFeeDecimal(taxStructure.feeDecimal)
     } catch (e) {
       console.log('error fetching and setting tax struct taxes', e)
@@ -270,6 +273,32 @@ const useListingContext = () => {
     }
   }
 
+  const setRouterAddress = async (router) => {
+    try {
+      const updateReq = await listTaxStructContract.setRouter(
+        router.address
+      )
+      openNotification({
+        message: `🔊 Router address update submitted!`,
+        description: `${updateReq.hash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + updateReq.hash
+      });
+      const tx = await updateReq.wait()
+      openNotification({
+        message: `🎉 Router address updated!`,
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      });
+      return tx
+    } catch (e) {
+      console.log('error setting router address', e)
+      return openNotification({
+        message: "⚠️ Error setting router address!",
+        description: `${e.message} ${e.data?.message}`
+      });
+    }
+  }
+
   const setTax1 = async (tax) => {
     try {
       const updateReq = await listTaxStructContract.setTax1(
@@ -395,6 +424,7 @@ const useListingContext = () => {
     if (tax.isTax3) await setTax3(tax)
     if (tax.isTax4) await setTax4(tax)
     if (tax.isCustom) await setCustomTax(tax)
+    if (tax.isRouter) await setRouterAddress(tax)
     await fetchAndSetTaxStructTaxes(listTaxStructContract)
     return
   }
@@ -505,6 +535,7 @@ const useListingContext = () => {
     listTaxStructLiquidityTaxBuy,
     listTaxStructLiquidityTaxSell,
     listTaxStructCustomTaxName,
+    listTaxStructRouterAddress,
   }
 }
 

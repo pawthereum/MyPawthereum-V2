@@ -1,9 +1,10 @@
 
 import { useState, useContext } from 'react'
+import { useMoralis } from 'react-moralis'
 import AppContext from 'AppContext'
 import { Alert, Badge, Divider, Row, Col, Space, Collapse, Input, Tag, Button } from 'antd'
 import useNative from 'hooks/useNative';
-import { COLORS } from '../../../../constants';
+import { COLORS, PANCAKESWAP_ROUTER, PAWSWAP_ROUTER } from '../../../../constants';
 import CurrencyPicker from '../../components/CurrencyPicker'
 
 
@@ -58,8 +59,11 @@ function TaxManagementForm (props) {
     listTaxStructLiquidityTaxBuy,
     listTaxStructLiquidityTaxSell,
     listTaxStructCustomTaxName,
+    // router
+    listTaxStructRouterAddress,
   } = useContext(AppContext)
   const { nativeSymbol } = useNative()
+  const { chainId } = useMoralis()
 
   const [updateLoading, setUpdateLoading] = useState(false)
 
@@ -93,6 +97,9 @@ function TaxManagementForm (props) {
   const [liquidityTaxAddress, setLiquidityTaxAddress] = useState(null)
   const [liquidityTaxBuy, setLiquidityTaxBuy] = useState(null)
   const [liquidityTaxSell, setLiquidityTaxSell] = useState(null)
+
+  // router
+  const [routerAddress, setRouterAddress] = useState(null)
 
   const formatTaxForViewing = (tax) => {
     if (!tax) return null
@@ -225,6 +232,22 @@ function TaxManagementForm (props) {
     storedSell: formatTaxForViewing(listTaxStructLiquidityTaxSell),
   }
 
+  const router = {
+    name: 'Swap with LP', 
+    storedName: 'Swap with LP',
+    setName: ()=>{}, 
+    setBuy: ()=>{}, 
+    setSell: ()=>{}, 
+    isRouter: true,
+    buy: null, 
+    storedBuy: null,
+    sell: null, 
+    storedSell: null,
+    address: routerAddress || listTaxStructRouterAddress,
+    storedAddress: listTaxStructRouterAddress,
+    setAddress: setRouterAddress
+  }
+
   const onNameInputChange = (e, tax) => {
     tax.setName(e.target.value)
   }
@@ -275,6 +298,30 @@ function TaxManagementForm (props) {
         { Number(props.tax.buy) ? <Tag color="success">{props.tax.buy}%</Tag> : '' }
         { Number(props.tax.sell) ? <Tag color="error">{props.tax.sell}%</Tag> : '' }
         { !Number(props.tax.buy) && !Number(props.tax.sell) ? <Tag>disabled</Tag> : '' }
+      </div>
+    </div>  
+  )
+
+  const getRouterName = (address) => {
+    if (!address) return 'Swap'
+    if (
+      PAWSWAP_ROUTER[chainId]?.address.toLowerCase() === address.toLowerCase()
+    ) return 'Pawswap'
+    if (
+      PANCAKESWAP_ROUTER[chainId]?.address.toLowerCase() === address.toLowerCase()
+    ) return 'Pancakeswap'
+    return 'Unknown Swap'
+  }
+
+  const RouterPanelHeader = (props) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <div>
+        <Badge dot={showUpdateButton(props.router)} offset={[5, 0]}>
+          {getRouterName(props.router.address)}
+        </Badge>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {truncateAddress(props.router.address)}
       </div>
     </div>  
   )
@@ -569,6 +616,48 @@ function TaxManagementForm (props) {
                         size="large" 
                         style={styles.button}
                         onClick={() => updateTaxes(liquidityTax)}
+                        loading={updateLoading}
+                      >Update</Button>
+                    </Col>
+                  </Row>
+                }
+              </Space>
+            </Panel>
+            </Collapse>
+          </Col>
+        </Row>
+        <Divider>
+          Liquidity Pool
+        </Divider>
+        <Row>
+          <Col span={24}>
+            <Collapse ghost expandIconPosition="right">
+            <Panel header={<RouterPanelHeader router={router}/>}>
+              <Space direction="vertical" size="middle" style={{ display: 'flex', ...styles.inset }}>
+                <Row>
+                  <Col span={24}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignContent: 'center' }}>
+                      <label>Swap Router Address</label>
+                      <label>{truncateAddress(router.address)}</label>
+                    </div>
+                    <Input
+                      placeholder="Router address of the swap whose LP will be used"
+                      value={router.address}
+                      onChange={(e) => onAddressInputChange(e, router)}
+                      size="large"
+                      style={{ borderRadius: '1rem' }}
+                    />
+                  </Col>
+                </Row>
+                {
+                  !showUpdateButton(router) ? '' :
+                  <Row>
+                    <Col span={24}>
+                      <Button 
+                        type="primary" 
+                        size="large" 
+                        style={styles.button}
+                        onClick={() => updateTaxes(router)}
                         loading={updateLoading}
                       >Update</Button>
                     </Col>

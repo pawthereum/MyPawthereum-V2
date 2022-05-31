@@ -1,6 +1,7 @@
-export const getTaxStructure = async ({ taxStructContract, account, includeWallets }) => {
+export const getTaxStructure = async ({ taxStructContract, account, includeWallets, includeRouterAddress }) => {
   let taxList = []
   let walletList = [null, null, null, null, null, null, null]
+  let routerAddress
   try {
     taxList = await Promise.all([
       taxStructContract.burnTaxBuyAmount(account),
@@ -25,6 +26,9 @@ export const getTaxStructure = async ({ taxStructContract, account, includeWalle
       taxStructContract.customTaxName(),
       taxStructContract.feeDecimal(),
     ])
+    if (includeRouterAddress) {
+      routerAddress = await taxStructContract.routerAddress()
+    }
     if (includeWallets) {
       walletList = await Promise.all([
         taxStructContract.burnAddress(),
@@ -130,5 +134,5 @@ export const getTaxStructure = async ({ taxStructContract, account, includeWalle
       wallet: walletList[7],
     }
   ]
-  return { taxes, feeDecimal: taxList[20] }
+  return { taxes, feeDecimal: taxList[20], router: taxList[21], routerAddress }
 }
