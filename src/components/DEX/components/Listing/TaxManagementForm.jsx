@@ -2,7 +2,8 @@
 import { useState, useContext } from 'react'
 import { useMoralis } from 'react-moralis'
 import AppContext from 'AppContext'
-import { Alert, Badge, Divider, Row, Col, Space, Collapse, Input, Tag, Button } from 'antd'
+import { Alert, Badge, Divider, Row, Col, Space, Collapse, Input, Tag, Button, Popover } from 'antd'
+import { QuestionCircleOutlined } from '@ant-design/icons'
 import useNative from 'hooks/useNative';
 import { COLORS, PANCAKESWAP_ROUTER, PAWSWAP_ROUTER } from '../../../../constants';
 import CurrencyPicker from '../../components/CurrencyPicker'
@@ -350,7 +351,11 @@ function TaxManagementForm (props) {
           </Row>
         }
         <Divider>
-          {nativeSymbol} Taxes
+          <Popover content={<div style={{ maxWidth: '250px' }}>
+            Take taxes in {nativeSymbol} and send them directly to the wallets specified
+          </div>} trigger="hover">
+            {nativeSymbol} Taxes <QuestionCircleOutlined />
+          </Popover>
         </Divider>
         <Row>
           <Col span={24}>
@@ -461,7 +466,11 @@ function TaxManagementForm (props) {
           </Col>
         </Row>
         <Divider>
-          Token Taxes
+          <Popover content={<div style={{ maxWidth: '250px' }}>
+            These taxes are taken in the form of your token and are transferred to the wallets you specify
+          </div>} trigger="hover">
+            Token Taxes <QuestionCircleOutlined />
+          </Popover>
         </Divider>
         <Row>
           <Col span={24}>
@@ -563,7 +572,11 @@ function TaxManagementForm (props) {
           </Col>
         </Row>
         <Divider>
-          Liquidity Tax
+          <Popover content={<div style={{ maxWidth: '250px' }}>
+            Half of this tax is taken in your token and the other half is taken in {nativeSymbol}. Each swap will automatically add liquidity to your LP.
+          </div>} trigger="hover">
+            Liquidity Tax <QuestionCircleOutlined />
+          </Popover>
         </Divider>
         <Row>
           <Col span={24}>
@@ -627,7 +640,15 @@ function TaxManagementForm (props) {
           </Col>
         </Row>
         <Divider>
-          Liquidity Pool
+          <Popover content={<div style={{ maxWidth: '250px' }}>
+            Most tokens are capable of using existing Liquidity Pools with PawSwap. 
+            If your token is capable of excluding addresses from incurring taxes 
+            when swapping, your token is likely to be compatible with your existing DEX's LP.
+            Enter the router address of the DEX you already use and start swapping with 
+            PawSwap and your exsiting LP!
+          </div>} trigger="hover">
+            DEX Router with Liquidity Pool <QuestionCircleOutlined />
+          </Popover>
         </Divider>
         <Row>
           <Col span={24}>
