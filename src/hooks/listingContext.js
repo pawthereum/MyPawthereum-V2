@@ -105,7 +105,7 @@ const useListingContext = () => {
         includeWallets: true,
         includeRouterAddress: true
       })
-      const taxChecks = ['isTax1', 'isTax2', 'isTax3', 'isTax4', 'isTokenTax', 'isBurn', 'isLiquidity']
+      const taxChecks = ['isTax1', 'isTax2', 'isTax3', 'isTax4', 'isTokenTax', 'isBurn', 'isLiquidity', 'isCustom']
       taxChecks.map(mapping => {
         const taxStruct = taxStructure.taxes.find(t => t[mapping])
         const tax = taxes.find(t => t[mapping])

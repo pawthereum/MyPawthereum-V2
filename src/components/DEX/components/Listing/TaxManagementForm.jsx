@@ -172,7 +172,7 @@ function TaxManagementForm (props) {
 
   const customTax = { 
     name: customTaxName || listTaxStructCustomTaxName || 'Custom Tax', 
-    storedName: listTaxStructTax4Name,
+    storedName: listTaxStructCustomTaxName,
     setName: setCustomTaxName, 
     setBuy: ()=>{}, 
     setSell: ()=>{}, 
@@ -284,7 +284,7 @@ function TaxManagementForm (props) {
     if (tax.name !== tax.storedName && notDefaultName(tax.name)) return true
     if (tax.buy?.toString() !== tax.storedBuy?.toString()) return true
     if (tax.sell?.toString() !== tax.storedSell?.toString()) return true
-    if (tax.address !== tax.storedAddress ) return true
+    if (tax.address !== tax.storedAddress) return true
     return false
   }
 
