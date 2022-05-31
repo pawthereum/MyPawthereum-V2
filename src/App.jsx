@@ -80,6 +80,7 @@ const App = ({ isServerInfo }) => {
   const [searchParams] = useSearchParams();
   const hideFooter = searchParams.get("hide_footer")
   const hideHeader = searchParams.get("hide_header")
+  const preventWeb3ConnectPopup = searchParams.get("prevent_web3_popup")
   const bg = searchParams.get("bg")
 
   const dynamicStyles = {
@@ -166,9 +167,9 @@ const App = ({ isServerInfo }) => {
 
   useEffect(() => {
     const connectorId = window.localStorage.getItem("connectorId");
-    if (isAuthenticated && !isWeb3Enabled && !isWeb3EnableLoading) enableWeb3({ provider: connectorId });
+    if (isAuthenticated && !isWeb3Enabled && !isWeb3EnableLoading && !preventWeb3ConnectPopup) enableWeb3({ provider: connectorId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isWeb3Enabled]);
+  }, [isAuthenticated, isWeb3Enabled, preventWeb3ConnectPopup]);
 
   return (
     <AppContext.Provider value={globalState}>
