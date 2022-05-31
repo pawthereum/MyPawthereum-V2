@@ -150,6 +150,7 @@ function CurrencyPicker (props) {
   const pickCurrency = (currency) => {
     console.log({currency, tokenList})
     const selection = tokenList.find(t => t.address.toLowerCase() === currency.toLowerCase())
+    if (!selection) return
     if (isNative(selection.address)) {
       selection.address = networkConfigs[chainId]?.wrapped
     }

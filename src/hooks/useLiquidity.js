@@ -139,21 +139,18 @@ const useLiquidity = () => {
         description: `${removeRequest.hash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + removeRequest.hash
       })
-      try {
-        const tx = await removeRequest.wait()
-        openNotification({
-          message: "🎉 Liquidity Removal Complete!",
-          description: `${tx.transactionHash}`,
-          link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
-        })
-      } catch (e) {
-        openNotification({
-          message: "⚠️ Error adding liquidity!",
-          description: `${e.message} ${e.data?.message}`
-        });
-      }
+      const tx = await removeRequest.wait()
+      openNotification({
+        message: "🎉 Liquidity Removal Complete!",
+        description: `${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+      })
     } catch (e) {
       console.log({ e })
+      openNotification({
+        message: "⚠️ Error removing liquidity!",
+        description: `${e.message} ${e.data?.message}`
+      });
     }
   }
 

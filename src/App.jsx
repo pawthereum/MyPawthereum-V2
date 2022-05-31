@@ -77,11 +77,11 @@ const styles = {
 const App = ({ isServerInfo }) => {
   const { Moralis, isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading, chainId, account } = useMoralis();
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const hideFooter = searchParams.get("hide_footer")
   const hideHeader = searchParams.get("hide_header")
   const bg = searchParams.get("bg")
-  console.log('HIDE FOOTER', hideFooter)
+
   const dynamicStyles = {
     layout: {
       overflow: "auto", 

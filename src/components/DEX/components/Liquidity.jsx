@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from "react-router-dom";
 import { useMoralis } from 'react-moralis';
 import {Button, Input, Row, Col, Card, Collapse, Skeleton } from 'antd';
 import { useERC20Balance } from 'hooks/useERC20Balance';
@@ -53,6 +54,7 @@ function Liquidity () {
   } = useLiquidity()
   const { assets } = useERC20Balance()
   const { getWrappedNativeToken, wrappedAddress, isNative } = useNative()
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { Search } = Input
 
@@ -119,8 +121,8 @@ function Liquidity () {
     console.log({ totalSupply})
 
     // figure out which reserve is token and which is weth
-    const tokenReserves = token?.address > weth?.address ? reserves[1] : reserves[0]
-    const wethReserves = token?.address > weth?.address ? reserves[0] : reserves[1]
+    const tokenReserves = token?.address.toLowerCase() > weth?.address.toLowerCase() ? reserves[1] : reserves[0]
+    const wethReserves = token?.address.toLowerCase() > weth?.address.toLowerCase() ? reserves[0] : reserves[1]
 
     // make a token amount class for each
     const tokenReservesAmount = new TokenAmount(token, tokenReserves)
@@ -133,9 +135,6 @@ function Liquidity () {
     const wethAmountInLpShare = new TokenAmount(weth, shareOfSupply.multiply(
       wethReservesAmount.raw
     ).quotient)
-
-    console.log(new TokenAmount(lpToken, lpTokenBalance))
-    console.log(new TokenAmount(lpToken, lpTokenBalance).toSignificant(18))
 
     return {
       lpToken,
@@ -201,11 +200,15 @@ function Liquidity () {
     if (!assets) return
     // only take 5 to go easy on the api
     // TODO: make a load more button for these
-    const pawswapLpTokensInWallet = assets.filter(a => a.symbol === 'Paw-LP').slice(0, 5)
+    const pawswapLpTokensInWallet = assets.filter(a => a.symbol === 'Paw-LP')
     getInfoForPawLpTokens(pawswapLpTokensInWallet)
   }, [assets])
 
-  const showAddLiquidity = () => {
+  const showAddLiquidity = ({ inputCurrency, outputCurrency}) => {
+    setSearchParams({ 
+      input_currency: inputCurrency,
+      output_currency: outputCurrency 
+    })
     console.log('showing...')
     setAddLiquidityIsVisible(true)
   }
@@ -223,6 +226,12 @@ function Liquidity () {
   const hideRemoveLiquidity = () => {
     console.log('hiding...')
     setRemoveLiquidityIsVisible(false)
+  }
+
+  const removeQueryParams = () => {
+    searchParams.delete('input_currency');
+    searchParams.delete('output_currency');
+    setSearchParams(searchParams)
   }
 
   const LpTokenCard = ({ data }) => (
@@ -266,7 +275,10 @@ function Liquidity () {
       <Row style={{ ...styles.lpTokenCardRow, marginTop: '10px' }}>
         <Col>
         <Button type="primary" size="small" style={{ borderRadius: '4px', ...styles.outset }} onClick={() => {
-            showAddLiquidity()
+            showAddLiquidity({
+              inputCurrency: data?.tokensInPair[0]?.address,
+              outputCurrency: data?.tokensInPair[1]?.address
+            })
             hideRemoveLiquidity()
           }}>
             Add Liquidity
@@ -291,6 +303,7 @@ function Liquidity () {
         {
           !addLiquidityIsVisible && !removeLiquidityIsVisible ? `Liquidity` :
           <ArrowLeftOutlined style={{ cursor: 'pointer', marginRight: '0.5rem' }} onClick={() => {
+            removeQueryParams()
             hideAddLiquidity()
             hideRemoveLiquidity()
           }} />
@@ -338,7 +351,10 @@ function Liquidity () {
                         marginTop: "10px",
                         ...styles.outset,
                       }}
-                      onClick={() => showAddLiquidity()}
+                      onClick={() => showAddLiquidity({
+                        inputCurrency: null,
+                        outputCurrency: null
+                      })}
                     >
                       Add Liquidity
                     </Button>

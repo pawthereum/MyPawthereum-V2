@@ -34,6 +34,7 @@ const useAllowances = () => {
     if (!chainId) return false
     const { amount, spender, token, forceCheck } = params
     if (allowanceWasCheckedWithinMaxBlocksBeforeStale(params) && !forceCheck) {
+      console.log({ allowance: allowances[token.address][spender].allowance.raw.toString() })
       return JSBI.greaterThanOrEqual(allowances[token.address][spender].allowance.raw, amount.raw)
     }
     

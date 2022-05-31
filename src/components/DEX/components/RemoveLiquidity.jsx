@@ -43,6 +43,8 @@ function RemoveLiquidity(props) {
   const [approvalIsLoading, setApprovalIsLoading] = useState(false)
   const [approvalText, setApprovalText] = useState('Approve')
   const [showApproveBtn, setShowApproveBtn] = useState(false)
+  const [removeLiquidityIsLoading, setRemoveLiquidityIsLoading] = useState(false)
+  const [removeLiquidityText, setRemoveLiquidityText] = useState('Remove Liquidity')
   const [tokenAmountReceivedInRemoval, setTokenAmountReceivedInRemoval] = useState(null)
   const [wethAmountReceivedInRemoval, setWethAmountReceivedInRemoval] = useState(null)
   const [lpTokenAmountToRemove, setlpTokenAmountToRemove] = useState(null)
@@ -53,6 +55,10 @@ function RemoveLiquidity(props) {
 
   useEffect(() => {
     const percent = new Percent(percentage, 100)
+    const amtToSub =  new TokenAmount(tokenInPairing, percent.multiply(
+      tokenAmountInLpShare.raw
+    ).quotient)
+    console.log('actual amt', tokenAmountInLpShare.subtract(amtToSub))
     setTokenAmountReceivedInRemoval(
       new TokenAmount(tokenInPairing, percent.multiply(
         tokenAmountInLpShare.raw
@@ -72,18 +78,23 @@ function RemoveLiquidity(props) {
       checkAllowance()
     }
 
+    console.log({ lpToken, tokenInPairing })
+
     async function checkAllowance () {
       const sufficientAllowance = await hasAllowance({
-        amount: lpTokenAmountToRemove.toSignificant(tokenInPairing?.decimals),
-        token: tokenInPairing,
+        amount: amtToRemove,
+        token: lpToken,
         spender: PAWSWAP_ROUTER[chainId]?.address
       })
+      console.log({ sufficientAllowance })
       setShowApproveBtn(!sufficientAllowance)
     }
 
   }, [percentage])
 
   const tryRemoveLiquidity = async () => {
+    setRemoveLiquidityIsLoading(true)
+    setRemoveLiquidityText('Removing Liquidity')
     try {
       await removeLiquidity({
         token: tokenInPairing,
@@ -92,6 +103,8 @@ function RemoveLiquidity(props) {
     } catch (e) {
       console.log({e})
     }
+    setRemoveLiquidityIsLoading(false)
+    setRemoveLiquidityText('Remove Liquidity')
   }
 
   const approveRemovalAmount = async () => {
@@ -109,6 +122,13 @@ function RemoveLiquidity(props) {
     setApprovalText('Approve')
 
     return true
+  }
+
+  const formatNumber = (number) => {
+    return Number(number).toLocaleString([], {
+      maximumFractionDigits: 18,
+      minimumFractionDigits: 0
+    })
   }
 
   return (
@@ -140,7 +160,7 @@ function RemoveLiquidity(props) {
           })}          
         </Col>
       </Row>
-      <Row gutter={6}>
+      <Row gutter={6} style={{ display: 'flex', alignItems: 'center' }}>
         {
           !showApproveBtn ? '' :
           <Col span={12}>
@@ -149,7 +169,6 @@ function RemoveLiquidity(props) {
               size="large"
               style={{
                 width: "100%",
-                marginTop: "15px",
                 borderRadius: "0.6rem",
                 height: "50px",
                 ...styles.outset,
@@ -172,9 +191,10 @@ function RemoveLiquidity(props) {
               height: "50px",
               ...styles.outset,
             }}
+            loading={removeLiquidityIsLoading}
             onClick={() => tryRemoveLiquidity()}
           >
-            Remove Liquidity
+            {removeLiquidityText}
           </Button>
         </Col>
       </Row>
@@ -183,15 +203,15 @@ function RemoveLiquidity(props) {
           <Card style={styles.card}>
             <Row style={styles.cardRow}>
               <Col>Token Received</Col>
-              <Col>{tokenAmountReceivedInRemoval?.toSignificant(9)}</Col>
+              <Col>{formatNumber(tokenAmountReceivedInRemoval?.toSignificant(9))}</Col>
             </Row>
             <Row style={styles.cardRow}>
               <Col>{getWrappedNativeToken().symbol} Received</Col>
-              <Col>{wethAmountReceivedInRemoval?.toSignificant(9)}</Col>
+              <Col>{formatNumber(wethAmountReceivedInRemoval?.toSignificant(9))}</Col>
             </Row>
             <Row style={styles.cardRow}>
               <Col>LP Token Removed</Col>
-              <Col>{lpTokenAmountToRemove?.toSignificant(9)}</Col>
+              <Col>{formatNumber(lpTokenAmountToRemove?.toSignificant(9))}</Col>
             </Row>
           </Card>
         </Col>
