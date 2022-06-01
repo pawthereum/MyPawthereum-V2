@@ -919,7 +919,6 @@ const useSwapContext = () => {
           swap.outputAmount.token.address,
           tokenTaxStructureTaxes.find(t => t.isCustom).buy,
           customTaxWallet ? customTaxWallet.address : account,
-          '0',
           isExactIn 
           ? swap.outputAmountSlippage.raw.toString()
           : outputAmount.raw.toString(),
@@ -947,7 +946,6 @@ const useSwapContext = () => {
             : swap.inputAmountSlippage.raw.toString(),
           tokenTaxStructureTaxes.find(t => t.isCustom).sell,
           customTaxWallet ? customTaxWallet.address : account,
-          '0',
           isExactIn
             ? swap.outputAmountSlippage.raw.toString()
             : swap.outputAmount.raw.toString(),//Moralis.Units.Token(amountOutSlippage, tokenOut.decimals),

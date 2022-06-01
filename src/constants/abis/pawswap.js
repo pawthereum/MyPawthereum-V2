@@ -19,7 +19,7 @@ export const pawswapAbi = [
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "buyer",
         "type": "address"
@@ -53,12 +53,6 @@ export const pawswapAbi = [
         "internalType": "address",
         "name": "customTaxAddress",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "extraTax1Amount",
-        "type": "uint256"
       }
     ],
     "name": "Buy",
@@ -87,7 +81,7 @@ export const pawswapAbi = [
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "seller",
         "type": "address"
@@ -121,12 +115,6 @@ export const pawswapAbi = [
         "internalType": "address",
         "name": "customTaxAddress",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "extraTax1Amount",
-        "type": "uint256"
       }
     ],
     "name": "Sell",
@@ -148,11 +136,6 @@ export const pawswapAbi = [
         "internalType": "address",
         "name": "customTaxAddress",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "extraTax1Amount",
-        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -245,11 +228,6 @@ export const pawswapAbi = [
       },
       {
         "internalType": "uint256",
-        "name": "extraTax1Amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "minTokensToReceive",
         "type": "uint256"
       }
@@ -280,11 +258,6 @@ export const pawswapAbi = [
       {
         "internalType": "uint256",
         "name": "customTaxAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "extraTax1Amount",
         "type": "uint256"
       },
       {
@@ -403,11 +376,6 @@ export const pawswapAbi = [
         "internalType": "address",
         "name": "customTaxAddress",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "extraTax1Amount",
-        "type": "uint256"
       },
       {
         "internalType": "uint256",
