@@ -60,6 +60,8 @@ function useLeaderboard () {
       charities[t.attributes.customTaxAddress].totalReceived.add(
         new TokenAmount(eth, t.attributes.customTaxAmount)
       )
+      charities[t.attributes.customTaxAddress].donations.push(t)
+      console.log({ donons: charities[t.attributes.customTaxAddress].donations })
       if (t.className === buysTableName) {
         charities[t.attributes.customTaxAddress].buysReceived =
         charities[t.attributes.customTaxAddress].buysReceived.add(
@@ -79,7 +81,8 @@ function useLeaderboard () {
         address: key,
         totalReceived: charities[key].totalReceived,
         buysReceived: charities[key].buysReceived,
-        sellsReceived: charities[key].sellsReceived
+        sellsReceived: charities[key].sellsReceived,
+        donations: charities[key].donations
       }
       if (charityData[charity.address.toLowerCase()]) {
         charity.charityData = charityData[charity.address.toLowerCase()]
