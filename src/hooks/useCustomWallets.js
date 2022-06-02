@@ -5,6 +5,14 @@ import { useMoralis } from 'react-moralis'
 
 const API_ENDPOINT = `https://api.getchange.io/api/v1/nonprofits?public_key=${process.env.REACT_APP_CHANGE_API_KEY}&search_term=`
 
+export const getCharityByCustomWallet = async (customWallet) => {
+  // custom wallet must be checksummed when calling this function
+  const response = await fetch(
+    `https://api.getchange.io/api/v1/nonprofits/wallet/${customWallet}?public_key=${process.env.REACT_APP_CHANGE_API_KEY}`
+  )
+  return await response.json()
+}
+
 const useGetCustomWallets = (searchQuery, selectedCategories) => {
   const { chainId } = useMoralis()
   
