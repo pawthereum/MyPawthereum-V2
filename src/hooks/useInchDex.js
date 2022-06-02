@@ -22,10 +22,12 @@ const useInchDex = (chain) => {
 
   useEffect(() => {
     if (!Moralis?.["Plugins"]?.["oneInch"]) return null;
-    if (chain === 'bsctest' || chain === '0x61') return {}
+    if (chain === 'bsctest' || chain === '0x61') {
+      chain = 'bsc'
+    }
     Moralis.Plugins.oneInch.getSupportedTokens({ chain }).then((tokens) => {
       const native = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
-      let validTokens = {}
+      let validTokens = tokens.tokens
       validTokens[native] = tokens.tokens[native]
       setTokenlist(validTokens)
     });

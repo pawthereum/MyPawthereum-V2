@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useMoralis, useMoralisQuery } from "react-moralis";
-import { TokenAmount, JSBI } from '@uniswap/sdk'
+import { Token, TokenAmount, JSBI, Fetcher } from '@uniswap/sdk'
 import useNative from './useNative';
 import { getCharityByCustomWallet } from './useCustomWallets'
+import useInchDex from './useInchDex'
+import { tokenList as defaultTokenList } from '../constants/tokenList'
 
 function useLeaderboard () {
-  const { Moralis, chainId } = useMoralis();
+  const { Moralis, chainId, web3 } = useMoralis();
   const { getWrappedNativeToken } = useNative();
+  const { tokenList: oneInchTokenList } = useInchDex(chainId)
   const [buys, setBuys] = useState(null)
   const [sells, setSells] = useState(null)
-  const [charityLeaderBoard, setCharityLeaderboard] = useState([])
+  const [charityLeaderboard, setCharityLeaderboard] = useState([])
   const [charityData, setCharityData] = useState({})
+  const [tokenLeaderboard, setTokenLeaderboard] = useState([])
 
   const web3Provider = Moralis.web3Library;
   const eth = getWrappedNativeToken()
@@ -35,14 +39,97 @@ function useLeaderboard () {
   )
 
   useEffect(() => {
-    console.log(buyData)
     setBuys(buyData)
   }, [buyData])
 
   useEffect(() => {
-    console.log(sellData)
     setSells(sellData)
   }, [sellData])
+
+  const getTokenAsset = async (address) => {
+    // get the token from the hard coded listed tokens
+    const tokenInList = defaultTokenList.tokens.find(t => t.address.toLowerCase() === address.toLowerCase())
+    if (tokenInList) {
+      return {
+        metadata: tokenInList,
+        token: new Token(
+          chainId,
+          address,
+          tokenInList.decimals,
+          tokenInList.symbol,
+          tokenInList.name
+        )
+      }
+    }
+    // get the token from one inch if they have it
+    if (oneInchTokenList[address]) {
+      return {
+        metadata: oneInchTokenList[address],
+        token: new Token(
+          chainId,
+          address,
+          oneInchTokenList[address].decimals,
+          oneInchTokenList[address].symbol,
+          oneInchTokenList[address].name
+        )
+      }
+    }
+    // fetch it on chain if nobody else has it
+    return {
+      metadata: null,
+      token: await Fetcher.fetchTokenData(chainId, web3.getSigner())
+    }
+  }
+
+  const createTokenLeaderboard = async (transactions) => {
+    const tokenArray = []
+    const tokens = {}
+    for (let i = 0; i < transactions.length; i++) {
+      const t = transactions[i]
+      if (!tokens[t.attributes.tokenAddress]) {
+        const asset = await getTokenAsset(t.attributes.tokenAddress)
+        tokens[t.attributes.tokenAddress] = {
+          totalDonated: new TokenAmount(eth, 0),
+          sellsDonated: new TokenAmount(eth, 0),
+          buysDonated: new TokenAmount(eth, 0),
+          donations: [],
+          tokenData: asset
+        }
+      }
+      tokens[t.attributes.tokenAddress].totalDonated =
+      tokens[t.attributes.tokenAddress].totalDonated.add(
+        new TokenAmount(eth, t.attributes.customTaxAmount)
+      )
+      tokens[t.attributes.tokenAddress].donations.push(t)
+      if (t.className === buysTableName) {
+        tokens[t.attributes.tokenAddress].buysDonated =
+        tokens[t.attributes.tokenAddress].buysDonated.add(
+          new TokenAmount(eth, t.attributes.customTaxAmount)
+        )
+      }
+      if (t.className === sellsTableName) {
+        tokens[t.attributes.tokenAddress].sellsDonated =
+        tokens[t.attributes.tokenAddress].sellsDonated.add(
+          new TokenAmount(eth, t.attributes.customTaxAmount)
+        )
+      }
+    }
+    for (const key in tokens) {
+      const token = {
+        address: key,
+        totalDonated: tokens[key].totalDonated,
+        buysDonated: tokens[key].buysDonated,
+        sellsDonated: tokens[key].sellsDonated,
+        donations: tokens[key].donations,
+        tokenData: tokens[key].tokenData
+      }
+      tokenArray.push(token)
+    }
+    const sortedTokens = tokenArray.sort((a, b) => {
+      return JSBI.greaterThan(a.totalDonated.raw, b.totalDonated.raw) ? -1 : 1
+    })
+    setTokenLeaderboard(sortedTokens)
+  }
 
   const createCharityLeaderboard = async (transactions) => {
     const charityArray = []
@@ -61,7 +148,6 @@ function useLeaderboard () {
         new TokenAmount(eth, t.attributes.customTaxAmount)
       )
       charities[t.attributes.customTaxAddress].donations.push(t)
-      console.log({ donons: charities[t.attributes.customTaxAddress].donations })
       if (t.className === buysTableName) {
         charities[t.attributes.customTaxAddress].buysReceived =
         charities[t.attributes.customTaxAddress].buysReceived.add(
@@ -76,7 +162,6 @@ function useLeaderboard () {
       }
     })
     for (const key in charities) {
-      console.log(`${key}: ${charities[key]}`)
       const charity = {
         address: key,
         totalReceived: charities[key].totalReceived,
@@ -97,13 +182,13 @@ function useLeaderboard () {
     const sortedCharities = charityArray.sort((a, b) => {
       return JSBI.greaterThan(a.totalReceived.raw, b.totalReceived.raw) ? -1 : 1
     })
-    console.log({charities, charityArray, sortedCharities })
     setCharityLeaderboard(sortedCharities)
   }
 
   useEffect(() => {
     if (!buys || !sells) return
     createCharityLeaderboard(buys.concat(sells))
+    createTokenLeaderboard(buys.concat(sells))
   }, [buys, sells])
 
   // useEffect(() => {
@@ -111,7 +196,8 @@ function useLeaderboard () {
   // }, [sellData])
 
   return {
-    charityLeaderBoard
+    charityLeaderboard,
+    tokenLeaderboard
   }
 }
 

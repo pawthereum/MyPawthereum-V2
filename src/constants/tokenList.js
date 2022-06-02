@@ -20,6 +20,7 @@ export const tokenList = {
       "typicalBuyTax": 8,
       "typicalSellTax": 8,
       "color": "#ff65b3",
+      "description": "Pawthereum is a decentralized, charity cryptocurrency that gives back to animal shelters and advocates for the well-being of animals in need!",
     },
     {
       "name": "Pawthereum",
@@ -31,6 +32,7 @@ export const tokenList = {
       "typicalBuyTax": 8,
       "typicalSellTax": 8,
       "color": "#ff65b3",
+      "description": "Pawthereum is a decentralized, charity cryptocurrency that gives back to animal shelters and advocates for the well-being of animals in need!",
     },
     {
       "name": "BNB",
@@ -65,7 +67,7 @@ export const tokenList = {
     //   "logoURI": "https://cdn.icon-icons.com/icons2/3006/PNG/512/bnb_cryptocurrencies_icon_188408.png",
     //   "typicalBuyTax": 0,
     //   "typicalSellTax": 0,
-    //   "color": "#F4BB0B"
+    //   "color": "#F4BB0B",
     // },
     // {
     //   "name": "Kodi Coin",
@@ -78,6 +80,7 @@ export const tokenList = {
     //   "typicalBuyTax": 11,
     //   "typicalSellTax": 12,
     //   "color": "#8751D8"
+    //   "description": "KODI is more than just a new project, it will provide immediate utility through the implementation of our marketing agency. Starting with our 24/7 Radio show, the Kodi team will be bringing you everything from crypto podcasts, music, and much more.",
     // },
     {
       "name": "SafeMoon",
@@ -89,7 +92,8 @@ export const tokenList = {
       "dex": "pancakeswap",
       "typicalBuyTax": 10,
       "typicalSellTax": 10,
-      "color": "#008A81"
+      "color": "#008A81",
+      "description": "A human-focused technology and innovation business expanding blockchain technologies for a brighter tomorrow.",
     },
     {
       "name": "SafeMoon",
@@ -101,7 +105,8 @@ export const tokenList = {
       "dex": "pancakeswap",
       "typicalBuyTax": 10,
       "typicalSellTax": 10,
-      "color": "#008A81"
+      "color": "#008A81",
+      "description": "A human-focused technology and innovation business expanding blockchain technologies for a brighter tomorrow.",
     }
   ]
 }

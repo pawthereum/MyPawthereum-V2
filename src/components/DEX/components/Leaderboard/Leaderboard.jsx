@@ -5,23 +5,10 @@ import useNative from 'hooks/useNative';
 
 const { useBreakpoint } = Grid;
 
-const styles = {
-  inset: {
-    backgroundColor: COLORS.defaultBg,
-    padding: '14px',
-    borderRadius: '1rem',
-    boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px inset',
-  },
-  outset: {
-    boxShadow: 'rgb(74 74 104 / 10%) 0px 2px 2px -1px',
-  }
-}
-
 function Leaderboard () {
-  const { charityLeaderBoard } = useLeaderboard()
+  const { charityLeaderboard, tokenLeaderboard } = useLeaderboard()
   const { nativeSymbol } = useNative()
   const screens = useBreakpoint()
-  console.log({ charityLeaderBoard })
 
   const dynamicStyles = {
     card: {
@@ -36,47 +23,63 @@ function Leaderboard () {
 
   return (
     <Card style={dynamicStyles.card} title={<div>Leaderboard</div>}>
-      {/* <Row style={{ marginBottom: '5px' }}>
-        <Col>Most Donated Charities</Col>
-      </Row>
-      <div style={{ ...styles.inset, fontSize: '0.9em' }}>
-        <Row style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Col span={12}><strong>Charity</strong></Col>
-          <Col span={12}style={{ display: 'flex', justifyContent: 'end' }}>
-            <strong>{nativeSymbol} Donated</strong>
-          </Col>
-        </Row>
-        {charityLeaderBoard.map((c, i) => (
-          <Row key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Col span={16}>{c.charityData.name || 'Unknown Charity'}</Col>
-            <Col span={8} style={{ display: 'flex', justifyContent: 'end' }}>
-              <div>{c.totalReceived.toSignificant(9)}</div>
-            </Col>
-          </Row>
-        ))}
-      </div> */}
-      <Divider>Most Donated</Divider>
+      <Divider>Most Charitable Community</Divider>
       <List
         itemLayout="vertical"
         size="large"
-        dataSource={charityLeaderBoard}
-        renderItem={charity => (
+        dataSource={tokenLeaderboard}
+        renderItem={(token, i) => (
+          <List.Item
+            key={token.address}
+            extra={
+              !token.tokenData?.metadata?.logoURI ? '' :
+              <img
+                width={100}
+                alt={token.tokenData?.token?.name || 'token logo'}
+                src={token.tokenData?.metadata?.logoURI}
+              />
+            }
+          >
+            <List.Item.Meta
+              avatar={<div>#{i + 1}</div>}
+              title={token.tokenData?.token?.name || 'Unknown Token'}
+              description={token.tokenData?.metadata?.description || ''}
+            />
+            <div style={{ marginLeft: '32px' }}>
+              <span>
+                {token.totalDonated.toSignificant(6)} {nativeSymbol} donated in {token.donations?.length} donations
+              </span>
+            </div>
+          </List.Item>
+        )}
+      />
+      <Divider>Most Donations Received</Divider>
+      <List
+        itemLayout="vertical"
+        size="large"
+        dataSource={charityLeaderboard}
+        renderItem={(charity, i) => (
           <List.Item
             key={charity.address}
             extra={
               !charity.charityData?.logo_url ? '' :
               <img
                 width={100}
-                alt="logo"
+                alt={charity.charityData?.name || 'charity logo'}
                 src={charity.charityData?.logo_url}
               />
             }
           >
             <List.Item.Meta
+              avatar={<div>#{i + 1}</div>}
               title={charity.charityData?.name || 'Unknown Charity'}
               description={charity.charityData?.mission || ''}
             />
-            {charity.totalReceived.toSignificant(6)} {nativeSymbol} received in {charity.donations?.length} donations
+            <div style={{ marginLeft: '32px' }}>
+              <span>
+                {charity.totalReceived.toSignificant(6)} {nativeSymbol} received in {charity.donations?.length} donations
+              </span>
+            </div>
           </List.Item>
         )}
       />
