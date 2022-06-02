@@ -30,20 +30,25 @@ function Leaderboard () {
 
   return (
     <Card style={styles.card} title={<div>Leaderboard</div>}>
-      <Row style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Col span={12}><strong>Charity</strong></Col>
-        <Col span={12}style={{ display: 'flex', justifyContent: 'end' }}>
-          <strong>{nativeSymbol} Donated</strong>
-        </Col>
+      <Row style={{ marginBottom: '5px' }}>
+        <Col>Most Donated Charities</Col>
       </Row>
-      {charityLeaderBoard.map((c, i) => (
-        <Row key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Col span={12}>{c.charityData.name || 'Unknown Charity'}</Col>
-          <Col span={12} style={{ display: 'flex', justifyContent: 'end' }}>
-            <div>{c.totalReceived.toSignificant(18)}</div>
+      <div style={{ ...styles.inset, fontSize: '0.9em' }}>
+        {/* <Row style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Col span={12}><strong>Charity</strong></Col>
+          <Col span={12}style={{ display: 'flex', justifyContent: 'end' }}>
+            <strong>{nativeSymbol} Donated</strong>
           </Col>
-        </Row>
-      ))}
+        </Row> */}
+        {charityLeaderBoard.map((c, i) => (
+          <Row key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Col span={16}>{c.charityData.name || 'Unknown Charity'}</Col>
+            <Col span={8} style={{ display: 'flex', justifyContent: 'end' }}>
+              <div>{c.totalReceived.toSignificant(9)}</div>
+            </Col>
+          </Row>
+        ))}
+      </div>
     </Card>
   )
 }
