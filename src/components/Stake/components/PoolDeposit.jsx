@@ -1,12 +1,16 @@
 import { useMoralis } from 'react-moralis'
 import { useEffect, useState } from 'react'
 import { Row, Col, Button, Input } from "antd";
+import { DECIMALS, PAWTH_ADDRESS, STAKING_POOL } from '../../../constants';
 import { CreditCardOutlined } from "@ant-design/icons";
 import useStakingPool from 'hooks/useStakingPool'
+import useAllowances from 'hooks/useAllowances';
+import { Token, TokenAmount } from '@uniswap/sdk'
 
 function PoolDeposit () {
-  const { chainId } = useMoralis()
-  const { deposit, hasAllowance, updateAllowance } = useStakingPool()
+  const { Moralis, chainId } = useMoralis()
+  const { hasAllowance, updateAllowance } = useAllowances()
+  const { deposit } = useStakingPool()
   const [depositAmount, setDepositAmount] = useState(null)
   const [isDepositDisabled, setIsDepositDisabled] = useState(true)
   const [isDepositLoading, setIsDepositLoading] = useState(false)
@@ -16,6 +20,8 @@ function PoolDeposit () {
     isActive: false,
     text: 'Approve'
   })
+
+  const pawthToken = !chainId ? null : new Token(chainId, PAWTH_ADDRESS[chainId], DECIMALS, 'PAWTH', 'Pawthereum')
 
   async function tryDeposit () {
     if (!depositAmount) return
@@ -53,7 +59,14 @@ function PoolDeposit () {
           text: `Approve`
         })
       }
-      const hasSufficientAllowance = await hasAllowance(depositAmount)
+      const hasSufficientAllowance = await hasAllowance({
+        amount: new TokenAmount(
+          pawthToken,
+          Moralis.Units.Token(depositAmount, DECIMALS)
+        ),
+        token: pawthToken,
+        spender: STAKING_POOL[chainId]?.address
+      })
       if (!hasSufficientAllowance) {
         return setAllowanceButton({
           display: true,
@@ -78,7 +91,14 @@ function PoolDeposit () {
       isLoading: true,
       text: `Approving`
     })
-    await updateAllowance(depositAmount)
+    await updateAllowance({
+      amount: new TokenAmount(
+        pawthToken,
+        Moralis.Units.Token(depositAmount, DECIMALS)
+      ),
+      token: pawthToken,
+      spender: STAKING_POOL[chainId]?.address
+    })
     return setAllowanceButton({
       display: false,
       isActive: false,

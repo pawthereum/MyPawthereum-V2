@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
+import AppContext from 'AppContext'
 import { useMoralis, useERC20Balances } from 'react-moralis'
 import { Statistic, Divider, Row, Col, Card, Tag } from 'antd'
 import useStakingPool from 'hooks/useStakingPool'
@@ -23,38 +24,18 @@ const styles = {
   },
 }
 
-const roundBig = (number) => {
-  if (!number) return 0
-
-  return Math.abs(Number(number)) >= 1.0e+9
-  
-  ? (Math.abs(Number(number)) / 1.0e+9).toPrecision(2) + "B"
-  // Six Zeroes for Millions 
-  : Math.abs(Number(number)) >= 1.0e+6
-
-  ? (Math.abs(Number(number)) / 1.0e+6).toPrecision(2) + "M"
-  // Three Zeroes for Thousands
-  : Math.abs(Number(number)) >= 1.0e+3
-
-  ? (Math.abs(Number(number)) / 1.0e+3).toPrecision(2) + "K"
-
-  : Math.abs(Number(number));
-}
-
 function Pool() {
+  const { currentBlock } = useContext(AppContext);
   const { account, chainId, Moralis, web3 } = useMoralis()
-  const { viewPendingReward, viewPendingDividend, viewAmountStaked, getApr, getTotalStaked } = useStakingPool()
+  const { pendingRewards, pendingDividend, amountStaked, apr, totalStaked } = useStakingPool()
   const { data: assets } = useERC20Balances();
 
-  const [pendingRewards, setPendingRewards] = useState(null)
-  const [pendingRewardsAnimation, setPendingRewardsAnimation] = useState(null)
-  const [pendingDividend, setPendingDividend] = useState(null)
-  const [pendingDividendAnimation, setPendingDividendAnimation] = useState(null)
-  const [currentBlock, setCurrentBlock] = useState(null)
-  const [amountStaked, setAmountStaked] = useState(null)
   const [pawthBalance, setPawthBalance] = useState(null)
-  const [apr, setApr] = useState(null)
-  const [totalStaked, setTotalStaked] = useState(null)
+  const [pendingRewardsAnimation, setPendingRewardsAnimation] = useState(null)
+
+  useEffect(() => {
+    console.log('new amount staked', amountStaked)
+  }, [amountStaked])
 
   useEffect(() => {
     if (!chainId) return
@@ -66,68 +47,21 @@ function Pool() {
   }, [assets]) 
 
   useEffect(() => {
-    if (!account || !chainId) return 
-    const web3Provider = Moralis.web3Library.getDefaultProvider()
-    web3Provider.on('block', async blockNumber => {
-      if (!chainId || !account) return
-      setCurrentBlock(blockNumber)
+    setPendingRewardsAnimation({
+      Children: { 
+        value: Number(pendingRewards), 
+        floatLength: 0,
+        formatMoney: true,
+      }, 
+      duration: 1000,
     })
-  }, [account, chainId])
+  }, [pendingRewards])
 
   useEffect(() => {
-    if (!web3 || !account || !currentBlock) return
-    refreshAwards()
-    async function refreshAwards() {
-      const requests = await Promise.all([
-        viewPendingReward(),
-        viewPendingDividend(),
-        viewAmountStaked(),
-        getApr(currentBlock),
-        getTotalStaked()
-      ])
-      const refreshedRewards = requests[0]
-      const refreshedDividends = requests[1]
-      const amountStaked = requests[2]
-      const apr = requests[3]
-      const totalStaked = requests[4]
-      if (refreshedRewards) {
-        setPendingRewardsAnimation({
-          Children: { 
-            value: Number(refreshedRewards), 
-            floatLength: 0,
-            formatMoney: true,
-          }, 
-          duration: 1000,
-        })
-        setPendingRewards(parseFloat(refreshedRewards).toLocaleString([], {
-          maximumFractionDigits: 0,
-          minimumFractionDigits: 0
-        }))
-      }
-      if (refreshedDividends) {
-        setPendingDividendAnimation({
-          Children: { 
-            value: Number(refreshedDividends), 
-            floatLength: 0,
-            formatMoney: true,
-          }, 
-          duration: 1000,
-        })
-        setPendingDividend(parseFloat(refreshedDividends).toLocaleString([], {
-          maximumFractionDigits: 0,
-          minimumFractionDigits: 0
-        }))
-      }
-      if (apr) {
-        setApr(apr.toLocaleString([], {
-          maximumFractionDigits: 0,
-          minimumFractionDigits: 0
-        }))
-      }
-      if (totalStaked) {
-        setTotalStaked(roundBig(parseInt(totalStaked)))
-      }
-      setAmountStaked(amountStaked)
+    if (!account || !currentBlock) return
+    updatePawthBalance()
+
+    async function updatePawthBalance() {
       try {
         const web3Provider = Moralis.web3Library
         const tokenContract = new web3Provider.Contract(
@@ -142,7 +76,8 @@ function Pool() {
         console.log('error getting balance', e)
       }
     }
-  }, [account, currentBlock, web3])
+  }, [currentBlock, account])
+
 
   return (
     <Card 
@@ -186,7 +121,14 @@ function Pool() {
       <Row>
         <Col style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ marginRight: '5px' }}>Reflections to Compound or Claim:</span>
-          <TweenOne animation={pendingDividendAnimation}>
+          <TweenOne animation={{
+            Children: { 
+              value: Number(pendingDividend), 
+              floatLength: 0,
+              formatMoney: true,
+            }, 
+            duration: 1000,
+          }}>
             {pendingDividend}
           </TweenOne>
         </Col>

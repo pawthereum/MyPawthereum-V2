@@ -1,7 +1,10 @@
+import { useEffect, useState, useContext } from 'react'
 import { useMoralis } from 'react-moralis'
+import AppContext from 'AppContext';
 import { STAKING_POOL, DECIMALS, PAWTH_ADDRESS, ERC20ABI } from '../constants'
 import { networkConfigs } from 'helpers/networks';
 import { notification } from "antd";
+import { Token, TokenAmount, Percent } from '@uniswap/sdk'
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -15,8 +18,73 @@ const openNotification = ({ message, description, link }) => {
   });
 };
 
+const roundBig = (number) => {
+  if (!number) return 0
+
+  return Math.abs(Number(number)) >= 1.0e+9
+  
+  ? (Math.abs(Number(number)) / 1.0e+9).toPrecision(2) + "B"
+  // Six Zeroes for Millions 
+  : Math.abs(Number(number)) >= 1.0e+6
+
+  ? (Math.abs(Number(number)) / 1.0e+6).toPrecision(2) + "M"
+  // Three Zeroes for Thousands
+  : Math.abs(Number(number)) >= 1.0e+3
+
+  ? (Math.abs(Number(number)) / 1.0e+3).toPrecision(2) + "K"
+
+  : Math.abs(Number(number));
+}
+
 const useStakingPool = () => {
   const { Moralis, account, web3, chainId } = useMoralis(); 
+  const { currentBlock } = useContext(AppContext);
+  const [pendingDividend, setPendingDividend] = useState(null)
+  const [pendingRewards, setPendingRewards] = useState(null)
+  const [apr, setApr] = useState(null)
+  const [totalStaked, setTotalStaked] = useState(null)
+  const [amountStaked, setAmountStaked] = useState(null)
+
+  useEffect(() => {
+    if (!web3 || !account || !currentBlock) return
+    refreshAwards()
+    async function refreshAwards() {
+      const requests = await Promise.all([
+        viewPendingReward(),
+        viewPendingDividend(),
+        viewAmountStaked(),
+        getApr(currentBlock),
+        getTotalStaked()
+      ])
+      const refreshedRewards = requests[0]
+      const refreshedDividends = requests[1]
+      const amountStaked = requests[2]
+      const apr = requests[3]
+      const totalStaked = requests[4]
+      if (refreshedRewards) {
+        setPendingRewards(parseFloat(refreshedRewards).toLocaleString([], {
+          maximumFractionDigits: 0,
+          minimumFractionDigits: 0
+        }))
+      }
+      if (refreshedDividends) {
+        setPendingDividend(parseFloat(refreshedDividends).toLocaleString([], {
+          maximumFractionDigits: 0,
+          minimumFractionDigits: 0
+        }))
+      }
+      if (apr) {
+        setApr(apr.toLocaleString([], {
+          maximumFractionDigits: 0,
+          minimumFractionDigits: 0
+        }))
+      }
+      if (totalStaked) {
+        setTotalStaked(roundBig(parseInt(totalStaked)))
+      }
+      setAmountStaked(amountStaked)
+    }
+  }, [account, currentBlock, web3])
 
   async function getTotalStaked () {
     if (!chainId || !web3) return
@@ -106,6 +174,35 @@ const useStakingPool = () => {
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + depositReq.hash
       })
       const tx = await depositReq.wait()
+      // Update UI of amount staked immediately
+      const pawthToken = new Token(chainId, PAWTH_ADDRESS[chainId], DECIMALS)
+      const prevAmountStaked = new TokenAmount(
+        pawthToken,
+        Moralis.Units.Token(amountStaked, DECIMALS)
+      )
+      const depositFee = new Percent(2, 100)
+      const amountAddedToStake = new TokenAmount(
+        pawthToken,
+        Moralis.Units.Token(amount, DECIMALS)
+      )
+      const depositFeeAmount = new TokenAmount(
+        pawthToken,
+        depositFee.multiply(amountAddedToStake.raw).quotient
+      )
+      const amountAddedAfterFee = amountAddedToStake.subtract(depositFeeAmount)
+      console.log(
+        'Moralis units',
+        Moralis.Units.FromWei(prevAmountStaked.add(amountAddedAfterFee).raw.toString(), DECIMALS)
+      )
+      console.log(
+        'another amount',
+        prevAmountStaked.add(amountAddedAfterFee).raw.toString()
+      )
+      setAmountStaked(
+        Moralis.Units.FromWei(
+          prevAmountStaked.add(amountAddedAfterFee).raw.toString(), DECIMALS
+        )
+      )
       openNotification({
         message: "🎉 Deposit Complete!",
         description: `${tx.transactionHash}`,
@@ -244,6 +341,7 @@ const useStakingPool = () => {
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + claimReq.hash
       })
       const tx = await claimReq.wait()
+      setPendingRewards(0)
       openNotification({
         message: "🎉 Claim Complete!",
         description: `${tx.transactionHash}`,
@@ -322,76 +420,7 @@ const useStakingPool = () => {
     }
   }
 
-  async function hasAllowance (amount) {
-    if (!chainId) return false
-    const web3Provider = Moralis.web3Library;
-
-    const tokenContract = new web3Provider.Contract(
-      PAWTH_ADDRESS[chainId],
-      ERC20ABI, 
-      web3.getSigner()
-    )
-
-    const tokenAllowance = await tokenContract.allowance(
-      account,
-      STAKING_POOL[chainId].address,
-    )
-
-    return parseInt(amount) <= Moralis.Units.FromWei(tokenAllowance, DECIMALS)
-  }
-
-  async function hasAllowance (amount) {
-    if (!chainId) return false
-    const web3Provider = Moralis.web3Library;
-
-    const tokenContract = new web3Provider.Contract(
-      PAWTH_ADDRESS[chainId],
-      ERC20ABI, 
-      web3.getSigner()
-    )
-
-    const tokenAllowance = await tokenContract.allowance(
-      account,
-      STAKING_POOL[chainId].address,
-    )
-
-    return parseInt(amount) <= Moralis.Units.FromWei(tokenAllowance, DECIMALS)
-  }
-
-  async function updateAllowance (amount) {
-    const web3Provider = Moralis.web3Library;
-
-    const tokenContract = new web3Provider.Contract(
-      PAWTH_ADDRESS[chainId],
-      ERC20ABI, 
-      web3.getSigner()
-    )
-
-    try {
-      const approveReq = await tokenContract.approve(
-        STAKING_POOL[chainId].address,
-        Moralis.Units.Token(amount, DECIMALS).toString()
-      )
-      openNotification({
-        message: "🔊 Approval Submitted!",
-        description: `${approveReq.hash}`,
-        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + approveReq.hash
-      });
-      const tx = await approveReq.wait()
-      openNotification({
-        message: "🎉 Approval Complete!",
-        description: `${tx.transactionHash}`,
-        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
-      });
-    } catch (e) {
-      openNotification({
-        message: "⚠️ Approval Error!",
-        description: `${e.message}`
-      });
-    }
-  }
-
-  return { deposit, claimReward, claimDividend, compound, withdraw, viewAmountStaked, getApr, getTotalStaked, hasAllowance, updateAllowance, viewPendingReward, viewPendingDividend };
+  return { deposit, claimReward, claimDividend, compound, withdraw, amountStaked, apr, totalStaked, pendingRewards, pendingDividend };
 }
 
 export default useStakingPool;

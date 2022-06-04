@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import { useMoralis } from 'react-moralis'
 import { ERC20ABI, MAX_BLOCKS_BEFORE_STALE } from '../constants'
 import { networkConfigs } from 'helpers/networks';
@@ -22,6 +22,11 @@ const useAllowances = () => {
   const { Moralis, account, web3, chainId } = useMoralis();
   const { currentBlock } = useContext(AppContext);
   const [allowances, setAllowances] = useState({})
+
+  // clear allowances if account changes
+  useEffect(() => {
+    setAllowances({})
+  }, [account])
 
   const MAX_APPROVAL = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 

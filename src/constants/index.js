@@ -17,8 +17,8 @@ export const PAWTH_ADDRESS = {
   '0x4': '0x459BC05bF203cEd24E76c598B507aEAa9eD36C28', // rinkeby testnet
   '0x61': '0xCe101FDa1cb9737A0bef4a97D787943833C040EA', // bsc testnet
   'bsctest': '0xCe101FDa1cb9737A0bef4a97D787943833C040EA',
-  'localdevchain': '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9',
-  '0x539': '0xdc64a140aa3e981100a9beca4e685f962f0cf6c9'
+  'localdevchain': '0x0165878A594ca255338adfa4d48449f69242Eb8F',
+  '0x539': '0x0165878A594ca255338adfa4d48449f69242Eb8F'
 }
 
 export const PAWTH_CHARITY_WALLET = {
@@ -204,7 +204,7 @@ export const PAWSWAP_FACTORY = {
 export const PAWSWAP_TAX_STRUCTURE_FACTORY = {
   '0x539': {
     abi: pawswapTaxStructureFactoryAbi,
-    address: '0x0165878a594ca255338adfa4d48449f69242eb8f'
+    address: '0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6'
   }
 }
 
@@ -241,13 +241,13 @@ export const PANCAKESWAP_FACTORY = {
   },
   'localdevchain': {
     abi: pancakeswapFactoryAbi,
-    address: '',
-    initCodeHash: '',
+    address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+    initCodeHash: '0xa65f1b01ad1f352baa0e1d90a8d293c59fc64b2a5091141554e9e4d4dbb87025',
   },
   '0x539': {
     abi: pancakeswapFactoryAbi,
-    address: '',
-    initCodeHash: '',
+    address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+    initCodeHash: '0xa65f1b01ad1f352baa0e1d90a8d293c59fc64b2a5091141554e9e4d4dbb87025',
   }
 }
 
@@ -278,11 +278,11 @@ export const PANCAKESWAP_ROUTER = {
   },
   'localdevchain': {
     abi: pancakeswapRouterAbi,
-    address: '',
+    address: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707',
   },
   '0x539': {
     abi: pancakeswapRouterAbi,
-    address: '0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0',
+    address: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707',
   }
 }
 
@@ -294,6 +294,10 @@ export const STAKING_POOL = {
   'bsctest': {
     abi: stakingPoolAbi,
     address: '0xaD04172eF81f05095F677B9Dd4cB3b58D2ac6D8e'
+  },
+  '0x539': {
+    abi: stakingPoolAbi,
+    address: '0x610178dA211FEF7D417bC0e6FeD39F05609AD788'
   }
 }
 
