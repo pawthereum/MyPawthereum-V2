@@ -8,10 +8,8 @@ import TradeCard from './TradeCard';
 import Settings from './Settings'
 import { PAWSWAP, DEFAULT_SLIPPAGE, COLORS, HIGH_PRICE_IMPACT, MAXMIMUM_PRICE_IMPACT } from '../../../constants'
 import useAllowances from 'hooks/useAllowances.js';
-import { networkConfigs } from 'helpers/networks.js';
 import CurrencyPairForm from './CurrencyPairForm.jsx';
 import ConfirmSwapModal from './ConfirmSwapModal';
-import useNative from 'hooks/useNative';
 
 const styles = {
   card: {
@@ -55,7 +53,6 @@ function Swap (props) {
   const { chainId, account } = useMoralis()
   const { 
     estimatedSide, 
-    inputCurrency, 
     slippage, 
     trade, 
     executeSwap, 
@@ -64,7 +61,6 @@ function Swap (props) {
     highPriceImpactIgnored
   } = useContext(AppContext);
   const { hasAllowance, updateAllowance } = useAllowances()
-  const { isNative } = useNative()
   const [swapButtonIsLoading, setSwapButtonIsLoading] = useState(false)
   const [inputIsLoading, setInputIsLoading] = useState(false)
   const [outputIsLoading, setOutputIsLoading] = useState(false)

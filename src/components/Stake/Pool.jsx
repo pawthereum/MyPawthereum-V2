@@ -7,6 +7,10 @@ import PoolWithdraw from './components/PoolWithdraw'
 import PoolClaimReward from './components/PoolClaimReward'
 import PoolClaimDividend from './components/PoolClaimDividend'
 import { PAWTH_ADDRESS, DECIMALS, ERC20ABI } from '../../constants'
+import TweenOne from 'rc-tween-one';
+import Children from 'rc-tween-one/lib/plugin/ChildrenPlugin';
+
+TweenOne.plugins.push(Children);
 
 const styles = {
   card: {
@@ -43,7 +47,9 @@ function Pool() {
   const { data: assets } = useERC20Balances();
 
   const [pendingRewards, setPendingRewards] = useState(null)
+  const [pendingRewardsAnimation, setPendingRewardsAnimation] = useState(null)
   const [pendingDividend, setPendingDividend] = useState(null)
+  const [pendingDividendAnimation, setPendingDividendAnimation] = useState(null)
   const [currentBlock, setCurrentBlock] = useState(null)
   const [amountStaked, setAmountStaked] = useState(null)
   const [pawthBalance, setPawthBalance] = useState(null)
@@ -85,12 +91,28 @@ function Pool() {
       const apr = requests[3]
       const totalStaked = requests[4]
       if (refreshedRewards) {
+        setPendingRewardsAnimation({
+          Children: { 
+            value: Number(refreshedRewards), 
+            floatLength: 0,
+            formatMoney: true,
+          }, 
+          duration: 1000,
+        })
         setPendingRewards(parseFloat(refreshedRewards).toLocaleString([], {
           maximumFractionDigits: 0,
           minimumFractionDigits: 0
         }))
       }
       if (refreshedDividends) {
+        setPendingDividendAnimation({
+          Children: { 
+            value: Number(refreshedDividends), 
+            floatLength: 0,
+            formatMoney: true,
+          }, 
+          duration: 1000,
+        })
         setPendingDividend(parseFloat(refreshedDividends).toLocaleString([], {
           maximumFractionDigits: 0,
           minimumFractionDigits: 0
@@ -152,16 +174,22 @@ function Pool() {
       </Row>
       <Divider orientation="center">Earned $PAWTH</Divider>
       <Row>
-        <Col>
-          Rewards to Compound or Claim: {pendingRewards || 'Loading...'}
+        <Col style={{ display: 'flex', alignItems: 'center' }}>
+          <span style={{ marginRight: '5px' }}>Rewards to Compound or Claim:</span>
+          <TweenOne animation={pendingRewardsAnimation}>
+            {pendingRewards}
+          </TweenOne>
         </Col>  
       </Row>
       <PoolClaimReward isClaimDisabled={pendingRewards === '0'} />
       <Divider orientation="center">Reflected $PAWTH</Divider>
       <Row>
-        <Col>
-          Reflections to Compound or Claim: {pendingDividend || 'Loading...'}
-        </Col>  
+        <Col style={{ display: 'flex', alignItems: 'center' }}>
+          <span style={{ marginRight: '5px' }}>Reflections to Compound or Claim:</span>
+          <TweenOne animation={pendingDividendAnimation}>
+            {pendingDividend}
+          </TweenOne>
+        </Col>
       </Row>
       <PoolClaimDividend isClaimDisabled={pendingDividend === '0'} />
       <Divider orientation="center">Deposit</Divider>
