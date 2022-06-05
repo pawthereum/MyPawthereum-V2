@@ -469,10 +469,6 @@ const useListingContext = () => {
       web3.getSigner()
     )
     try {
-      //TESTING
-      const existing = await pawswap.tokenTaxContracts(listToken.address)
-      console.log({ existing, listing: listToken.address, newTx: listTaxStructContract.address })
-      //ENDOFTESTING
       const listingReq = await pawswap.setTokenTaxContract(
         listToken.address,
         listTaxStructContract.address
