@@ -32,7 +32,13 @@ function Pool() {
 
   const [pawthBalance, setPawthBalance] = useState(null)
   const [pendingRewardsAnimation, setPendingRewardsAnimation] = useState(null)
+  const [pendingDividendAnimation, setPendingDividendAnimation] = useState(null)
   const [stakedAmount, setStakedAmount] = useState(null)
+
+  console.log({
+    pendingDividend,
+    pendingRewards
+  })
 
   useEffect(() => {
     setStakedAmount(amountStaked)
@@ -48,15 +54,28 @@ function Pool() {
   }, [assets]) 
 
   useEffect(() => {
+    if (pendingRewards === null) return
     setPendingRewardsAnimation({
       Children: { 
-        value: Number(pendingRewards), 
+        value: pendingRewards, 
         floatLength: 0,
         formatMoney: true,
       }, 
       duration: 1000,
     })
   }, [pendingRewards])
+
+  useEffect(() => {
+    if (pendingDividend === null) return
+    setPendingDividendAnimation({
+      Children: { 
+        value: pendingDividend, 
+        floatLength: 0,
+        formatMoney: true,
+      }, 
+      duration: 1000,
+    })
+  }, [pendingDividend])
 
   useEffect(() => {
     if (!account || !currentBlock) return
@@ -113,28 +132,21 @@ function Pool() {
         <Col style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ marginRight: '5px' }}>Rewards to Compound or Claim:</span>
           <TweenOne animation={pendingRewardsAnimation}>
-            {pendingRewards}
+            0
           </TweenOne>
         </Col>  
       </Row>
-      <PoolClaimReward isClaimDisabled={pendingRewards === '0'} />
+      <PoolClaimReward isClaimDisabled={!pendingRewards} />
       <Divider orientation="center">Reflected $PAWTH</Divider>
       <Row>
         <Col style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ marginRight: '5px' }}>Reflections to Compound or Claim:</span>
-          <TweenOne animation={{
-            Children: { 
-              value: Number(pendingDividend), 
-              floatLength: 0,
-              formatMoney: true,
-            }, 
-            duration: 1000,
-          }}>
-            {pendingDividend}
+          <TweenOne animation={pendingDividendAnimation}>
+            0
           </TweenOne>
         </Col>
       </Row>
-      <PoolClaimDividend isClaimDisabled={pendingDividend === '0'} />
+      <PoolClaimDividend isClaimDisabled={!pendingDividend} />
       <Divider orientation="center">Deposit</Divider>
       <PoolDeposit />
       <Divider orientation="center">Withdraw</Divider>

@@ -15,7 +15,7 @@ function PoolClaimReward (props) {
 
   async function tryCompound () {
     setIsCompoundLoading(true)
-    const claimReq = await compound()
+    await compound({ type: 'reward' })
     setIsCompoundLoading(false)
   }
 

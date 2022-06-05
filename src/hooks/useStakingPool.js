@@ -41,51 +41,42 @@ const useStakingPool = () => {
   const { Moralis, account, web3, chainId } = useMoralis(); 
   const { currentBlock } = useContext(AppContext);
   const { clearStoredAllowances } = useAllowances()
-  const [pendingDividend, setPendingDividend] = useState(null)
-  const [pendingRewards, setPendingRewards] = useState(null)
+  const [pendingDividend, setPendingDividend] = useState(0)
+  const [pendingRewards, setPendingRewards] = useState(0)
   const [apr, setApr] = useState(null)
   const [totalStaked, setTotalStaked] = useState(null)
   const [amountStaked, setAmountStaked] = useState(null)
 
+  async function refreshAwards() {
+    const requests = await Promise.all([
+      viewPendingReward(),
+      viewPendingDividend(),
+      viewAmountStaked(),
+      getApr(currentBlock),
+      getTotalStaked()
+    ])
+    const refreshedRewards = requests[0]
+    const refreshedDividends = requests[1]
+    const amountStaked = requests[2]
+    const apr = requests[3]
+    const totalStaked = requests[4]
+    setPendingRewards(refreshedRewards)
+    setPendingDividend(refreshedDividends)
+    if (apr) {
+      setApr(apr.toLocaleString([], {
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0
+      }))
+    }
+    if (totalStaked) {
+      setTotalStaked(roundBig(parseInt(totalStaked)))
+    }
+    setAmountStaked(amountStaked)
+  }
+
   useEffect(() => {
     if (!web3 || !account || !currentBlock) return
     refreshAwards()
-    async function refreshAwards() {
-      const requests = await Promise.all([
-        viewPendingReward(),
-        viewPendingDividend(),
-        viewAmountStaked(),
-        getApr(currentBlock),
-        getTotalStaked()
-      ])
-      const refreshedRewards = requests[0]
-      const refreshedDividends = requests[1]
-      const amountStaked = requests[2]
-      const apr = requests[3]
-      const totalStaked = requests[4]
-      if (refreshedRewards) {
-        setPendingRewards(parseFloat(refreshedRewards).toLocaleString([], {
-          maximumFractionDigits: 0,
-          minimumFractionDigits: 0
-        }))
-      }
-      if (refreshedDividends) {
-        setPendingDividend(parseFloat(refreshedDividends).toLocaleString([], {
-          maximumFractionDigits: 0,
-          minimumFractionDigits: 0
-        }))
-      }
-      if (apr) {
-        setApr(apr.toLocaleString([], {
-          maximumFractionDigits: 0,
-          minimumFractionDigits: 0
-        }))
-      }
-      if (totalStaked) {
-        setTotalStaked(roundBig(parseInt(totalStaked)))
-      }
-      setAmountStaked(amountStaked)
-    }
   }, [account, currentBlock, web3])
 
   async function getTotalStaked () {
@@ -197,6 +188,7 @@ const useStakingPool = () => {
           prevAmountStaked.add(amountAddedAfterFee).raw.toString(), DECIMALS
         ))
       )
+      refreshAwards()
       openNotification({
         message: "🎉 Deposit Complete!",
         description: `${tx.transactionHash}`,
@@ -225,7 +217,7 @@ const useStakingPool = () => {
       const pendingReward = await stakingPoolContract.pendingReward(
         account
       )
-      return Moralis.Units.FromWei(pendingReward, DECIMALS)
+      return pendingReward === null ? 0 : Number(Moralis.Units.FromWei(pendingReward, DECIMALS))
     } catch (e) {
       console.log('err', e)
       openNotification({
@@ -249,7 +241,7 @@ const useStakingPool = () => {
       const pendingDividend = await stakingPoolContract.pendingDividends(
         account
       )
-      return Moralis.Units.FromWei(pendingDividend, DECIMALS)
+      return pendingDividend === null ? 0 : Number(Moralis.Units.FromWei(pendingDividend, DECIMALS))
     } catch (e) {
       console.log('err', e)
       openNotification({
@@ -283,7 +275,8 @@ const useStakingPool = () => {
     }
   }
 
-  async function compound () {
+  async function compound (params) {
+    const { type } = params
     if (!chainId) return
     const web3Provider = Moralis.web3Library;
 
@@ -294,9 +287,11 @@ const useStakingPool = () => {
     )
     try {
       const performanceFee = await stakingPoolContract.performanceFee()
-      const compoundReq = await stakingPoolContract.compoundReward(
-        { value: performanceFee }
-      )
+      let compoundReq
+      type === 'reward'
+        ? compoundReq = await stakingPoolContract.compoundReward({ value: performanceFee })
+        : compoundReq = await stakingPoolContract.compoundDividend({ value: performanceFee })
+      refreshAwards()
       openNotification({
         message: "🔊 Compound Submitted!",
         description: `${compoundReq.hash}`,
@@ -330,6 +325,7 @@ const useStakingPool = () => {
       const claimReq = await stakingPoolContract.claimReward(
         { value: performanceFee }
       )
+      refreshAwards()
       openNotification({
         message: "🔊 Claim Submitted!",
         description: `${claimReq.hash}`,
@@ -364,6 +360,7 @@ const useStakingPool = () => {
       const claimReq = await stakingPoolContract.claimDividend(
         { value: performanceFee }
       )
+      refreshAwards()
       openNotification({
         message: "🔊 Claim Submitted!",
         description: `${claimReq.hash}`,
@@ -396,6 +393,7 @@ const useStakingPool = () => {
       const claimReq = await stakingPoolContract.withdraw(
         Moralis.Units.Token(amount, DECIMALS)
       )
+      refreshAwards()
       openNotification({
         message: "🔊 Withdraw Submitted!",
         description: `${claimReq.hash}`,
