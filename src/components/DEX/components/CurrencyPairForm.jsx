@@ -33,10 +33,9 @@ function CurrencyPairForm (props) {
     updateOutputCurrency,
     trade,
     tokenTaxContractFeeDecimal,
-    executeSwap, 
     slippage, 
     inputAmount,
-    highPriceImpactIgnored,
+    clearTrade,
     taxes
   } = useContext(AppContext);
 
@@ -61,6 +60,7 @@ function CurrencyPairForm (props) {
   const swapInputs = () => {
     const newInput = outputCurrency
     const newOutput = inputCurrency
+    clearTrade()
     updateInputCurrency(newInput)
     updateOutputCurrency(newOutput)
   }

@@ -5,6 +5,7 @@ import { networkConfigs } from 'helpers/networks';
 import { notification } from 'antd'
 import AppContext from 'AppContext';
 import { JSBI, TokenAmount } from '@uniswap/sdk';
+import useNative from './useNative';
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -20,6 +21,7 @@ const openNotification = ({ message, description, link }) => {
 
 const useAllowances = () => {
   const { Moralis, account, web3, chainId } = useMoralis();
+  const { isNative } = useNative()
   const { currentBlock } = useContext(AppContext);
   const [allowances, setAllowances] = useState({})
 
@@ -44,6 +46,7 @@ const useAllowances = () => {
   async function hasAllowance (params) {
     if (!chainId) return false
     const { amount, spender, token, forceCheck } = params
+    if (isNative(token.address)) return true
     if (allowanceWasCheckedWithinMaxBlocksBeforeStale(params) && !forceCheck) {
       console.log({ allowance: allowances[token.address][spender].allowance.raw.toString() })
       return JSBI.greaterThanOrEqual(allowances[token.address][spender].allowance.raw, amount.raw)

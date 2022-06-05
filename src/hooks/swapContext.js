@@ -840,6 +840,9 @@ const useSwapContext = () => {
     return trade
   }
 
+  const clearTrade = () => {
+    setTrade(null)
+  }
 
   async function createTrade (params) {
     // const ethers = Moralis.web3Library;
@@ -1080,6 +1083,7 @@ const useSwapContext = () => {
     inputAmount,
     tokenList,
     trade,
+    clearTrade,
     pair,
     executeSwap,
     taxes: tokenTaxStructureTaxes,

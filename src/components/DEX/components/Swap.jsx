@@ -136,6 +136,7 @@ function Swap (props) {
   }
 
   useEffect(() => {
+    if (!trade) return setShowApproveBtn(false)
     if (trade?.isExactIn && !inputAmount) return
     if (!trade?.isExactIn && !trade?.swap?.inputAmountSlippage) return
     // if (!trade?.swap?.inputAmountSlippage && !trade?.swap?.inputAmount?.token) return
