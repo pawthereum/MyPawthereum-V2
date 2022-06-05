@@ -1,8 +1,10 @@
 import { useContext, useEffect, useState } from 'react'
-import { InputNumber } from 'antd'
+import { InputNumber, Button } from 'antd'
 import CurrencyPicker from './CurrencyPicker'
 import AppContext from 'AppContext'
 import { useMoralis } from 'react-moralis' 
+import useNative from 'hooks/useNative'
+import { useERC20Balance } from 'hooks/useERC20Balance'
 
 function CurrencyAmountInput (props) {
   const { 
@@ -14,6 +16,8 @@ function CurrencyAmountInput (props) {
     outputCurrency, 
   } = useContext(AppContext);
   const { Moralis } = useMoralis()
+  const { isNative, getNativeBalance } = useNative()
+  const { assets } = useERC20Balance()
 
   const [value, setValue] = useState(null)
   const [precision, setPrecision] = useState(9)
@@ -45,6 +49,26 @@ function CurrencyAmountInput (props) {
     props.side === 'output' 
       ? updateOutputAmount({ amount: ethAmt, updateEstimated: true })
       : updateInputAmount({ amount: ethAmt, updateEstimated: true })  
+  }
+
+  const showMaxButton = () => {
+    if (props.side === estimatedSide) return false
+    if (props.side === 'output' && !outputCurrency) return false
+    if (props.side === 'input' && !inputCurrency) return false
+    return true
+  }
+
+  const inputMaxAmount = async () => {
+    const currency = props.side === 'output' ? outputCurrency : inputCurrency
+    const asset = assets.find(a => a.token_address === currency.address.toLowerCase())
+    if (!asset) return
+    const balance = isNative(currency.address)
+      ? Moralis.Units.FromWei(await getNativeBalance(), 18)
+      : Moralis.Units.FromWei(asset.balance, asset.decimals)
+    setValue(balance)
+    props.side === 'output'
+      ? updateOutputAmount({ amount: balance, updateEstimated: true })
+      : updateInputAmount({ amount: balance, updateEstimated: true })
   }
 
   useEffect(() => {
@@ -88,6 +112,16 @@ function CurrencyAmountInput (props) {
         keyboard={false}
         stringMode
       />
+      {
+        !showMaxButton() ? '' :
+        <Button 
+          type="text" 
+          style={{ borderRadius: '0.6rem' }}
+          onClick={inputMaxAmount}
+        >
+          Max
+        </Button>
+      }
       <CurrencyPicker side={props.side} />
     </div>
   )
