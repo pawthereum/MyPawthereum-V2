@@ -8,6 +8,7 @@ import useNativeTransactions from 'hooks/useNativeTransactions'
 import { useERC20Transfers } from "hooks/useERC20Transfers"
 import { getVoterStatus } from '../../Vote/components/vote'
 import useBreakpoint from "hooks/useBreakpoint";
+import Account from '../../Account/Account';
 
 import swap from '../../../assets/images/badges/swap.png'
 import vote from '../../../assets/images/badges/vote.png'
@@ -80,7 +81,15 @@ const styles = {
   header: {
     padding: "10px",
     paddingBottom: "20px",
-  }
+  },
+  row: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
+    flexDirection: "row",
+    paddingBottom: "10px",
+  },
 };
 
 function Badges(props) {
@@ -464,6 +473,17 @@ function Badges(props) {
       userOwnsBadge: isLovablePawsVisitor
     },
   ]
+
+  if (!account) return (
+    <div style={styles.card}>
+      <div style={styles.header}>
+        <h3>Your Badges</h3>
+      </div>
+      <div style={styles.row}>
+        <Account />
+      </div>
+    </div>
+  )
 
   return (
     <div style={styles.card}>

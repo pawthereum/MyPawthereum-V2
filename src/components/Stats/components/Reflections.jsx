@@ -21,6 +21,14 @@ const styles = {
     height: "100px",
     width: "100px"
   },
+  row: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
+    flexDirection: "row",
+    paddingBottom: "10px",
+  },
 };
 
 function Reflections(props) {
