@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from 'react'
 import AppContext from 'AppContext'
 import { useMoralis, useERC20Balances } from 'react-moralis'
-import { Statistic, Divider, Row, Col, Card, Tag } from 'antd'
+import { Typography, Divider, Row, Col, Card, Tag } from 'antd'
 import useStakingPool from 'hooks/useStakingPool'
 import PoolDeposit from './components/PoolDeposit'
 import PoolWithdraw from './components/PoolWithdraw'
@@ -11,6 +11,7 @@ import { PAWTH_ADDRESS, DECIMALS, ERC20ABI } from '../../constants'
 import TweenOne from 'rc-tween-one';
 import Children from 'rc-tween-one/lib/plugin/ChildrenPlugin';
 
+const { Text } = Typography;
 TweenOne.plugins.push(Children);
 
 const styles = {
@@ -31,14 +32,7 @@ function Pool() {
   const { data: assets } = useERC20Balances();
 
   const [pawthBalance, setPawthBalance] = useState(null)
-  const [pendingRewardsAnimation, setPendingRewardsAnimation] = useState(null)
-  const [pendingDividendAnimation, setPendingDividendAnimation] = useState(null)
   const [stakedAmount, setStakedAmount] = useState(null)
-
-  console.log({
-    pendingDividend,
-    pendingRewards
-  })
 
   useEffect(() => {
     setStakedAmount(amountStaked)
@@ -53,29 +47,16 @@ function Pool() {
     setPawthBalance(pawthBalanceFormatted)
   }, [assets]) 
 
-  useEffect(() => {
-    if (pendingRewards === null) return
-    setPendingRewardsAnimation({
-      Children: { 
-        value: pendingRewards, 
+  const getAnimation = (value) => {
+    return {
+      Children: {
+        value,
         floatLength: 0,
         formatMoney: true,
-      }, 
+      },
       duration: 1000,
-    })
-  }, [pendingRewards])
-
-  useEffect(() => {
-    if (pendingDividend === null) return
-    setPendingDividendAnimation({
-      Children: { 
-        value: pendingDividend, 
-        floatLength: 0,
-        formatMoney: true,
-      }, 
-      duration: 1000,
-    })
-  }, [pendingDividend])
+    }
+  }
 
   useEffect(() => {
     if (!account || !currentBlock) return
@@ -110,28 +91,40 @@ function Pool() {
         </div>
       }>
       <Row>
-        <Col span={12} style={{ display: 'flex', justifyContent: 'center' }}>
-          <Statistic 
-            title="Pawth Balance" 
-            value={pawthBalance} 
-            precision={0}
-            loading={pawthBalance == null} 
-          />
+        <Col span={12}>
+          <Row>
+            <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
+              <Text type="secondary" style={{ fontSize: '0.75rem' }}>Pawthereum Balance</Text>
+            </Col>
+          </Row>
+          <Row>
+            <Col span={24} style={{ display: 'flex', justifyContent: 'center', fontSize: '24px' }}>
+              <TweenOne animation={getAnimation(pawthBalance)}>
+                0
+              </TweenOne>
+            </Col>
+          </Row>
         </Col>
-        <Col span={12} style={{ display: 'flex', justifyContent: 'center' }}>
-          <Statistic 
-            title="Amount Staked"
-            value={stakedAmount} 
-            precision={0} 
-            loading={stakedAmount == null} 
-          />
+        <Col span={12}>
+          <Row>
+            <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
+            <Text type="secondary" style={{ fontSize: '0.75rem' }}>Amount Staked</Text>
+            </Col>
+          </Row>
+          <Row>
+            <Col span={24} style={{ display: 'flex', justifyContent: 'center', fontSize: '24px' }}>
+              <TweenOne animation={getAnimation(amountStaked)}>
+                0
+              </TweenOne>
+            </Col>
+          </Row>
         </Col>
       </Row>
       <Divider orientation="center">Earned $PAWTH</Divider>
       <Row>
         <Col style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ marginRight: '5px' }}>Rewards to Compound or Claim:</span>
-          <TweenOne animation={pendingRewardsAnimation}>
+          <TweenOne animation={getAnimation(pendingRewards)}>
             0
           </TweenOne>
         </Col>  
@@ -141,7 +134,7 @@ function Pool() {
       <Row>
         <Col style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ marginRight: '5px' }}>Reflections to Compound or Claim:</span>
-          <TweenOne animation={pendingDividendAnimation}>
+          <TweenOne animation={getAnimation(pendingDividend)}>
             0
           </TweenOne>
         </Col>
