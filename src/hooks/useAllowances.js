@@ -23,9 +23,15 @@ const useAllowances = () => {
   const { currentBlock } = useContext(AppContext);
   const [allowances, setAllowances] = useState({})
 
+  // if a user executes a transaction, call this to clear the allowance
+  // stored in state to fetch new allowance amount from the chain
+  const clearStoredAllowances = () => {
+    setAllowances({})
+  }
+
   // clear allowances if account changes
   useEffect(() => {
-    setAllowances({})
+    clearStoredAllowances()
   }, [account])
 
   const MAX_APPROVAL = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
@@ -119,7 +125,8 @@ const useAllowances = () => {
 
   return {
     hasAllowance,
-    updateAllowance
+    updateAllowance,
+    clearStoredAllowances
   }
 }
 

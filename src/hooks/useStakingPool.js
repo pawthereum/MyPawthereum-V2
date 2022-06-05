@@ -5,6 +5,7 @@ import { STAKING_POOL, DECIMALS, PAWTH_ADDRESS, ERC20ABI } from '../constants'
 import { networkConfigs } from 'helpers/networks';
 import { notification } from "antd";
 import { Token, TokenAmount, Percent } from '@uniswap/sdk'
+import useAllowances from './useAllowances';
 
 const openNotification = ({ message, description, link }) => {
   notification.open({
@@ -39,6 +40,7 @@ const roundBig = (number) => {
 const useStakingPool = () => {
   const { Moralis, account, web3, chainId } = useMoralis(); 
   const { currentBlock } = useContext(AppContext);
+  const { clearStoredAllowances } = useAllowances()
   const [pendingDividend, setPendingDividend] = useState(null)
   const [pendingRewards, setPendingRewards] = useState(null)
   const [apr, setApr] = useState(null)
@@ -190,24 +192,17 @@ const useStakingPool = () => {
         depositFee.multiply(amountAddedToStake.raw).quotient
       )
       const amountAddedAfterFee = amountAddedToStake.subtract(depositFeeAmount)
-      console.log(
-        'Moralis units',
-        Moralis.Units.FromWei(prevAmountStaked.add(amountAddedAfterFee).raw.toString(), DECIMALS)
-      )
-      console.log(
-        'another amount',
-        prevAmountStaked.add(amountAddedAfterFee).raw.toString()
-      )
       setAmountStaked(
-        Moralis.Units.FromWei(
+        Number(Moralis.Units.FromWei(
           prevAmountStaked.add(amountAddedAfterFee).raw.toString(), DECIMALS
-        )
+        ))
       )
       openNotification({
         message: "🎉 Deposit Complete!",
         description: `${tx.transactionHash}`,
         link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
       });
+      clearStoredAllowances()
     } catch (e) {
       openNotification({
         message: "⚠️ Deposit Error!",

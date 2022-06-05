@@ -32,9 +32,10 @@ function Pool() {
 
   const [pawthBalance, setPawthBalance] = useState(null)
   const [pendingRewardsAnimation, setPendingRewardsAnimation] = useState(null)
+  const [stakedAmount, setStakedAmount] = useState(null)
 
   useEffect(() => {
-    console.log('new amount staked', amountStaked)
+    setStakedAmount(amountStaked)
   }, [amountStaked])
 
   useEffect(() => {
@@ -101,9 +102,9 @@ function Pool() {
         <Col span={12} style={{ display: 'flex', justifyContent: 'center' }}>
           <Statistic 
             title="Amount Staked"
-            value={amountStaked} 
+            value={stakedAmount} 
             precision={0} 
-            loading={amountStaked == null} 
+            loading={stakedAmount == null} 
           />
         </Col>
       </Row>
