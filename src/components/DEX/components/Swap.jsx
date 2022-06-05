@@ -105,6 +105,7 @@ function Swap (props) {
   const swapButtonIsDisabled = () => {
     if (!account) return true
     if (props.showSwitchNetwork) return true
+    if (!trade) return true
     return showApproveBtn || exceedsMaxPriceImpact
   }
 
