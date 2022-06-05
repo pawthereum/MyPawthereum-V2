@@ -7,7 +7,7 @@ import Badges from './components/Badges.jsx'
 import { Card } from "antd";
 import useBreakpoint from 'hooks/useBreakpoint';
 import { useEffect, useState } from 'react';
-import { PAWTH_ADDRESS } from '../../constants'
+import { PAWTH_ADDRESS, PAWTH_CHARITY_WALLET } from '../../constants'
 import { PAWTH_ABI } from '../../constants/abis/pawth'
 import { useMoralis } from "react-moralis";
 import { Skeleton } from 'antd'
@@ -18,7 +18,9 @@ function Stats() {
   const [charityWallet, setCharityWallet] = useState(null)
 
   useEffect(() => {
-    if (!chainId || !web3 || !Moralis) return
+    if (!chainId || !web3 || !Moralis) {
+      return setCharityWallet(PAWTH_CHARITY_WALLET['0x1'])
+    }
 
     getCharityWallet()
 
@@ -99,10 +101,10 @@ function Stats() {
       </div>
       <div style={styles.row}>
         <Card style={styles.card}>
-          <Skeleton loading={!chainId || !charityWallet}>
+          <Skeleton loading={!charityWallet}>
             <CharityStats
               charityWallet={charityWallet}
-              chainId={chainId}
+              chainId={chainId || '0x1'}
             />
           </Skeleton>
         </Card>

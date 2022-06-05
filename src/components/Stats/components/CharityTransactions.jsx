@@ -8,9 +8,10 @@ const abiDecoder = require('abi-decoder');
 abiDecoder.addABI(charityWalletAbi)
 
 function CharityTransactions(props) {
-  const { Moralis, chainId } = useMoralis()
+  console.log(props)
+  const { Moralis } = useMoralis()
 
-  const table = chainId === '0x38' ? "BscTransactions" : "EthTransactions"
+  const table = props.chainId === '0x38' ? "BscTransactions" : "EthTransactions"
 
   const isToCharityAddress = new Moralis.Query(table)
   isToCharityAddress.equalTo("to_address", props?.charityWallet?.toLowerCase())
@@ -23,6 +24,8 @@ function CharityTransactions(props) {
   const [charityTransactions, setCharityTransactions] = useState([])
 
   useEffect(() => {
+    console.log(' we are here ')
+    console.log({ charityTransactionQuery })
     charityTransactionQuery.find()
     .then(results => {
       console.log('resaults', results)
@@ -36,7 +39,7 @@ function CharityTransactions(props) {
         return r
       }).sort((a, b) => a.blockNumber > b.blockNumber ? -1 : 1))
     })
-  }, [chainId, props.charityWallet])
+  }, [props.chainId, props.charityWallet])
 
   if (charityTransactions.length === 0) return ( <Skeleton></Skeleton> )
 
