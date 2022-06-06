@@ -10,6 +10,21 @@ import { PAWSWAP, DEFAULT_SLIPPAGE, COLORS, HIGH_PRICE_IMPACT, MAXMIMUM_PRICE_IM
 import useAllowances from 'hooks/useAllowances.js';
 import CurrencyPairForm from './CurrencyPairForm.jsx';
 import ConfirmSwapModal from './ConfirmSwapModal';
+import Confetti from 'react-dom-confetti';
+
+const confettiConfig = {
+  angle: 90,
+  spread: 360,
+  startVelocity: 40,
+  elementCount: "175",
+  dragFriction: "0.09",
+  duration: "10000",
+  stagger: 3,
+  width: "10px",
+  height: "10px",
+  perspective: "500px",
+  colors: ["#a864fd", "#29cdff", "#78ff44", "#ff718d", "#fdff6a"]
+};
 
 const styles = {
   card: {
@@ -69,6 +84,11 @@ function Swap (props) {
   const [maxApprovalIsLoading, setMaxApprovalIsLoading] = useState(false)
   const [highPriceImpact, setHighPriceImpact] = useState(false)
   const [exceedsMaxPriceImpact, setExceedsMaxPriceImpact] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const popConfetti = () => {
+    setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), parseInt(confettiConfig.duration))
+  }
 
   const approveInputAmount = async ({ isMax }) => {
     isMax ? setMaxApprovalIsLoading(true) : setApprovalIsLoading(true)
@@ -89,6 +109,7 @@ function Swap (props) {
     setSwapButtonIsLoading(true)
     const swap = await executeSwap(trade)
     setSwapButtonIsLoading(false)
+    popConfetti()
   }
 
   useEffect(() => {
@@ -262,6 +283,11 @@ function Swap (props) {
                 >
                   {swapButtonText()}
                 </Button>
+              </Col>
+            </Row>
+            <Row>
+              <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
+                <Confetti active={showConfetti} config={confettiConfig} />
               </Col>
             </Row>
           </Card>

@@ -60,6 +60,7 @@ function CurrencyAmountInput (props) {
 
   const inputMaxAmount = async () => {
     const currency = props.side === 'output' ? outputCurrency : inputCurrency
+    if (!assets) return
     const asset = assets.find(a => a.token_address === currency.address.toLowerCase())
     if (!asset) return
     const balance = isNative(currency.address)
