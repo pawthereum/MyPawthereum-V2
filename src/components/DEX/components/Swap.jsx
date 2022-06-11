@@ -107,9 +107,9 @@ function Swap (props) {
 
   const trySwap = async () => {
     setSwapButtonIsLoading(true)
-    const swap = await executeSwap(trade)
+    const swapResult = await executeSwap(trade)
+    if (swapResult) popConfetti()
     setSwapButtonIsLoading(false)
-    popConfetti()
   }
 
   useEffect(() => {

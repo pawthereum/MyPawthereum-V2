@@ -12,7 +12,7 @@ import { getCreate2Address } from '@ethersproject/address'
 import { Token, TokenAmount, Pair, TradeType, Trade, Route, Percent } from '@uniswap/sdk'
 import { getTaxStructure } from 'helpers/taxStructureFetcher'
 
-const openNotification = ({ message, description, link }) => {
+const openNotification = ({ message, description, link, duration }) => {
   notification.open({
     message,
     description,
@@ -21,7 +21,7 @@ const openNotification = ({ message, description, link }) => {
       window.location.href = link
     },
     placement: 'topRight',
-    duration: 10,
+    duration: duration || 10,
   });
 };
 
@@ -519,6 +519,8 @@ const useSwapContext = () => {
       )
     )
 
+    console.log('before', amountOut.toSignificant(9))
+
     // dex trading fees for non-pawswap dexes come out postswap in eth
     if (dex?.name.toLowerCase() !== 'pawswap') {
       const tradingFeePercentage = new Percent('33', '1000') // most other dexs have  0.3% - .25% and pawswap will always take 0.03% so call it 0.33%
@@ -530,6 +532,7 @@ const useSwapContext = () => {
           outputCurrency.decimals
         )
       )
+      console.log('after', amountOut.toSignificant(9))
     }
 
     // build the trade
@@ -665,24 +668,24 @@ const useSwapContext = () => {
     )
 
     // dex trading fees for non-pawswap dexes come out postswap in eth
-    if (dex?.name.toLowerCase() !== 'pawswap') {
-      const tradingFeePercentage = new Percent('33', '1000') // most other dexs have  0.3% - .25% and pawswap will always take 0.03% so call it 0.33%
-      const amountInPercentageOfTradingFee = ONE_HUNDRED_PERCENT.subtract(tradingFeePercentage)
-      amountIn = new TokenAmount(
-        inputToken,
-        Moralis.Units.Token(
-          amountIn.divide(amountInPercentageOfTradingFee).toFixed(inputCurrency.decimals),
-          inputCurrency.decimals
-        )
-      )
-      amountInSlippage = new TokenAmount(
-        inputToken,
-        Moralis.Units.Token(
-          amountInSlippage.divide(amountInPercentageOfTradingFee).toFixed(inputCurrency.decimals),
-          inputCurrency.decimals
-        )
-      )
-    }
+    // if (dex?.name.toLowerCase() !== 'pawswap') {
+    //   const tradingFeePercentage = new Percent('33', '1000') // most other dexs have  0.3% - .25% and pawswap will always take 0.03% so call it 0.33%
+    //   const amountInPercentageOfTradingFee = ONE_HUNDRED_PERCENT.subtract(tradingFeePercentage)
+    //   amountIn = new TokenAmount(
+    //     inputToken,
+    //     Moralis.Units.Token(
+    //       amountIn.divide(amountInPercentageOfTradingFee).toFixed(inputCurrency.decimals),
+    //       inputCurrency.decimals
+    //     )
+    //   )
+    //   amountInSlippage = new TokenAmount(
+    //     inputToken,
+    //     Moralis.Units.Token(
+    //       amountInSlippage.divide(amountInPercentageOfTradingFee).toFixed(inputCurrency.decimals),
+    //       inputCurrency.decimals
+    //     )
+    //   )
+    // }
 
     trade.inputAmountSlippage = amountInSlippage // will send this as part of the tx (min to receive before reverting)
     trade.inputAmount = amountIn // will show this in the UI
@@ -954,8 +957,13 @@ const useSwapContext = () => {
     } catch (e) {
       console.log('error doing swap', e)
       setTradeIsLoading(false)
+      let title = "⚠️ Error swapping!"
+      if (e.code === -32603) {
+        title += ` Try increasing your slippage`
+      }
+      
       return openNotification({
-        message: "⚠️ Error swapping!",
+        message: title,
         description: `${e.message} ${e.data?.message}`
       });
     }
@@ -968,10 +976,20 @@ const useSwapContext = () => {
 
     try {
       const tx = await swapReq.wait()
+      const txEvent = tx.events[tx.events.length - 1]
+      const purchasedAmount = side === 'buy'
+        ? Moralis.Units.FromWei(txEvent.args.ethSpent, inputCurrency.decimals)
+        : Moralis.Units.FromWei(txEvent.args.tokensSold, inputCurrency.decimals)
+      const receivedAmount = side === 'buy'
+        ? Moralis.Units.FromWei(txEvent.args.tokensReceived, outputCurrency.decimals)
+        : Moralis.Units.FromWei(txEvent.args.ethReceived, outputCurrency.decimals)
+      const msg = `${purchasedAmount} ${inputCurrency.symbol} swapped for ${receivedAmount} ${outputCurrency.symbol}!`
+      
       openNotification({
         message: "🎉 Swap Complete!",
-        description: `${tx.transactionHash}`,
-        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash
+        description: `${msg}\n${tx.transactionHash}`,
+        link: networkConfigs[chainId].blockExplorerUrl + 'tx/' + tx.transactionHash,
+        duration: 30
       })
       console.log('🌈🌈🌈🌈🌈🌈🌈')
       // const tokenBalanceAfterRaw = await token.balanceOf(account)
