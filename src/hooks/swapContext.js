@@ -242,7 +242,7 @@ const useSwapContext = () => {
   const getTaxes = async (taxStructContract) => {
     let taxStructure
     try {
-      taxStructure = await getTaxStructure({ taxStructContract, account })
+      taxStructure = await getTaxStructure({ taxStructContract, account, includeWallets: true })
     } catch (e)  {
       setTradeIsLoading(false)
       return openNotification({
@@ -896,10 +896,6 @@ const useSwapContext = () => {
       PAWSWAP[chainId]?.abi,
       web3.getSigner()
     )
-    console.log("PAWSWAP IS " + PAWSWAP[chainId]?.address)
-    console.log("AMOUNT IS " + isExactIn
-    ? inputAmount.raw.toString() //Moralis.Units.Token(amountIn, tokenIn?.decimals)
-    : swap.inputAmountSlippage.raw.toString())
     let swapReq
 
     // const ethers = Moralis.web3Library;
@@ -1027,6 +1023,7 @@ const useSwapContext = () => {
         console.log('dex', dex)
         dexForTrade = updatedDex
       }
+      console.log({ dexForTrade })
       // fetch details about the pair to estimate trades
       // const dex = await updateDex(inputCurrency, outputCurrency)
       const sortedTokenPair = await sortTokens([inputCurrency, outputCurrency])

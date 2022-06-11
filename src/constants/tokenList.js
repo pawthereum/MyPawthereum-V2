@@ -13,7 +13,7 @@ export const tokenList = {
     {
       "name": "Pawthereum",
       "symbol": "PAWTH",
-      "address": "0xCe101FDa1cb9737A0bef4a97D787943833C040EA",
+      "address": "0xdf09234aB3247656F6672DCcc011F78bBabCB8Ea",
       "chainId": 97,
       "decimals": 9,
       "logoURI": "https://pawthereum.com/wp-content/uploads/shared-files/pawth-logo-transparent.png",

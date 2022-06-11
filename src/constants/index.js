@@ -15,8 +15,8 @@ export const PAWTH_ADDRESS = {
   '0x38': '0x409e215738e31d8ab252016369c2dd9c2008fee0', // bsc mainnet
   'bsc': '0x409e215738e31d8ab252016369c2dd9c2008fee0',
   '0x4': '0x459BC05bF203cEd24E76c598B507aEAa9eD36C28', // rinkeby testnet
-  '0x61': '0xCe101FDa1cb9737A0bef4a97D787943833C040EA', // bsc testnet
-  'bsctest': '0xCe101FDa1cb9737A0bef4a97D787943833C040EA',
+  '0x61': '0xdf09234aB3247656F6672DCcc011F78bBabCB8Ea', // bsc testnet
+  'bsctest': '0xdf09234aB3247656F6672DCcc011F78bBabCB8Ea',
   'localdevchain': '0x0165878A594ca255338adfa4d48449f69242Eb8F',
   '0x539': '0x0165878A594ca255338adfa4d48449f69242Eb8F'
 }
@@ -111,11 +111,13 @@ export const PAWSWAP = {
   },
   '0x61': {
     abi: pawswapAbi,
-    address: '0xA934391bB83fFFd722e4999827A8D0b01ECF977C',
+    address: '0xE4D2774d63A2EA484AA772D7fA405B1BA600F802',
+    // address: '0x496439FeD9036B311974a636e22E84A02272fcD5',
   },
   'bsctest': {
     abi: pawswapAbi,
-    address: '0xA934391bB83fFFd722e4999827A8D0b01ECF977C',
+    address: '0xE4D2774d63A2EA484AA772D7fA405B1BA600F802',
+    // address: '0x496439FeD9036B311974a636e22E84A02272fcD5',
   },
   '0x539': {
     abi: pawswapAbi,
@@ -142,11 +144,11 @@ export const PAWSWAP_ROUTER = {
   },
   '0x61': {
     abi: pawswapRouterAbi,
-    address: '0x7e52fC7871dFf8c133f58Becd390a70E7D2c9776',
+    address: '0x6f6824ecc7b172BE62558264fadA042615f62889',
   },
   'bsctest': {
     abi: pawswapRouterAbi,
-    address: '0x7e52fC7871dFf8c133f58Becd390a70E7D2c9776',
+    address: '0x6f6824ecc7b172BE62558264fadA042615f62889',
   },
   'localdevchain': {
     abi: pawswapRouterAbi,
@@ -181,13 +183,13 @@ export const PAWSWAP_FACTORY = {
   },
   '0x61': {
     abi: pawswapFactoryAbi,
-    address: '0xf5972E0423A13bD05CE871Dd2D48b4520ad5dE91',
-    initCodeHash: '0x4f255b7d537c12de3dfd6eafebacd1c5b1adfc1d551613409597b4f3ff0ef1c8',
+    address: '0xF1D715d460Be0e8fc4270eD99b1DCa7247FB9627',
+    initCodeHash: '0xb23d0371be9bb96ee2d50bd7d313afedad5b11c533ad0adc43ce62480b2a6301',
   },
   'bsctest': {
     abi: pawswapFactoryAbi,
-    address: '0xf5972E0423A13bD05CE871Dd2D48b4520ad5dE91',
-    initCodeHash: '0x4f255b7d537c12de3dfd6eafebacd1c5b1adfc1d551613409597b4f3ff0ef1c8',
+    address: '0xF1D715d460Be0e8fc4270eD99b1DCa7247FB9627',
+    initCodeHash: '0xb23d0371be9bb96ee2d50bd7d313afedad5b11c533ad0adc43ce62480b2a6301',
   },
   'localdevchain': {
     abi: pawswapFactoryAbi,
