@@ -129,6 +129,13 @@ const useSwapContext = () => {
   }
 
   const updateInputCurrency = async (currency) => {
+    // nullify input currency if necessary
+    if (!currency) {
+      setInputAmount(null)
+      setInputCurrency(null)
+      setInputToken(null)
+      return
+    } 
     const token = new Token(chainId, currency?.address, currency?.decimals, currency?.symbol, currency?.name)
     await Promise.all([
       setInputAmount(null),
@@ -151,6 +158,12 @@ const useSwapContext = () => {
   }
 
   const updateOutputCurrency = async (currency) => {
+    // nullify output currency if necessary
+    if (!currency) {
+      setOutputCurrency(null)
+      setOutputToken(null)
+      return
+    } 
     const token = new Token(chainId, currency?.address, currency?.decimals, currency?.symbol, currency?.name)
     await Promise.all([
       setOutputCurrency(currency),
@@ -1021,6 +1034,7 @@ const useSwapContext = () => {
 
   useEffect(() => {
     if (!inputCurrency || !outputCurrency) return
+    if (inputCurrency.address === outputCurrency.address) return
     console.log({
       inputCurrency,
       outputCurrency
@@ -1061,6 +1075,10 @@ const useSwapContext = () => {
       outputAmount
     })
     if (!inputAmount && !outputAmount) return
+    console.log({
+      inputCurrency, outputCurrency
+    })
+    if (inputCurrency.address === outputCurrency.address) return
     if (inputAmount?.toSignificant(inputCurrency.decimals) === '0' && !outputAmount) return
     if (!inputAmount && outputAmount?.toSignificant(outputCurrency?.decimals) === '0') return
     if (!inputCurrency || !outputCurrency || !pairReserves) return

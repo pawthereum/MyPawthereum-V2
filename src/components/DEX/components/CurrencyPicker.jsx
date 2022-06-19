@@ -107,6 +107,9 @@ function CurrencyPicker (props) {
       console.log({ listCurrency, props })
       updateListCurrency(listCurrency, props.preventTaxStructFetch)
     }
+    if (props.side === 'input' && !inputCurrency) {
+      setPickedCurrency(null)
+    }
     if (props.side === 'input' && inputCurrency) {
       if (inputCurrency?.address.toLowerCase() === outputCurrency?.address.toLowerCase()) {
         updateOutputCurrency(null)
@@ -115,6 +118,9 @@ function CurrencyPicker (props) {
         updateOutputCurrency(nativeCurrency)
       }
       setPickedCurrency(inputCurrency)
+    }
+    if (props.side === 'output' && !outputCurrency) {
+      setPickedCurrency(null)
     }
     if (props.side === 'output' && outputCurrency) {
       // clear the other input if same token selected

@@ -58,11 +58,14 @@ function CurrencyPairForm (props) {
   }
 
   const swapInputs = () => {
-    const newInput = outputCurrency
-    const newOutput = inputCurrency
+    const newInput = outputCurrency || null
+    const newOutput = inputCurrency || null
     clearTrade()
     updateInputCurrency(newInput)
     updateOutputCurrency(newOutput)
+
+    if (!newInput) setInputColor(COLORS.defaultBg)
+    if (!newOutput) setOutputColor(COLORS.defaultBg)
   }
 
   useEffect(() => {
